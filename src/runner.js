@@ -23,7 +23,7 @@ var processingQueueTop = new basis.data.dataset.Slice({
       if (delta.inserted)
         delta.inserted.forEach(function(item){
           basis.nextTick(function(){
-            item.run()
+            item.run();
           });
         });
     }

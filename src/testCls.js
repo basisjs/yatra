@@ -1,6 +1,7 @@
 require('basis.data');
 require('basis.dom.wrapper');
 
+var envFactory = require('./env.js');
 var arrayFrom = basis.array.from;
 
 var ERROR_WRONG_ANSWER = 'ERROR_WRONG_ANSWER';
@@ -130,6 +131,7 @@ var Test = basis.dom.wrapper.Node.subclass({
     var report = new basis.data.Object();
     var isSuccess;
     var error;
+    var envRunner;
     var env = {
       is: checkAnswer,
       report: {
@@ -141,40 +143,62 @@ var Test = basis.dom.wrapper.Node.subclass({
 
     this.setState(basis.data.STATE.PROCESSING);
 
-    try {
-      // basis.dev.warn = function(){
-      //   warnMessages.push(arguments);
-      //   _warn.apply(this, arguments);
-      // };
-      // basis.dev.error = function(){
-      //   errorMessages.push(arguments);
-      //   _error.apply(this, arguments);
-      // };
+    if (!this.data.init)
+    {
+      var cursor = this.parentNode;
+      while (cursor && !cursor.envRunner)
+        cursor = cursor.parentNode;
 
-      this.test.call(env);
-    } catch(e) {
-      env.report.testCount++;
-
-      error = e;
-    } finally {
-      // basis.dev.warn = _warn;
-      // basis.dev.error = _error;
+      envRunner = cursor && cursor.envRunner;
     }
 
-    if (!error && env.report.testCount != env.report.successCount)
-      error = ERROR_TEST_FAULT;
+    if (this.data.init || !envRunner)
+    {
+      envRunner = envFactory.create(this.data.init, this.data.html, this.data.css);
+      this.envRunner = envRunner;
+    }
 
-    env.report.error = error;
-    env.report.empty = !error && env.report.testCount == 0;
-    env.report.result = !error && !errorMessages.length;
-    env.report.warns = warnMessages.length ? warnMessages : null;
+    envRunner.run(this.test, this, function(test){
+      try {
+        // basis.dev.warn = function(){
+        //   warnMessages.push(arguments);
+        //   _warn.apply(this, arguments);
+        // };
+        // basis.dev.error = function(){
+        //   errorMessages.push(arguments);
+        //   _error.apply(this, arguments);
+        // };
 
-    report.update(env.report);
+        test.call(env);
+      } catch(e) {
+        env.report.testCount++;
 
-    this.setState(error ? basis.data.STATE.ERROR : basis.data.STATE.READY, report);
+        error = e;
+      } finally {
+        // basis.dev.warn = _warn;
+        // basis.dev.error = _error;
+      }
 
-    this.childNodes.forEach(function(test){
-      test.run();
+      this.childNodes.forEach(function(test){
+        test.run();
+        this.testCount++;
+        this.successCount += test.state.data.success;
+      }, env.report);
+
+      if (!error && env.report.testCount != env.report.successCount)
+        error = ERROR_TEST_FAULT;
+
+      env.report.error = error;
+      env.report.empty = !error && env.report.testCount == 0;
+      env.report.success = !error && !errorMessages.length;
+      env.report.warns = warnMessages.length ? warnMessages : null;
+
+      report.update(env.report);
+
+      this.setState(error ? basis.data.STATE.ERROR : basis.data.STATE.READY, report);
+
+      if (this.envRunner)
+        this.envRunner.destroy();
     });
   }
 });

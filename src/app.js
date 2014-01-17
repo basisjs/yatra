@@ -20,7 +20,7 @@ module.exports = basis.app.create({
     basis.object.extend(this, api);
     return this.root = new basis.ui.Node({
       container: document.body,
-      template: '<div><!--{tests}--><button event-click="run">run</button></div>',
+      template: '<div><button event-click="run">run</button><!--{tests}--></div>',
       action: {
         run: function(){
           runner.run(this.satellite.tests.childNodes.map(function(item){

@@ -1,0 +1,54 @@
+<!doctype html>
+
+<html>
+<head>
+  <style>
+    HTML
+    {
+      background: green;
+    }
+  </style>
+  <script>
+    function importScripts(){
+      function importScript(url){
+        var req = new XMLHttpRequest();
+        req.open('GET', url, false);
+        req.setRequestHeader('If-Modified-Since', new Date(0).toGMTString());
+        req.send('');
+
+        if (req.status >= 200 && req.status < 400)
+          (window.execScript || function(fn){
+            window['eval'].call(window, fn);
+          })(req.responseText);
+        else
+          throw 'Can\'t load script: ' + url;
+      }
+
+      for (var i = 0; i < arguments.length; i++)
+        importScript(arguments[i])
+    }
+
+    function initScope(initCode, html, css){
+      if (html)
+        document.body.innerHTML = typeof html == 'function' ? html() : html;
+
+      if (css)
+      {debugger;
+        var styleEl = document.createElement('style');
+        var styleText = document.createTextNode(typeof css == 'function' ? css() : css);
+        styleEl.appendChild(styleText);
+        document.head.appendChild(styleEl);
+      }
+
+      if (initCode)
+        eval(initCode);
+
+      return function applyEnvironment(fn){
+        return eval('0,' + fn);
+      }
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>
