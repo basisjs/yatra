@@ -1,0 +1,13 @@
+{
+  "name": "basisjs-test-runner?",
+  "version": "0.1.0",
+  "main": "src/app.js",
+  "dependencies": {
+    "basisjs": "1.0.1"
+  },
+  "ignore": [
+    ".*",
+    "**/.*",
+    "lib"
+  ]
+}
