@@ -30,6 +30,21 @@ var processingQueueTop = new basis.data.dataset.Slice({
   }
 });
 
+function extractTests(tests){
+  var result = [];
+
+  for (var i = 0, test; test = tests[i]; i++)
+  {
+    if (typeof test.test == 'function')
+      result.push(test);
+
+    if (test.firstChild)
+      result.push.apply(result, extractTests(test.childNodes));
+  }
+
+  return result;
+}
+
 function run(tests){
   if (processingQueueTop.itemCount)
   {
@@ -44,7 +59,7 @@ function run(tests){
     item.reset();
   });
 
-  processingQueue.set(tests);
+  processingQueue.set(extractTests(tests));
 }
 function stop(){
   processingQueue.remove(processingQueue.getItems().filter(function(item){

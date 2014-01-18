@@ -18,6 +18,7 @@ module.exports = basis.app.create({
   title: 'Basis.js test environment',
   init: function(){
     basis.object.extend(this, api);
+
     return this.root = new basis.ui.Node({
       container: document.body,
       template: '<div><button event-click="run">run</button><!--{tests}--></div>',
@@ -41,7 +42,9 @@ module.exports = basis.app.create({
               name: 'data:name',
               state: ['stateChanged', 'state'],
               stateData: ['stateChanged', function(node){
-                return (node.state.data && node.state.data.data.error) || '';
+                return node.state == basis.data.STATE.PROCESSING
+                  ? (100 * node.state.data || 0).toFixed(2)
+                  : (node.state.data && node.state.data.data.error) || '';
               }]
             }
           }

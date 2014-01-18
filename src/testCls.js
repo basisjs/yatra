@@ -1,4 +1,7 @@
 require('basis.data');
+require('basis.data.value');
+require('basis.data.index');
+require('basis.data.dataset');
 require('basis.dom.wrapper');
 
 var envFactory = require('./env.js');
@@ -94,8 +97,7 @@ var Test = basis.dom.wrapper.Node.subclass({
   className: 'Test',
 
   name: '',
-  test: function(){
-  },
+  test: null,
 
   // name
   // before
@@ -110,10 +112,49 @@ var Test = basis.dom.wrapper.Node.subclass({
       if (basis.resource.isResource(test))
         test = test.fetch();
 
-      if (Array.isArray(test))
-        this.setChildNodes(test);
-      else
+      if (typeof test == 'function')
         this.test = test;
+      else
+      {
+        this.setChildNodes(test);
+
+        this.testByState_ = new basis.data.dataset.Split({
+          source: this.getChildNodesDataset(),
+          ruleEvents: 'stateChanged',
+          rule: function(test){
+            return String(test.state);
+          }
+        });
+
+        this.state_ = new basis.data.value.Expression(
+          basis.data.index.count(this.getChildNodesDataset()),
+          basis.data.index.count(this.testByState_.getSubset('processing', true)),
+          basis.data.index.count(this.testByState_.getSubset('error', true)),
+          basis.data.index.count(this.testByState_.getSubset('ready', true)),
+          function(count, processing, error, ready){
+            if (processing + error + ready == 0)
+              return [basis.data.STATE.UNDEFINED];
+
+            if (processing || error + ready < count)
+              return [
+                basis.data.STATE.PROCESSING,
+                (error + ready) / count
+              ];
+
+            return [
+              error ? basis.data.STATE.ERROR : basis.data.STATE.READY,
+              new basis.data.Object({
+                error: error ? ERROR_TEST_FAULT : null,
+                empty: !count,
+                testCount: count,
+                successCount: ready
+              })
+            ];
+          }
+        ).link(this, function(state){
+          this.setState.apply(this, state);
+        });
+      }
     }
   },
 
@@ -124,13 +165,40 @@ var Test = basis.dom.wrapper.Node.subclass({
     });
   },
 
+  getEnvRunner: function(){
+    if (this.envRunner)
+      return this.envRunner;
+
+    var envRunner;
+
+    if (!this.data.init)
+      envRunner = this.parentNode && this.parentNode.getEnvRunner();
+
+    if (this.data.init || !envRunner)
+    {
+      envRunner = envFactory.create(this.data.init, this.data.html);
+      this.envRunner = envRunner;
+    }
+
+    return envRunner;
+  },
   reset: function(){
     this.setState(basis.data.STATE.UNDEFINED);
+
+    if (this.envRunner)
+    {
+      this.envRunner.destroy();
+      this.envRunner = null;
+    }
+
     this.childNodes.forEach(function(test){
       test.reset();
     });
   },
   run: function(){
+    if (typeof this.test != 'function')
+      return;
+
     var _warn = basis.dev.warn;
     var _error = basis.dev.error;
     var warnMessages = [];
@@ -138,7 +206,6 @@ var Test = basis.dom.wrapper.Node.subclass({
     var report = new basis.data.Object();
     var isSuccess;
     var error;
-    var envRunner;
     var env = {
       is: checkAnswer,
       report: {
@@ -150,22 +217,7 @@ var Test = basis.dom.wrapper.Node.subclass({
 
     this.setState(basis.data.STATE.PROCESSING);
 
-    if (!this.data.init)
-    {
-      var cursor = this.parentNode;
-      while (cursor && !cursor.envRunner)
-        cursor = cursor.parentNode;
-
-      envRunner = cursor && cursor.envRunner;
-    }
-
-    if (this.data.init || !envRunner)
-    {
-      envRunner = envFactory.create(this.data.init, this.data.html);
-      this.envRunner = envRunner;
-    }
-
-    envRunner.run(this.test, this, function(test){
+    this.getEnvRunner().run(this.test, this, function(test){
       try {
         // basis.dev.warn = function(){
         //   warnMessages.push(arguments);
@@ -209,10 +261,16 @@ var Test = basis.dom.wrapper.Node.subclass({
           : basis.data.STATE.READY,
         report
       );
-
-      if (this.envRunner)
-        this.envRunner.destroy();
     });
+  },
+
+  destroy: function(){
+    this.testByState_.destroy()
+    this.testByState_ = null;
+    this.state_.destroy();
+    this.state_ = null;
+
+    basis.dom.wrapper.Node.prototype.destroy.call(this);
   }
 });
 
