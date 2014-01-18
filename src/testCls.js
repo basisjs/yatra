@@ -18,6 +18,15 @@ function sliceOwnOnly(obj){
   return result;
 }
 
+function makeStaticCopy(value){
+  if (value && typeof value == 'object')
+    return Array.isArray(value)
+      ? arrayFrom(value)
+      : sliceOwnOnly(value);
+
+  return value;
+}
+
 function resolveError(answer, result){
   if (typeof answer != typeof result)
     return ERROR_TYPE_MISSMATCH;
@@ -69,20 +78,16 @@ function resolveError(answer, result){
 function checkAnswer(answer, result){
   var error = resolveError(answer, result);
 
+  this.report.testCount++;
+
   if (error)
-  {
     this.report.errorLines[this.report.testCount] = {
       error: error,
-      answer: answer && typeof answer == 'object' ? (Array.isArray(answer) ? arrayFrom(answer) : sliceOwnOnly(answer)) : answer,
-      result: result && typeof result == 'object' ? (Array.isArray(result) ? arrayFrom(result) : sliceOwnOnly(result)) : result
+      answer: makeStaticCopy(answer),
+      result: makeStaticCopy(result)
     };
-    this.report.testCount++;
-  }
   else
-  {
-    this.report.testCount++;
     this.report.successCount++;
-  }
 };
 
 var Test = basis.dom.wrapper.Node.subclass({
@@ -184,20 +189,26 @@ var Test = basis.dom.wrapper.Node.subclass({
       this.childNodes.forEach(function(test){
         test.run();
         this.testCount++;
-        this.successCount += test.state.data.success;
+        this.successCount += test.state == basis.data.STATE.READY;
       }, env.report);
 
       if (!error && env.report.testCount != env.report.successCount)
         error = ERROR_TEST_FAULT;
 
-      env.report.error = error;
-      env.report.empty = !error && env.report.testCount == 0;
-      env.report.success = !error && !errorMessages.length;
-      env.report.warns = warnMessages.length ? warnMessages : null;
+      basis.object.extend(env.report, {
+        error: error,
+        empty: !error && env.report.testCount == 0,
+        warns: warnMessages.length ? warnMessages : null
+      });
 
       report.update(env.report);
 
-      this.setState(error ? basis.data.STATE.ERROR : basis.data.STATE.READY, report);
+      this.setState(
+        error || errorMessages.length
+          ? basis.data.STATE.ERROR
+          : basis.data.STATE.READY,
+        report
+      );
 
       if (this.envRunner)
         this.envRunner.destroy();
