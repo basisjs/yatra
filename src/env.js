@@ -7,11 +7,10 @@ else
   EnvClass = function(){}
 
 module.exports = {
-  create: function(init, html, css){
+  create: function(init, html){
     return new EnvClass({
       initEnv: init,
-      initHtml: html,
-      initCss: css
+      html: html
     });
   }
 };

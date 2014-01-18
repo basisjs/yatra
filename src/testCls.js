@@ -114,7 +114,9 @@ var Test = basis.dom.wrapper.Node.subclass({
 
   childClass: basis.Class.SELF,
   childFactory: function(cfg){
-    return new this.childClass({ data: cfg });
+    return new this.childClass({
+      data: cfg
+    });
   },
 
   reset: function(){
@@ -154,7 +156,7 @@ var Test = basis.dom.wrapper.Node.subclass({
 
     if (this.data.init || !envRunner)
     {
-      envRunner = envFactory.create(this.data.init, this.data.html, this.data.css);
+      envRunner = envFactory.create(this.data.init, this.data.html);
       this.envRunner = envRunner;
     }
 

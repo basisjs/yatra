@@ -1,9 +1,16 @@
 require('basis.utils.info');
 require('basis.ui');
 
+function runInContext(contextWindow, code){
+  (contextWindow.execScript || function(code){
+    contextWindow['eval'].call(contextWindow, code);
+  })(code);
+}
+
 var FrameEnv = basis.ui.Node.subclass({
   applyEnvironment: null,
   initEnv: null,
+  html: null,
 
   postInit: function(){
     basis.ui.Node.prototype.postInit.call(this);
@@ -11,19 +18,26 @@ var FrameEnv = basis.ui.Node.subclass({
   },
 
   template:
-    '<iframe' +
-      ' src="' + basis.asset('src/env/iframe.html') + '"' +
+    '<iframe src="{src}"' +
       ' event-load="ready"' +
-      ' srcdoc="' + require('./iframe.html').replace(/"/g, '&quote;') + '"' +
-      ' style="width: 10px; height: 10px; border: none"/>',
-
+      ' style="width: 10px; height: 10px; position: absolute; border: none; opacity: 0.0001"/>',
+  binding: {
+    src: function(node){
+      return node.html || basis.asset('src/env/iframe.html');
+    }
+  },
   action: {
     ready: function(){
-      this.applyEnvironment = this.element.contentWindow.initScope(
-        basis.utils.info.fn(this.initEnv).body,
-        this.initHtml,
-        this.initCss
+      var frameWindow = this.element.contentWindow;
+
+      runInContext(frameWindow,
+        resource('iframe_inject.js').get(true) +
+        (typeof this.initEnv == 'function'
+          ? basis.utils.info.fn(this.initEnv).body
+          : '')
       );
+
+      this.applyEnvironment = frameWindow.Function;
 
       if (this.runArgs)
       {
@@ -35,7 +49,7 @@ var FrameEnv = basis.ui.Node.subclass({
 
   run: function(test, context, runTest){
     if (this.applyEnvironment)
-      runTest.call(context, this.applyEnvironment(test));
+      runTest.call(context, this.applyEnvironment(basis.utils.info.fn(test).body));
     else
       this.runArgs = arguments;
   }
