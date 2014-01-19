@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "main": "src/app.js",
   "dependencies": {
-    "basisjs": "1.0.1"
+    "basisjs": "1.0.1",
+    "esprima": "1.0.4"
   },
   "ignore": [
     ".*",

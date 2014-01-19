@@ -3,8 +3,6 @@ var EnvClass;
 
 if (document)
   EnvClass = resource('env/iframe.js').fetch();
-else
-  EnvClass = function(){}
 
 module.exports = {
   create: function(init, html){

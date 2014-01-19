@@ -16,3 +16,13 @@ function importScripts(){
   for (var i = 0; i < arguments.length; i++)
     importScript(arguments[i])
 }
+
+function deprecateTestEnvironment(){
+  if (typeof deprecateTestFunction == 'function')
+    deprecateTestFunction();
+}
+
+function __initTestEnvironment(deprecateFn){
+  deprecateTestFunction = deprecateFn;
+  return Function;
+}

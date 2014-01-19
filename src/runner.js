@@ -1,16 +1,13 @@
 require('basis.data');
 require('basis.data.dataset');
 
-var processingQueue = new basis.data.Dataset({
-  listen: {
-    item: {
-      stateChanged: function(sender, oldState){
-        // processing -> non-processing
-        if (oldState == basis.data.STATE.PROCESSING &&
-            sender.state != basis.data.STATE.PROCESSING)
-          this.remove(sender);
-      }
-    }
+var testsToRun = new basis.data.Dataset();
+var processingQueue = new basis.data.dataset.Subset({
+  source: testsToRun,
+  ruleEvents: 'stateChanged',
+  rule: function(test){
+    return test.state != basis.data.STATE.READY &&
+           test.state != basis.data.STATE.ERROR;
   }
 });
 
@@ -45,24 +42,24 @@ function extractTests(tests){
   return result;
 }
 
-function run(tests){
+function run(data){
   if (processingQueueTop.itemCount)
   {
     stop();
     basis.nextTick(function(){
-      run(tests);
+      run(data);
     });
     return;
   }
 
-  tests.forEach(function(item){
+  data.forEach(function(item){
     item.reset();
   });
 
-  processingQueue.set(extractTests(tests));
+  testsToRun.set(extractTests(data));
 }
 function stop(){
-  processingQueue.remove(processingQueue.getItems().filter(function(item){
+  testsToRun.remove(testsToRun.getItems().filter(function(item){
     return item.state != basis.data.STATE.PROCESSING;
   }));
 }

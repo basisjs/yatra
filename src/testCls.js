@@ -3,6 +3,7 @@ require('basis.data.value');
 require('basis.data.index');
 require('basis.data.dataset');
 require('basis.dom.wrapper');
+require('esprima');
 
 var envFactory = require('./env.js');
 var arrayFrom = basis.array.from;
@@ -113,7 +114,33 @@ var Test = basis.dom.wrapper.Node.subclass({
         test = test.fetch();
 
       if (typeof test == 'function')
-        this.test = test;
+      {
+        var code = basis.utils.info.fn(test).body.replace(/^(\s*\n)+|(\n\s*)*$/g, '');
+        var buffer = [];
+        var token;
+        var ast = esprima.parse(code, {
+          loc: true,
+          range: true,
+          comment: true,
+          tokens: true
+        });
+
+        for (var i = 0, pre, prev, token; i < ast.tokens.length; i++, prev = token)
+        {
+          token = ast.tokens[i];
+          pre = code.substring(prev ? prev.range[1] : 0, token.range[0]);
+
+          if (pre)
+            buffer.push(pre);
+
+          buffer.push(token.value);
+        }
+
+        buffer.push(code.substr(token ? token.range[1] : 0));
+
+        this.test = Function(buffer.join(''));
+        //console.log(buffer.join(''));
+      }
       else
       {
         this.setChildNodes(test);
@@ -144,10 +171,12 @@ var Test = basis.dom.wrapper.Node.subclass({
             return [
               error ? basis.data.STATE.ERROR : basis.data.STATE.READY,
               new basis.data.Object({
-                error: error ? ERROR_TEST_FAULT : null,
-                empty: !count,
-                testCount: count,
-                successCount: ready
+                data: {
+                  error: error ? ERROR_TEST_FAULT : null,
+                  empty: !count,
+                  testCount: count,
+                  successCount: ready
+                }
               })
             ];
           }
@@ -174,9 +203,12 @@ var Test = basis.dom.wrapper.Node.subclass({
     if (!this.data.init)
       envRunner = this.parentNode && this.parentNode.getEnvRunner();
 
-    if (this.data.init || !envRunner)
+    if (this.data.init || this.data.html || !envRunner)
     {
       envRunner = envFactory.create(this.data.init, this.data.html);
+      envRunner.addHandler({
+        destroy: this.reset
+      }, this);
       this.envRunner = envRunner;
     }
 

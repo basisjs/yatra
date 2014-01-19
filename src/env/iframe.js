@@ -37,7 +37,10 @@ var FrameEnv = basis.ui.Node.subclass({
           : '')
       );
 
-      this.applyEnvironment = frameWindow.Function;
+      this.applyEnvironment = frameWindow.__initTestEnvironment(function(){
+        // env deprecates
+        this.destroy();
+      }.bind(this));
 
       if (this.runArgs)
       {
