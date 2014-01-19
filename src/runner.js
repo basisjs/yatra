@@ -32,7 +32,7 @@ function extractTests(tests){
 
   for (var i = 0, test; test = tests[i]; i++)
   {
-    if (typeof test.test == 'function')
+    if (test.test !== null)
       result.push(test);
 
     if (test.firstChild)

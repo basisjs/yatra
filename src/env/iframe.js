@@ -50,9 +50,9 @@ var FrameEnv = basis.ui.Node.subclass({
     }
   },
 
-  run: function(test, context, runTest){
+  run: function(code, context, runTest){
     if (this.applyEnvironment)
-      runTest.call(context, this.applyEnvironment(basis.utils.info.fn(test).body));
+      runTest.call(context, this.applyEnvironment(code));
     else
       this.runArgs = arguments;
   }

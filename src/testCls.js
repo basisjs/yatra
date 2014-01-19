@@ -11,6 +11,7 @@ var arrayFrom = basis.array.from;
 var ERROR_WRONG_ANSWER = 'ERROR_WRONG_ANSWER';
 var ERROR_TYPE_MISSMATCH = 'ERROR_TYPE_MISSMATCH';
 var ERROR_TEST_FAULT = 'ERROR_TEST_FAULT';
+var ERROR_EMPTY = 'ERROR_EMPTY';
 
 function sliceOwnOnly(obj){
   var result = {};
@@ -29,6 +30,47 @@ function makeStaticCopy(value){
       : sliceOwnOnly(value);
 
   return value;
+}
+
+function value2string(value, linear){
+  switch (typeof value)
+  {
+    case 'boolean':
+    case 'number':
+    case 'undefined':
+      return String(value);
+
+    case 'string':
+      return '\'' + value.replace(/\'/g, '\\\'') + '\'';
+
+    case 'function':
+      return !linear ? value.toString() : value.toString().replace(/\{([\r\n]|.)*\}/, '{..}');
+
+    case 'object':
+      if (value === null)
+        return 'null';
+
+      if (Array.isArray(value))
+        return '[' + value.map(value2string).join(', ') + ']';
+
+      if (value.constructor == Date)
+        return String(value);
+
+      if (!linear)
+      {
+        var res = [];
+        for (var key in value)
+          if (value.hasOwnProperty(key))
+            res.push(key + ': ' + value2string(value[key], true));
+
+        return '{ ' + res.join(', ') + ' }';
+      }
+      else
+        return '{object}';
+
+    default:
+      return 'unknown type `' + (typeof value) + '`';
+  }
 }
 
 function resolveError(answer, result){
@@ -79,25 +121,130 @@ function resolveError(answer, result){
   }
 }
 
-function checkAnswer(answer, result){
-  var error = resolveError(answer, result);
+function prepareTestSourceCode(fn){
+  var code = basis.utils.info.fn(fn).body.replace(/^(\s*\n)+|(\n\s*)*$/g, '');
+  var minOffset = code.split(/\n+/).map(function(line){
+    return line.match(/^(\s*)/)[0]
+  }).sort()[0];
 
-  this.report.testCount++;
+  return code.replace(new RegExp('(^|\\n)' + minOffset, 'g'), '$1');
+}
 
-  if (error)
-    this.report.errorLines[this.report.testCount] = {
-      error: error,
-      answer: makeStaticCopy(answer),
-      result: makeStaticCopy(result)
-    };
-  else
-    this.report.successCount++;
-};
+function refAst(node){
+  for (var key in node)
+    if (node.hasOwnProperty(key))
+    {
+      var value = node[key];
+      if (typeof value == 'object' && value !== null)
+      {
+        if (Array.isArray(value))
+        {
+          value.forEach(function(child){
+            refAst(child);
+            child.parentNode = node;
+            child.parentCollection = this;
+          }, value);
+        }
+        else
+        {
+          refAst(value);
+          value.parentNode = node;
+        }
+      }
+    }
+
+  return node;
+}
+
+function traverseAst(node, visitor){
+  visitor.call(null, node);
+
+  for (var key in node)
+    if (node.hasOwnProperty(key) && key != 'parentNode' && key != 'parentCollection')
+    {
+      var value = node[key];
+      if (typeof value == 'object' && value !== null)
+      {
+        if (Array.isArray(value))
+          value.forEach(function(child){
+            traverseAst(child, visitor);
+          });
+        else
+          traverseAst(value, visitor);
+      }
+    }
+}
+
+function getRangeTokens(ast, start, end){
+  var first;
+
+  for (var i = 0, pre, prev, token; i < ast.tokens.length; i++)
+  {
+    token = ast.tokens[i];
+
+    if (token.range[0] < start)
+      continue;
+
+    if (token.range[1] > end)
+    {
+      token = prev;
+      break;
+    }
+
+    if (!first)
+      first = token;
+
+    prev = token;
+  }
+
+  return [first, token];
+}
+
+function translateAst(ast, start, end){
+  var source = ast.source;
+  var buffer = [];
+
+  for (var i = 0, pre, prev, token; i < ast.tokens.length; i++)
+  {
+    token = ast.tokens[i];
+
+    if (token.range[0] < start)
+      continue;
+
+    if (token.range[1] > end)
+    {
+      token = prev;
+      break;
+    }
+
+    pre = source.substring(prev ? prev.range[1] : start, token.range[0]);
+
+    if (pre)
+      buffer.push(pre);
+
+    buffer.push(token.value);
+    prev = token;
+  }
+
+  buffer.push(source.substring(token ? token.range[1] : start, end));
+
+  return buffer.join('');
+}
+
+function translateNode(node){
+  var ast = node;
+
+  while (ast.parentNode)
+    ast = ast.parentNode;
+
+  return translateAst(ast, node.range[0], node.range[1]);
+}
 
 var Test = basis.dom.wrapper.Node.subclass({
   className: 'Test',
 
   name: '',
+  testSource: null,
   test: null,
 
   // name
@@ -115,31 +262,38 @@ var Test = basis.dom.wrapper.Node.subclass({
 
       if (typeof test == 'function')
       {
-        var code = basis.utils.info.fn(test).body.replace(/^(\s*\n)+|(\n\s*)*$/g, '');
+        var code = prepareTestSourceCode(test);
         var buffer = [];
         var token;
-        var ast = esprima.parse(code, {
+        var ast = refAst(esprima.parse(code, {
           loc: true,
           range: true,
           comment: true,
           tokens: true
+        }));
+
+        ast.source = code;
+
+        traverseAst(ast, function(node){
+          if (node.type == 'CallExpression' &&
+              node.callee.type == 'MemberExpression' &&
+              node.callee.object.type == 'ThisExpression' &&
+              node.callee.computed == false &&
+              node.callee.property.type == 'Identifier' &&
+              node.callee.property.name == 'is')
+          {
+            var tokens = getRangeTokens(ast, node.range[0], node.range[1]);
+            //console.log(tokens[0].value, tokens[1].value);
+            tokens[0].value = 'this.isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + tokens[0].value;
+            //console.log(translateNode(node));
+          }
         });
 
-        for (var i = 0, pre, prev, token; i < ast.tokens.length; i++, prev = token)
-        {
-          token = ast.tokens[i];
-          pre = code.substring(prev ? prev.range[1] : 0, token.range[0]);
+        buffer = translateAst(ast, 0, ast.source.length);
 
-          if (pre)
-            buffer.push(pre);
-
-          buffer.push(token.value);
-        }
-
-        buffer.push(code.substr(token ? token.range[1] : 0));
-
-        this.test = Function(buffer.join(''));
-        //console.log(buffer.join(''));
+        this.testSource = code;
+        this.test = buffer;
+        //console.log(buffer);
       }
       else
       {
@@ -228,23 +382,54 @@ var Test = basis.dom.wrapper.Node.subclass({
     });
   },
   run: function(){
-    if (typeof this.test != 'function')
+    if (this.test === null)
       return;
 
-    var _warn = basis.dev.warn;
-    var _error = basis.dev.error;
+    // var _warn = basis.dev.warn;
+    // var _error = basis.dev.error;
     var warnMessages = [];
     var errorMessages = [];
-    var report = new basis.data.Object();
-    var isSuccess;
     var error;
+    var report = {
+      testSource: this.testSource,
+      successCount: 0,
+      testCount: 0,
+      errorLines: {}
+    };
+    var isNode = null;
     var env = {
-      is: checkAnswer,
-      report: {
-        successCount: 0,
-        testCount: 0,
-        errorLines: []
-      }
+      isFor: function(range, line){
+        isNode = {
+          range: range,
+          line: line
+        };
+      },
+      is: function checkAnswer(answer, result){
+        var error = resolveError(answer, result);
+
+        if (error)
+        {
+          var line = isNode.line;
+          var errors = report.errorLines[line];
+
+          if (!errors)
+            errors = report.errorLines[line] = [];
+
+          errors.push({
+            node: isNode,
+            error: error,
+            answer: makeStaticCopy(answer),
+            answerStr: value2string(answer),
+            result: makeStaticCopy(result),
+            resultStr: value2string(result)
+          });
+        }
+        else
+          report.successCount++;
+
+        report.testCount++;
+      },
+      report: report
     };
 
     this.setState(basis.data.STATE.PROCESSING);
@@ -276,6 +461,9 @@ var Test = basis.dom.wrapper.Node.subclass({
         this.successCount += test.state == basis.data.STATE.READY;
       }, env.report);
 
+      if (!error && !env.report.testCount)
+        error = ERROR_EMPTY;
+
       if (!error && env.report.testCount != env.report.successCount)
         error = ERROR_TEST_FAULT;
 
@@ -285,14 +473,17 @@ var Test = basis.dom.wrapper.Node.subclass({
         warns: warnMessages.length ? warnMessages : null
       });
 
-      report.update(env.report);
-
       this.setState(
         error || errorMessages.length
           ? basis.data.STATE.ERROR
           : basis.data.STATE.READY,
-        report
+        new basis.data.Object({
+          data: report
+        })
       );
+
+      if (error)
+        console.log(this.state.data);
     });
   },
 
