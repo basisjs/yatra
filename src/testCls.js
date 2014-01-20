@@ -240,113 +240,51 @@ function translateNode(node){
   return translateAst(ast, node.range[0], node.range[1]);
 }
 
-var Test = basis.dom.wrapper.Node.subclass({
-  className: 'Test',
+function createTestFactory(data){
+  // warn about deprecated properties
+  if (data.testcase)
+    basis.dev.warn('`testcase` setting is deprecated, use `test` instead');
+
+  // get test itself
+  var test = data.test || data.testcase;
+
+  // make a copy of data for safe changes
+  data = basis.object.slice(data);
+  basis.object.splice(data, ['test', 'testcase']);
+
+  // resolve test content
+  if (test)
+  {
+    if (basis.resource.isResource(data))
+      test = test.fetch();
+  }
+
+  // resolve test instance class
+  var Class;
+  var config = {
+    data: data
+  };
+
+  if (typeof test == 'function')
+  {
+    config.data.test = test;
+    Class = TestCase;
+  }
+  else
+  {
+    config.childNodes = !Array.isArray(test) ? [] : test;
+    Class = TestSuite;
+  }
+
+  // create instance
+  return new Class(config);
+}
+
+var AbstractTest = basis.dom.wrapper.Node.subclass({
+  className: 'AbstractTest',
 
   name: '',
-  testSource: null,
-  test: null,
-
-  // name
-  // before
-  // test
-  // after
-  init: function(){
-    basis.dom.wrapper.Node.prototype.init.call(this);
-
-    var test = this.data.test || this.data.testcase;
-    if (test)
-    {
-      if (basis.resource.isResource(test))
-        test = test.fetch();
-
-      if (typeof test == 'function')
-      {
-        var code = prepareTestSourceCode(test);
-        var buffer = [];
-        var token;
-        var ast = refAst(esprima.parse(code, {
-          loc: true,
-          range: true,
-          comment: true,
-          tokens: true
-        }));
-
-        ast.source = code;
-
-        traverseAst(ast, function(node){
-          if (node.type == 'CallExpression' &&
-              node.callee.type == 'MemberExpression' &&
-              node.callee.object.type == 'ThisExpression' &&
-              node.callee.computed == false &&
-              node.callee.property.type == 'Identifier' &&
-              node.callee.property.name == 'is')
-          {
-            var tokens = getRangeTokens(ast, node.range[0], node.range[1]);
-            //console.log(tokens[0].value, tokens[1].value);
-            tokens[0].value = 'this.isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + tokens[0].value;
-            //console.log(translateNode(node));
-          }
-        });
-
-        buffer = translateAst(ast, 0, ast.source.length);
-
-        this.testSource = code;
-        this.test = buffer;
-        //console.log(buffer);
-      }
-      else
-      {
-        this.setChildNodes(test);
-
-        this.testByState_ = new basis.data.dataset.Split({
-          source: this.getChildNodesDataset(),
-          ruleEvents: 'stateChanged',
-          rule: function(test){
-            return String(test.state);
-          }
-        });
-
-        this.state_ = new basis.data.value.Expression(
-          basis.data.index.count(this.getChildNodesDataset()),
-          basis.data.index.count(this.testByState_.getSubset('processing', true)),
-          basis.data.index.count(this.testByState_.getSubset('error', true)),
-          basis.data.index.count(this.testByState_.getSubset('ready', true)),
-          function(count, processing, error, ready){
-            if (processing + error + ready == 0)
-              return [basis.data.STATE.UNDEFINED];
-
-            if (processing || error + ready < count)
-              return [
-                basis.data.STATE.PROCESSING,
-                (error + ready) / count
-              ];
-
-            return [
-              error ? basis.data.STATE.ERROR : basis.data.STATE.READY,
-              new basis.data.Object({
-                data: {
-                  error: error ? ERROR_TEST_FAULT : null,
-                  empty: !count,
-                  testCount: count,
-                  successCount: ready
-                }
-              })
-            ];
-          }
-        ).link(this, function(state){
-          this.setState.apply(this, state);
-        });
-      }
-    }
-  },
-
-  childClass: basis.Class.SELF,
-  childFactory: function(cfg){
-    return new this.childClass({
-      data: cfg
-    });
-  },
+  envRunner: null,
 
   getEnvRunner: function(){
     if (this.envRunner)
@@ -369,22 +307,75 @@ var Test = basis.dom.wrapper.Node.subclass({
     return envRunner;
   },
   reset: function(){
-    this.setState(basis.data.STATE.UNDEFINED);
-
     if (this.envRunner)
     {
       this.envRunner.destroy();
       this.envRunner = null;
     }
+  },
 
-    this.childNodes.forEach(function(test){
-      test.reset();
+  run: function(){
+    // nothing to do
+  }
+});
+
+var TestCase = AbstractTest.subclass({
+  className: 'TestCase',
+
+  name: '',
+  testSource: null,
+  test: null,
+
+  // name
+  // before
+  // test
+  // after
+  init: function(){
+    basis.dom.wrapper.Node.prototype.init.call(this);
+
+    var test = this.data.test;
+
+    var code = prepareTestSourceCode(test);
+    var buffer = [];
+    var token;
+    var ast = refAst(esprima.parse(code, {
+      loc: true,
+      range: true,
+      comment: true,
+      tokens: true
+    }));
+
+    ast.source = code;
+
+    traverseAst(ast, function(node){
+      if (node.type == 'CallExpression' &&
+          node.callee.type == 'MemberExpression' &&
+          node.callee.object.type == 'ThisExpression' &&
+          node.callee.computed == false &&
+          node.callee.property.type == 'Identifier' &&
+          node.callee.property.name == 'is')
+      {
+        var tokens = getRangeTokens(ast, node.range[0], node.range[1]);
+        //console.log(tokens[0].value, tokens[1].value);
+        tokens[0].value = 'this.isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + tokens[0].value;
+        //console.log(translateNode(node));
+      }
     });
+
+    buffer = translateAst(ast, 0, ast.source.length);
+
+    this.testSource = code;
+    this.test = buffer;
+    //console.log(buffer);
+  },
+
+  childClass: null,
+
+  reset: function(){
+    AbstractTest.prototype.reset.call(this);
+    this.setState(basis.data.STATE.UNDEFINED);
   },
   run: function(){
-    if (this.test === null)
-      return;
-
     // var _warn = basis.dev.warn;
     // var _error = basis.dev.error;
     var warnMessages = [];
@@ -455,12 +446,6 @@ var Test = basis.dom.wrapper.Node.subclass({
         // basis.dev.error = _error;
       }
 
-      this.childNodes.forEach(function(test){
-        test.run();
-        this.testCount++;
-        this.successCount += test.state == basis.data.STATE.READY;
-      }, env.report);
-
       if (!error && !env.report.testCount)
         error = ERROR_EMPTY;
 
@@ -482,6 +467,63 @@ var Test = basis.dom.wrapper.Node.subclass({
         })
       );
     });
+  }
+});
+
+var TestSuite = AbstractTest.subclass({
+  className: 'TestSuite',
+
+  childFactory: createTestFactory,
+  childClass: AbstractTest,
+
+  init: function(){
+    AbstractTest.prototype.init.call(this);
+
+    this.testByState_ = new basis.data.dataset.Split({
+      source: this.getChildNodesDataset(),
+      ruleEvents: 'stateChanged',
+      rule: function(test){
+        return String(test.state);
+      }
+    });
+
+    this.state_ = new basis.data.value.Expression(
+      basis.data.index.count(this.getChildNodesDataset()),
+      basis.data.index.count(this.testByState_.getSubset('processing', true)),
+      basis.data.index.count(this.testByState_.getSubset('error', true)),
+      basis.data.index.count(this.testByState_.getSubset('ready', true)),
+      function(count, processing, error, ready){
+        if (processing + error + ready == 0)
+          return [basis.data.STATE.UNDEFINED];
+
+        if (processing || error + ready < count)
+          return [
+            basis.data.STATE.PROCESSING,
+            (error + ready) / count
+          ];
+
+        return [
+          error ? basis.data.STATE.ERROR : basis.data.STATE.READY,
+          new basis.data.Object({
+            data: {
+              error: error ? ERROR_TEST_FAULT : null,
+              empty: !count,
+              testCount: count,
+              successCount: ready
+            }
+          })
+        ];
+      }
+    ).link(this, function(state){
+      this.setState.apply(this, state);
+    });
+  },
+
+  reset: function(){
+    AbstractTest.prototype.reset.call(this);
+    this.childNodes.forEach(function(test){
+      test.reset();
+    });
   },
 
   destroy: function(){
@@ -494,4 +536,10 @@ var Test = basis.dom.wrapper.Node.subclass({
   }
 });
 
-module.exports = Test;
+
+module.exports = {
+  AbstractTest: AbstractTest,
+  TestCase: TestCase,
+  TestSuite: TestSuite,
+  create: createTestFactory
+};

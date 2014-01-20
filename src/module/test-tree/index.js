@@ -26,7 +26,7 @@ module.exports = new basis.ui.Node({
       source: {
         events: 'update stateChanged',
         existsIf: function(owner){
-          return owner.root.test !== null &&
+          return owner.root.testSource &&
                  owner.state == basis.data.STATE.ERROR;
         },
         delegate: 'state.data',

@@ -39,7 +39,7 @@ function extractTests(tests){
 
   for (var i = 0, test; test = tests[i]; i++)
   {
-    if (test.test !== null)
+    if (test.test != null)
       result.push(test);
 
     if (test.firstChild)

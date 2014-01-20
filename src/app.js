@@ -1,16 +1,14 @@
 require('basis.app');
 require('basis.ui');
 
-var Test = require('./testCls.js');
+var test = require('./testCls.js');
 var runner = require('./runner.js');
 
 var tests = new basis.data.Dataset();
 var api = {
   loadTests: function(data){
     tests.set(data.map(function(item){
-      return new Test({
-        data: item
-      });
+      return test.create(item);
     }));
   }
 };
@@ -25,20 +23,13 @@ module.exports = basis.app.create({
       template: resource('template/view.tmpl'),
       action: {
         run: function(){
-          runner.run(this.satellite.tests.childNodes.map(function(item){
-            return item.root;
-          }));
+          runner.run(tests.getItems());
         }
       },
       binding: {
-        progress: new basis.ui.Node({
-          template: '<div>{done} / {total}</div>',
-          binding: {
-            total: runner.count.total,
-            left: runner.count.left,
-            done: runner.count.done
-          }
-        }),
+        total: runner.count.total,
+        left: runner.count.left,
+        done: runner.count.done,
         tests: 'satellite:'
       },
       satellite: {
