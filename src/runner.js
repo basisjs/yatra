@@ -1,5 +1,6 @@
 require('basis.data');
 require('basis.data.dataset');
+require('basis.data.index');
 
 var testsToRun = new basis.data.Dataset();
 var processingQueue = new basis.data.dataset.Subset({
@@ -25,6 +26,12 @@ var processingQueueTop = new basis.data.dataset.Slice({
         });
     }
   }
+});
+
+var testCount = basis.data.index.count(testsToRun);
+var testLeft = basis.data.index.count(processingQueue);
+var testDone = new basis.data.value.Expression(testCount, testLeft, function(total, left){
+  return total - left;
 });
 
 function extractTests(tests){
@@ -65,6 +72,11 @@ function stop(){
 }
 
 module.exports = {
+  count: {
+    total: testCount,
+    left: testLeft,
+    done: testDone
+  },
   run: run,
   stop: stop
 };

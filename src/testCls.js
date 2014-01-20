@@ -481,9 +481,6 @@ var Test = basis.dom.wrapper.Node.subclass({
           data: report
         })
       );
-
-      if (error)
-        console.log(this.state.data);
     });
   },
 
