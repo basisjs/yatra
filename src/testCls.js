@@ -4,9 +4,9 @@ require('basis.data.index');
 require('basis.data.dataset');
 require('basis.dom.wrapper');
 require('basis.utils.benchmark');
-require('esprima');
 
 var envFactory = require('./env.js');
+var astTools = require('./ast.js');
 var arrayFrom = basis.array.from;
 
 var ERROR_WRONG_ANSWER = 'ERROR_WRONG_ANSWER';
@@ -74,48 +74,48 @@ function value2string(value, linear){
   }
 }
 
-function resolveError(answer, result){
-  if (typeof answer != typeof result)
+function compareValues(actual, expected){
+  if (typeof actual != typeof expected)
     return ERROR_TYPE_MISSMATCH;
 
-  if (answer != null && result != null && answer.constructor !== result.constructor)
+  if (actual != null && expected != null && actual.constructor !== expected.constructor)
     return ERROR_TYPE_MISSMATCH;
 
-  if (answer != result)
+  if (actual != expected)
   {
-    switch (typeof answer){
+    switch (typeof actual){
       case 'number':
       case 'string':
       case 'boolean':
       case 'function':
       case 'undefined':
-        if (answer !== result)
+        if (actual !== expected)
           return ERROR_WRONG_ANSWER;
 
       default:
-        if (result === answer)
+        if (expected === actual)
           return;
 
-        if ((!result && answer) || (result && !answer))
+        if ((!expected && actual) || (expected && !actual))
           return ERROR_WRONG_ANSWER;
 
-        if (answer && 'length' in answer)
+        if (actual && 'length' in actual)
         {
-          if (answer.length != result.length)
+          if (actual.length != expected.length)
             return ERROR_WRONG_ANSWER;
 
-          for (var i = 0; i < answer.length; i++)
-            if (answer[i] !== result[i])
+          for (var i = 0; i < actual.length; i++)
+            if (actual[i] !== expected[i])
               return ERROR_WRONG_ANSWER;
         }
         else
         {
-          for (var i in answer)
-            if (!(i in result) || answer[i] !== result[i])
+          for (var i in actual)
+            if (!(i in expected) || actual[i] !== expected[i])
               return ERROR_WRONG_ANSWER;
 
-          for (var i in result)
-            if (!(i in answer) || answer[i] !== result[i])
+          for (var i in expected)
+            if (!(i in actual) || actual[i] !== expected[i])
               return ERROR_WRONG_ANSWER;
         }
     }
@@ -123,123 +123,14 @@ function resolveError(answer, result){
 }
 
 function prepareTestSourceCode(fn){
-  var code = basis.utils.info.fn(fn).body.replace(/^(\s*\n)+|(\n\s*)*$/g, '');
+  var code = basis.utils.info.fn(fn).body.replace(/\r/g, '').replace(/^(\s*\n)+|(\n\s*)*$/g, '');
   var minOffset = code.split(/\n+/).map(function(line){
-    return line.match(/^(\s*)/)[0]
+    return line.match(/^(\s*)/)[0];
   }).sort()[0];
 
   return code.replace(new RegExp('(^|\\n)' + minOffset, 'g'), '$1');
 }
 
-function refAst(node){
-  for (var key in node)
-    if (node.hasOwnProperty(key))
-    {
-      var value = node[key];
-      if (typeof value == 'object' && value !== null)
-      {
-        if (Array.isArray(value))
-        {
-          value.forEach(function(child){
-            refAst(child);
-            child.parentNode = node;
-            child.parentCollection = this;
-          }, value);
-        }
-        else
-        {
-          refAst(value);
-          value.parentNode = node;
-        }
-      }
-    }
-
-  return node;
-}
-
-function traverseAst(node, visitor){
-  visitor.call(null, node);
-
-  for (var key in node)
-    if (node.hasOwnProperty(key) && key != 'parentNode' && key != 'parentCollection')
-    {
-      var value = node[key];
-      if (typeof value == 'object' && value !== null)
-      {
-        if (Array.isArray(value))
-          value.forEach(function(child){
-            traverseAst(child, visitor);
-          });
-        else
-          traverseAst(value, visitor);
-      }
-    }
-}
-
-function getRangeTokens(ast, start, end){
-  var first;
-
-  for (var i = 0, pre, prev, token; i < ast.tokens.length; i++)
-  {
-    token = ast.tokens[i];
-
-    if (token.range[0] < start)
-      continue;
-
-    if (token.range[1] > end)
-    {
-      token = prev;
-      break;
-    }
-
-    if (!first)
-      first = token;
-
-    prev = token;
-  }
-
-  return [first, token];
-}
-
-function translateAst(ast, start, end){
-  var source = ast.source;
-  var buffer = [];
-
-  for (var i = 0, pre, prev, token; i < ast.tokens.length; i++)
-  {
-    token = ast.tokens[i];
-
-    if (token.range[0] < start)
-      continue;
-
-    if (token.range[1] > end)
-    {
-      token = prev;
-      break;
-    }
-
-    pre = source.substring(prev ? prev.range[1] : start, token.range[0]);
-
-    if (pre)
-      buffer.push(pre);
-
-    buffer.push(token.value);
-    prev = token;
-  }
-
-  buffer.push(source.substring(token ? token.range[1] : start, end));
-
-  return buffer.join('');
-}
-
-function translateNode(node){
-  var ast = node;
-
-  while (ast.parentNode)
-    ast = ast.parentNode;
-
-  return translateAst(ast, node.range[0], node.range[1]);
-}
 
 function createTestFactory(data){
   // warn about deprecated properties
@@ -342,16 +233,9 @@ var TestCase = AbstractTest.subclass({
     var code = prepareTestSourceCode(test);
     var buffer = [];
     var token;
-    var ast = refAst(esprima.parse(code, {
-      loc: true,
-      range: true,
-      comment: true,
-      tokens: true
-    }));
+    var ast = astTools.parse(code);
 
-    ast.source = code;
-
-    traverseAst(ast, function(node){
+    astTools.traverseAst(ast, function(node){
       if (node.type == 'CallExpression' &&
           node.callee.type == 'MemberExpression' &&
           node.callee.object.type == 'ThisExpression' &&
@@ -359,14 +243,14 @@ var TestCase = AbstractTest.subclass({
           node.callee.property.type == 'Identifier' &&
           node.callee.property.name == 'is')
       {
-        var tokens = getRangeTokens(ast, node.range[0], node.range[1]);
+        var tokens = astTools.getRangeTokens(ast, node.range[0], node.range[1]);
         //console.log(tokens[0].value, tokens[1].value);
         tokens[0].value = 'this.isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + tokens[0].value;
         //console.log(translateNode(node));
       }
     });
 
-    buffer = translateAst(ast, 0, ast.source.length);
+    buffer = astTools.translateAst(ast, 0, ast.source.length);
 
     this.testSource = code;
     this.test = buffer;
@@ -400,7 +284,7 @@ var TestCase = AbstractTest.subclass({
         };
       },
       is: function checkAnswer(answer, result){
-        var error = resolveError(answer, result);
+        var error = compareValues(answer, result);
 
         if (error)
         {
