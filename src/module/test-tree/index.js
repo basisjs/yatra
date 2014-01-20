@@ -20,6 +20,9 @@ module.exports = new basis.ui.Node({
         return node.root.hasOwnEnvironment();
       }],
       source: 'satellite:',
+      time: ['stateChanged', function(node){
+        return node.state.data && node.state.data.data && node.state.data.data.time;
+      }],
       state: ['stateChanged', 'state'],
       stateData: ['stateChanged', function(node){
         return node.state == basis.data.STATE.PROCESSING

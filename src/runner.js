@@ -1,6 +1,7 @@
 require('basis.data');
 require('basis.data.dataset');
 require('basis.data.index');
+require('basis.utils.benchmark');
 
 var testsToRun = new basis.data.Dataset();
 var processingQueue = new basis.data.dataset.Subset({
@@ -28,10 +29,21 @@ var processingQueueTop = new basis.data.dataset.Slice({
   }
 });
 
+var testStartTime;
+var time = new basis.data.Value({ value: 0 });
 var testCount = basis.data.index.count(testsToRun);
 var testLeft = basis.data.index.count(processingQueue);
 var testDone = new basis.data.value.Expression(testCount, testLeft, function(total, left){
   return total - left;
+});
+
+testLeft.addHandler({
+  change: function(sender, oldValue){
+    if (this.value && !oldValue)
+      testStartTime = basis.utils.benchmark.time();
+
+    time.set(basis.utils.benchmark.time(testStartTime));
+  }
 });
 
 function extractTests(tests){
@@ -65,6 +77,7 @@ function run(data){
 
   testsToRun.set(extractTests(data));
 }
+
 function stop(){
   testsToRun.remove(testsToRun.getItems().filter(function(item){
     return item.state != basis.data.STATE.PROCESSING;
@@ -72,6 +85,7 @@ function stop(){
 }
 
 module.exports = {
+  time: time,
   count: {
     total: testCount,
     left: testLeft,

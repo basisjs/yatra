@@ -27,6 +27,7 @@ module.exports = basis.app.create({
         }
       },
       binding: {
+        time: runner.time,
         total: runner.count.total,
         left: runner.count.left,
         done: runner.count.done,

@@ -3,6 +3,7 @@ require('basis.data.value');
 require('basis.data.index');
 require('basis.data.dataset');
 require('basis.dom.wrapper');
+require('basis.utils.benchmark');
 require('esprima');
 
 var envFactory = require('./env.js');
@@ -429,6 +430,8 @@ var TestCase = AbstractTest.subclass({
     this.setState(basis.data.STATE.PROCESSING);
 
     this.getEnvRunner().run(this.test, this, function(test){
+      var start = basis.utils.benchmark.time();
+      var time = NaN;
       try {
         // basis.dev.warn = function(){
         //   warnMessages.push(arguments);
@@ -440,8 +443,9 @@ var TestCase = AbstractTest.subclass({
         // };
 
         test.call(env);
+        time = basis.utils.benchmark.time(start);
       } catch(e) {
-        env.report.testCount++;
+        report.testCount++;
 
         error = e;
       } finally {
@@ -449,15 +453,16 @@ var TestCase = AbstractTest.subclass({
         // basis.dev.error = _error;
       }
 
-      if (!error && !env.report.testCount)
+      if (!error && !report.testCount)
         error = ERROR_EMPTY;
 
-      if (!error && env.report.testCount != env.report.successCount)
+      if (!error && report.testCount != report.successCount)
         error = ERROR_TEST_FAULT;
 
-      basis.object.extend(env.report, {
+      basis.object.extend(report, {
+        time: time,
         error: error,
-        empty: !error && env.report.testCount == 0,
+        empty: !error && report.testCount == 0,
         warns: warnMessages.length ? warnMessages : null
       });
 
