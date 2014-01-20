@@ -1,3 +1,9 @@
+.test
+{
+  background: white;
+  padding: 4px;
+  margin: 5px;
+}
 .test-hasOwnEnvironment
 {
   border: 1px solid green;

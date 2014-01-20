@@ -35,15 +35,15 @@ var TestNode = basis.ui.Node.subclass({
 });
 
 var TestSuiteNode = TestNode.subclass({
-  dataSource: basis.data.Value.factory('delegateChanged', function(node){
-    return node.delegate && node.delegate.getChildNodesDataset();
+  dataSource: basis.data.Value.factory('rootChanged', function(node){
+    return node.root && node.root.getChildNodesDataset();
   }),
 
   template: resource('template/test-suite.tmpl'),
 
   childClass: TestNode,
   childFactory: function(config){
-    if (config.delegate instanceof TestCase)
+    if (config.delegate.root instanceof TestCase)
       return new TestCaseNode(config);
     else
       return new TestSuiteNode(config);

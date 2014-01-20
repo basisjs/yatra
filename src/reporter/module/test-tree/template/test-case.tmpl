@@ -1,5 +1,6 @@
 <b:style src="test.css"/>
-<li class="test-{hasOwnEnvironment}">
-  {name}: {state} ({stateData} / {time})
-  <!--{source}-->
-</li>
+<b:include src="test.tmpl">
+  <b:append>
+    <!--{source}-->
+  </b:append>
+</b:include>
