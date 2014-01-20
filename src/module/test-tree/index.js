@@ -5,6 +5,8 @@ var document = global.document;
 var highlight = require('basis.utils.highlight').highlight;
 
 module.exports = new basis.ui.Node({
+  template: resource('template/view.tmpl'),
+
   childClass: {
     childClass: basis.Class.SELF,
     dataSource: basis.data.Value.factory('delegateChanged', function(node){
@@ -14,6 +16,9 @@ module.exports = new basis.ui.Node({
     template: resource('template/test.tmpl'),
     binding: {
       name: 'data:',
+      hasOwnEnvironment: ['rootChanged', function(node){
+        return node.root.hasOwnEnvironment();
+      }],
       source: 'satellite:',
       state: ['stateChanged', 'state'],
       stateData: ['stateChanged', function(node){

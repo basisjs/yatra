@@ -286,6 +286,9 @@ var AbstractTest = basis.dom.wrapper.Node.subclass({
   name: '',
   envRunner: null,
 
+  hasOwnEnvironment: function(){
+    return Boolean(this.data.init || this.data.html || !this.parentNode);
+  },
   getEnvRunner: function(){
     if (this.envRunner)
       return this.envRunner;
