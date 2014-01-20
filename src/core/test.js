@@ -5,8 +5,8 @@ require('basis.data.dataset');
 require('basis.dom.wrapper');
 require('basis.utils.benchmark');
 
-var envFactory = require('./env.js');
-var astTools = require('./ast.js');
+var envFactory = require('core.env');
+var astTools = require('core.ast');
 var arrayFrom = basis.array.from;
 
 var ERROR_WRONG_ANSWER = 'ERROR_WRONG_ANSWER';

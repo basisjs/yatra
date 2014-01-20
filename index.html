@@ -7,8 +7,9 @@
   <title>Basis Test Suite</title>
 
   <script type="text/javascript" src="lib/basisjs/src/basis.js" data-basis-config="
-    autoload: 'src/app',
+    autoload: 'src/reporter/app',
     path: {
+      core: 'src',
       esprima: 'lib/esprima',
       diff: 'lib/jsdiff'
     },
@@ -19,7 +20,7 @@
 <body>
   <script>
     var path = location.search.replace(/^\?/, '');
-    basis.resource('src/app.js').fetch().ready(function(app){
+    basis.resource('src/reporter/app.js').fetch().ready(function(app){
       basis.resource(path).ready(function(content){
         app.loadTests(content);
       }).fetch();

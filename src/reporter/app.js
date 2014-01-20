@@ -1,15 +1,13 @@
 require('basis.app');
 require('basis.ui');
+require('core.test');
 
-var test = require('./testCls.js');
-var runner = require('./runner.js');
+var runner = require('core.runner');
 
 var tests = new basis.data.Dataset();
 var api = {
   loadTests: function(data){
-    tests.set(data.map(function(item){
-      return test.create(item);
-    }));
+    tests.set(data.map(core.test.create));
   }
 };
 

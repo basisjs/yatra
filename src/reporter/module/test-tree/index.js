@@ -8,7 +8,7 @@ require('basis.ui');
 
 var document = global.document;
 var highlight = require('basis.utils.highlight').highlight;
-var TestCase = require('../../testCls.js').TestCase;
+var TestCase = require('core.test').TestCase;
 
 
 //
