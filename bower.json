@@ -4,7 +4,8 @@
   "main": "src/app.js",
   "dependencies": {
     "basisjs": "1.0.1",
-    "esprima": "1.0.4"
+    "esprima": "1.0.4",
+    "jsdiff": "1.0.8"
   },
   "ignore": [
     ".*",
