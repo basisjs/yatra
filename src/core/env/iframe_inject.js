@@ -17,12 +17,16 @@ function importScripts(){
     importScript(arguments[i])
 }
 
+var deprecateTestFunction;
 function deprecateTestEnvironment(){
   if (typeof deprecateTestFunction == 'function')
     deprecateTestFunction();
 }
 
-function __initTestEnvironment(deprecateFn){
+function __initTestEnvironment(initCode, deprecateFn){
   deprecateTestFunction = deprecateFn;
-  return Function;
+  eval(initCode);
+  return function(code){
+    return eval('0,function(){\n' + code + '\n}');
+  };
 }

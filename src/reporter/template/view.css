@@ -1,0 +1,17 @@
+#layout
+{
+  background: #E0E0E0;
+  min-height: 100%;
+}
+
+#sidebar
+{
+  float: left;
+  width: 340px;
+}
+#content
+{
+  overflow: hidden;
+  background: #F0F0F0;
+  min-height: 100%;
+}

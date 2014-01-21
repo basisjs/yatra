@@ -16,6 +16,15 @@ module.exports = basis.app.create({
   init: function(){
     basis.object.extend(this, api);
 
+    var toc = require('module/toc/index.js');
+    var testDetails = require('module/test-tree/index.js');
+
+    toc.selection.addHandler({
+      itemsChanged: function(selection){
+        this.setDelegate(selection.pick());
+      }
+    }, testDetails);
+
     return this.root = new basis.ui.Node({
       container: document.body,
       template: resource('template/view.tmpl'),
@@ -29,14 +38,18 @@ module.exports = basis.app.create({
         total: runner.count.total,
         left: runner.count.left,
         done: runner.count.done,
+        toc: 'satellite:',
         tests: 'satellite:'
       },
       satellite: {
-        tests: {
+        toc: {
+          instance: toc,
           dataSource: function(){
             return tests;
-          },
-          instance: require('module/test-tree/index.js')
+          }
+        },
+        tests: {
+          instance: testDetails
         }
       }
     });

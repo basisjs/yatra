@@ -1,0 +1,20 @@
+.app-test-tree
+{
+  padding: 10px;
+  display: none;
+}
+.app-test-tree_hasDelegate
+{
+  display: block;
+}
+.app-test-tree__header
+{
+  font-size: 200%;
+  padding-left: 8px;
+  margin-bottom: .4em;
+}
+.app-test-tree__content > .app-test
+{
+  border: 1px solid #E0E0E0;
+  margin-bottom: 1px;
+}

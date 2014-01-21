@@ -2,6 +2,7 @@ require('basis.data');
 require('basis.data.dataset');
 require('basis.data.index');
 require('basis.utils.benchmark');
+require('core.test');
 
 var testsToRun = new basis.data.Dataset();
 var processingQueue = new basis.data.dataset.Subset({
@@ -51,7 +52,7 @@ function extractTests(tests){
 
   for (var i = 0, test; test = tests[i]; i++)
   {
-    if (test.test != null)
+    if (test instanceof core.test.TestCase)
       result.push(test);
 
     if (test.firstChild)

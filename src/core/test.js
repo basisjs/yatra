@@ -227,37 +227,44 @@ var TestCase = AbstractTest.subclass({
   // after
   init: function(){
     basis.dom.wrapper.Node.prototype.init.call(this);
-
-    var test = this.data.test;
-
-    var code = prepareTestSourceCode(test);
-    var buffer = [];
-    var token;
-    var ast = astTools.parse(code);
-
-    astTools.traverseAst(ast, function(node){
-      if (node.type == 'CallExpression' &&
-          node.callee.type == 'MemberExpression' &&
-          node.callee.object.type == 'ThisExpression' &&
-          node.callee.computed == false &&
-          node.callee.property.type == 'Identifier' &&
-          node.callee.property.name == 'is')
-      {
-        var tokens = astTools.getRangeTokens(ast, node.range[0], node.range[1]);
-        //console.log(tokens[0].value, tokens[1].value);
-        tokens[0].value = 'this.isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + tokens[0].value;
-        //console.log(translateNode(node));
-      }
-    });
-
-    buffer = astTools.translateAst(ast, 0, ast.source.length);
-
-    this.testSource = code;
-    this.test = buffer;
-    //console.log(buffer);
   },
 
   childClass: null,
+
+  getSourceCode: function(source){
+    if (this.test === null)
+    {
+      var test = this.data.test;
+
+      var code = prepareTestSourceCode(test);
+      var buffer = [];
+      var token;
+      var ast = astTools.parse(code);
+
+      astTools.traverseAst(ast, function(node){
+        if (node.type == 'CallExpression' &&
+            node.callee.type == 'MemberExpression' &&
+            node.callee.object.type == 'ThisExpression' &&
+            node.callee.computed == false &&
+            node.callee.property.type == 'Identifier' &&
+            node.callee.property.name == 'is')
+        {
+          var tokens = astTools.getRangeTokens(ast, node.range[0], node.range[1]);
+          //console.log(tokens[0].value, tokens[1].value);
+          tokens[0].value = 'this.isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + tokens[0].value;
+          //console.log(translateNode(node));
+        }
+      });
+
+      buffer = astTools.translateAst(ast, 0, ast.source.length);
+
+      this.testSource = code;
+      this.test = buffer;
+      //console.log(buffer);
+    }
+
+    return source ? this.testSource : this.test;
+  },
 
   reset: function(){
     AbstractTest.prototype.reset.call(this);
@@ -270,7 +277,7 @@ var TestCase = AbstractTest.subclass({
     var errorMessages = [];
     var error;
     var report = {
-      testSource: this.testSource,
+      testSource: this.getSourceCode(true),
       successCount: 0,
       testCount: 0,
       errorLines: {}
@@ -313,9 +320,10 @@ var TestCase = AbstractTest.subclass({
 
     this.setState(basis.data.STATE.PROCESSING);
 
-    this.getEnvRunner().run(this.test, this, function(test){
+    this.getEnvRunner().run(this.getSourceCode(), this, function(testFn){
       var start = basis.utils.benchmark.time();
       var time = NaN;
+
       try {
         // basis.dev.warn = function(){
         //   warnMessages.push(arguments);
@@ -326,7 +334,7 @@ var TestCase = AbstractTest.subclass({
         //   _error.apply(this, arguments);
         // };
 
-        test.call(env);
+        testFn.call(env);
         time = basis.utils.benchmark.time(start);
       } catch(e) {
         report.testCount++;
@@ -406,16 +414,19 @@ var TestSuite = AbstractTest.subclass({
           })
         ];
       }
-    ).link(this, function(state){
+    );
+    this.state_.link(this, function(state){
       this.setState.apply(this, state);
     });
   },
 
   reset: function(){
     AbstractTest.prototype.reset.call(this);
+    this.state_.lock();
     this.childNodes.forEach(function(test){
       test.reset();
     });
+    this.state_.unlock();
   },
 
   destroy: function(){

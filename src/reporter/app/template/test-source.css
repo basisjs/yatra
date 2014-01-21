@@ -1,0 +1,64 @@
+.Basis-SyntaxHighlight
+{
+  font-size: 12px;
+  line-height: 1.5em;
+  background: #F8F8F8;
+  border: 1px solid  #E0E0E0;
+  margin: .5em -1px -9px -9px;
+  padding: 2px 8px 2px 2px;
+  padding: 0 0 1px;
+  overflow: visible;
+}
+
+.Basis-SyntaxHighlight .even,
+.Basis-SyntaxHighlight .odd
+{
+  background: none;
+}
+
+.Basis-SyntaxHighlight .lineContent
+{
+  border-left: none;
+}
+
+.Basis-SyntaxHighlight .error-line
+{
+  background: #f7dede;
+  border: solid #f8a6a6;
+  border-width: 1px;
+  margin: 0 -1px 0 -1px;
+  padding: 0 7px 0 0px;
+}
+.Basis-SyntaxHighlight .error-line + .error-line
+{
+  margin-top: -1px;
+}
+.Basis-SyntaxHighlight .error-line:last-child
+{
+  margin-bottom: -2px;
+}
+.Basis-SyntaxHighlight .error-line-details
+{
+  /*display: none;*/
+  padding: 0 0px 2px 7px;
+  margin: 0 -4px;
+  white-space: normal;
+  color: #999;
+}
+.Basis-SyntaxHighlight .error-line-details-item
+{
+  background: rgba(255, 255, 255, .9);
+  padding: 2px 4px;
+  margin: 1px 0;
+}
+.Basis-SyntaxHighlight .error-line-details-item B
+{
+  font-size: 90%;
+}
+.Basis-SyntaxHighlight .error-line-details-item .expected,
+.Basis-SyntaxHighlight .error-line-details-item .actual
+{
+  color: black;
+  display: block;
+  padding: 0px 2px 0px 1em;
+}

@@ -1,0 +1,76 @@
+.app-toc-item
+{
+  background: white;
+  padding: 8px;
+  margin: 1px;
+  position: relative;
+  cursor: pointer;
+}
+.app-toc-item:hover
+{
+  background: #F8F8F8;
+}
+
+.app-toc-item:after
+{
+  content: '>';
+  font-size: 16px;
+  line-height: 16px;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  margin-top: -8px;
+  color: #888;
+}
+
+.app-toc-item_selected,
+.app-toc-item_selected:hover
+{
+  background: gold;
+}
+
+.app-toc-item__progress
+{
+  background: #666;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 0;
+  opacity: 0;
+  -webkit-transition: width .2s ease-in, opacity 1s;
+}
+.app-toc-item__progress_processing
+{
+  opacity: .4;
+  -webkit-transition: none;
+}
+
+.app-toc-item__state
+{
+  position: relative;
+  float: right;
+  padding: 0 1em;
+  white-space: nowrap;
+}
+.app-toc-item__state-ready
+{
+  color: #090;
+}
+.app-toc-item__state-error
+{
+  color: #D00;
+}
+.app-toc-item__state-processing
+{
+  color: #DA0;
+}
+
+.app-toc-item__name
+{
+  position: relative;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

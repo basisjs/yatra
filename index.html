@@ -7,9 +7,15 @@
   <title>Basis Test Suite</title>
 
   <style>
+    HTML,
     BODY
     {
       background: #F0F0F0;
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      font-size: small;
+      font-family: Tahoma, serif;
     }
   </style>
   <script type="text/javascript" src="lib/basisjs/src/basis.js" data-basis-config="
@@ -28,7 +34,9 @@
     var path = location.search.replace(/^\?/, '');
     basis.resource('src/reporter/app.js').fetch().ready(function(app){
       basis.resource(path).ready(function(content){
+        var t = new Date();
         app.loadTests(content);
+        console.log(new Date - t);
       }).fetch();
     });
   </script>

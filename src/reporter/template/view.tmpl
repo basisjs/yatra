@@ -1,6 +1,12 @@
-<div>
-  <button event-click="run">run</button>
-  <div>{done} / {total} (time: {time} ms)</div>
-  <!--{progress}-->
-  <!--{tests}-->
+<b:style src="view.css"/>
+<div id="layout">
+  <div id="sidebar">
+    <button event-click="run">run</button>
+    <div>{done} / {total} (time: {time} ms)</div>
+    <!--{progress}-->
+    <!--{toc}-->
+  </div>
+  <div id="content">
+    <!--{tests}-->
+  </div>
 </div>
