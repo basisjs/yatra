@@ -415,6 +415,8 @@ var TestSuite = AbstractTest.subclass({
         ];
       }
     );
+    // TODO: remove when basis.data.value.Expression#lock/unlock will be fixed
+    this.state_.changeWatcher = this.state_.handler.handler.context.value;
     this.state_.link(this, function(state){
       this.setState.apply(this, state);
     });
@@ -427,6 +429,7 @@ var TestSuite = AbstractTest.subclass({
       test.reset();
     });
     this.state_.unlock();
+    this.state_.changeWatcher.update();  // TODO: remove when basis.data.value.Expression#lock/unlock will be fixed
   },
 
   destroy: function(){

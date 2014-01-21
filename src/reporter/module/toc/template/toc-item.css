@@ -26,12 +26,13 @@
 .app-toc-item_selected,
 .app-toc-item_selected:hover
 {
-  background: gold;
+  background: #FFF0D0;
+  cursor: default;
 }
 
 .app-toc-item__progress
 {
-  background: #666;
+  background: #369;
   position: absolute;
   top: 0;
   left: 0;
