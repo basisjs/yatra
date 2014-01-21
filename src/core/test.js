@@ -227,19 +227,18 @@ var TestCase = AbstractTest.subclass({
   // after
   init: function(){
     basis.dom.wrapper.Node.prototype.init.call(this);
+    this.testSource = prepareTestSourceCode(this.data.test);
   },
 
   childClass: null,
 
-  getSourceCode: function(source){
+  getSourceCode: function(){
     if (this.test === null)
     {
-      var test = this.data.test;
-
-      var code = prepareTestSourceCode(test);
+      var source = this.testSource;
       var buffer = [];
       var token;
-      var ast = astTools.parse(code);
+      var ast = astTools.parse(source);
 
       astTools.traverseAst(ast, function(node){
         if (node.type == 'CallExpression' &&
@@ -258,12 +257,11 @@ var TestCase = AbstractTest.subclass({
 
       buffer = astTools.translateAst(ast, 0, ast.source.length);
 
-      this.testSource = code;
       this.test = buffer;
       //console.log(buffer);
     }
 
-    return source ? this.testSource : this.test;
+    return this.test;
   },
 
   reset: function(){
@@ -277,7 +275,7 @@ var TestCase = AbstractTest.subclass({
     var errorMessages = [];
     var error;
     var report = {
-      testSource: this.getSourceCode(true),
+      testSource: this.testSource,
       successCount: 0,
       testCount: 0,
       errorLines: {}
