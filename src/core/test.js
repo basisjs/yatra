@@ -181,16 +181,16 @@ var AbstractTest = basis.dom.wrapper.Node.subclass({
   hasOwnEnvironment: function(){
     return Boolean(this.data.init || this.data.html || !this.parentNode);
   },
-  getEnvRunner: function(){
+  getEnvRunner: function(autocreate){
     if (this.envRunner)
       return this.envRunner;
 
     var envRunner;
 
     if (!this.data.init)
-      envRunner = this.parentNode && this.parentNode.getEnvRunner();
+      envRunner = this.parentNode && this.parentNode.getEnvRunner(autocreate);
 
-    if (this.data.init || this.data.html || !envRunner)
+    if ((this.data.init || this.data.html || !envRunner) && autocreate)
     {
       envRunner = envFactory.create(this.data.init, this.data.html);
       envRunner.addHandler({
@@ -309,7 +309,7 @@ var TestCase = AbstractTest.subclass({
 
     this.setState(basis.data.STATE.PROCESSING);
 
-    this.getEnvRunner().run(this.getSourceCode(), this, function(testFn){
+    this.getEnvRunner(true).run(this.getSourceCode(), this, function(testFn){
       var start = basis.utils.benchmark.time();
       var time = NaN;
 

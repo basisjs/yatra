@@ -5,9 +5,25 @@ require('basis.utils.benchmark');
 require('core.test');
 
 var testsToRun = new basis.data.Dataset();
+var awaitProcessingTests = new basis.data.Dataset({
+  listen: {
+    item: {
+      stateChanged: function(item){
+        if (item.state != basis.data.STATE.PROCESSING)
+          this.remove(item);
+      }
+    }
+  }
+});
+var faultTests = new basis.data.dataset.Subset({
+  source: testsToRun,
+  ruleEvents: 'stateChanged',
+  rule: function(test){
+    return test.state == basis.data.STATE.ERROR;
+  }
+});
 
 var processingQueue = new basis.data.dataset.Subset({
-  source: testsToRun,
   ruleEvents: 'stateChanged',
   rule: function(test){
     return test.state != basis.data.STATE.READY &&
@@ -23,18 +39,11 @@ var processingQueueTop = new basis.data.dataset.Slice({
       if (delta.inserted)
         delta.inserted.forEach(function(item){
           basis.nextTick(function(){
-            item.run();
+            if (processingQueueTop.has(item))
+              item.run();
           });
         });
     }
-  }
-});
-
-var faultTests = new basis.data.dataset.Subset({
-  source: testsToRun,
-  ruleEvents: 'stateChanged',
-  rule: function(test){
-    return test.state == basis.data.STATE.ERROR;
   }
 });
 
@@ -72,27 +81,49 @@ function extractTests(data){
   return result;
 }
 
-function run(data){
-  if (processingQueueTop.itemCount)
-  {
-    stop();
-    basis.nextTick(function(){
-      run(data);
-    });
-    return;
-  }
+function loadTests(data){
+  // stop current run
+  stop();
 
-  data.forEach(function(item){
-    item.root.reset();
-  });
-
+  // load tests
   testsToRun.set(extractTests(data));
 }
 
+function run(data){
+  // stop previous run
+  stop();
+
+  // if eny test in progress, re-run by timeout
+  if (awaitProcessingTests.itemCount)
+    return setTimeout(run, 10);
+
+  // reset test state
+  testsToRun.forEach(function(item){
+    // destroy environment
+    var env = item.getEnvRunner();
+    if (env)
+      env.destroy();
+
+    // reset test state
+    item.root.reset();
+  });
+
+  // add test to processing queue
+  processingQueue.setSource(testsToRun);
+}
+
 function stop(){
-  testsToRun.remove(testsToRun.getItems().filter(function(item){
-    return item.state != basis.data.STATE.PROCESSING;
-  }));
+  // if processing queue is not empty
+  if (processingQueue.itemCount)
+  {
+    // save processing tests
+    awaitProcessingTests.add(processingQueue.getItems().filter(function(test){
+      return test.state == basis.data.STATE.PROCESSING;
+    }));
+
+    // remove all tests from processing queue
+    processingQueue.setSource();
+  }
 }
 
 module.exports = {
@@ -103,6 +134,8 @@ module.exports = {
     left: testLeft,
     done: testDone
   },
+
+  loadTests: loadTests,
   run: run,
   stop: stop
 };

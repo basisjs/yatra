@@ -33,7 +33,7 @@
   background: #f7dede;
   border: solid #f8a6a6;
   border-width: 1px;
-  margin: 0 -1px 0 -1px;
+  margin: -1px -1px 0 -1px;
   padding: 0 7px 0 0px;
 }
 .Basis-SyntaxHighlight .error-line + .error-line
@@ -63,7 +63,7 @@
 {
   float: left;
   clear: left;
-  min-width: 10ex;
+  min-width: 11ex;
 }
 .Basis-SyntaxHighlight .error-line-details-item .expected,
 .Basis-SyntaxHighlight .error-line-details-item .actual

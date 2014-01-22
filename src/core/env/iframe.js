@@ -15,6 +15,7 @@ var FrameEnv = basis.ui.Node.subclass({
   postInit: function(){
     basis.ui.Node.prototype.postInit.call(this);
     basis.doc.body.add(this.element);
+    //console.log('env created');
   },
 
   template:
@@ -51,6 +52,13 @@ var FrameEnv = basis.ui.Node.subclass({
       runTest.call(context, this.applyEnvironment(code));
     else
       this.runArgs = arguments;
+  },
+
+  destroy: function(){
+    basis.ui.Node.prototype.destroy.call(this);
+    this.applyEnvironment = null;
+    this.runArgs = null;
+    //console.log('env destroyed');
   }
 });
 

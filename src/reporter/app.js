@@ -32,6 +32,11 @@ module.exports = basis.app.create({
     var toc = require('module/toc/index.js');
     var testDetails = require('module/test-tree/index.js');
 
+    toc.addHandler({
+      childNodesModified: function(){
+        runner.loadTests(this.childNodes.slice(0));
+      }
+    });
     toc.selection.addHandler({
       itemsChanged: function(selection){
         this.setDelegate(selection.pick());
@@ -53,8 +58,11 @@ module.exports = basis.app.create({
       container: document.body,
       template: resource('template/view.tmpl'),
       action: {
+        reset: function(){
+          toc.setDataSource(tests);
+        },
         run: function(){
-          runner.run(toc.childNodes.slice(0));
+          runner.run();
         }
       },
       binding: {

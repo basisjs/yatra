@@ -44,7 +44,11 @@
 .app-toc-item__progress_processing
 {
   opacity: .4;
-  -webkit-transition: none;
+  -webkit-transition: width .25s ease-in;
+}
+.app-toc-item__progress_undefined
+{
+  display: none;
 }
 
 .app-toc-item__state
