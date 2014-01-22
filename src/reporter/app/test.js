@@ -73,6 +73,11 @@ var TestNode = basis.ui.Node.subclass({
     time: ['stateChanged', function(node){
       return node.state.data && node.state.data.data && node.state.data.data.time;
     }],
+    errorMessage: ['stateChanged', function(node){
+      return node.state == basis.data.STATE.ERROR && node.state.data
+        ? node.state.data.data.error
+        : '';
+    }],
     stateMessage: ['stateChanged', function(node){
       switch (String(node.state))
       {
@@ -81,9 +86,17 @@ var TestNode = basis.ui.Node.subclass({
 
         case basis.data.STATE.ERROR:
           var report = node.state.data;
-          return report instanceof basis.data.Object
-            ? (report.data.testCount - report.data.successCount) + ' of ' + report.data.testCount + ' fault'
-            : 'Error';
+
+          if (report instanceof basis.data.Object == false)
+            return 'Error';
+
+          if (report.data.exception)
+            return report.data.exception;
+
+          if (report.data.error == 'ERROR_TIMEOUT')
+            return 'Timeout';
+
+          return (report.data.testCount - report.data.successCount) + ' of ' + report.data.testCount + ' fault';
 
         case basis.data.STATE.PROCESSING:
           return 'running';

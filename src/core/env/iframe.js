@@ -24,7 +24,11 @@ var FrameEnv = basis.ui.Node.subclass({
       ' style="width: 10px; height: 10px; top: -100px; position: absolute; border: none; opacity: 0.0001"/>',
   binding: {
     src: function(node){
-      return node.html || basis.asset(__dirname + 'iframe.html');
+      if (node.html && node.html != 'default')
+        return node.html;
+
+      // default env
+      return basis.asset(__dirname + 'iframe.html');
     }
   },
   action: {
@@ -47,9 +51,9 @@ var FrameEnv = basis.ui.Node.subclass({
     }
   },
 
-  run: function(code, context, runTest){
+  run: function(args, code, context, runTest){
     if (this.applyEnvironment)
-      runTest.call(context, this.applyEnvironment(code));
+      runTest.call(context, this.applyEnvironment(args, code));
     else
       this.runArgs = arguments;
   },

@@ -26,7 +26,9 @@ function deprecateTestEnvironment(){
 function __initTestEnvironment(initCode, deprecateFn){
   deprecateTestFunction = deprecateFn;
   eval(initCode);
-  return function(code){
-    return eval('0,function(){\n' + code + '\n}');
+  return function(__args, __body){
+    return eval('(function(' + (__args || []).join(', ') + ')' + '{\n' +
+      __body +
+    '\n})');
   };
 }

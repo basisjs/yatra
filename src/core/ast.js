@@ -5,7 +5,7 @@ function parse(code){
   function postProcessing(node){
     for (var key in node)
     {
-      if (node.hasOwnProperty(key))
+      if (key != node.hasOwnProperty(key))
       {
         var value = node[key];
         if (typeof value == 'object' && value !== null)
@@ -14,6 +14,7 @@ function parse(code){
           {
             value.forEach(function(child){
               postProcessing(child);
+              child.root = result;
               child.parentNode = node;
               child.parentCollection = value;
             });
@@ -21,6 +22,7 @@ function parse(code){
           else
           {
             postProcessing(value);
+            value.root = result;
             value.parentNode = node;
           }
         }
@@ -37,6 +39,7 @@ function parse(code){
 
   postProcessing(result);
   result.source = code;
+  result.root = result;
 
   return result;
 }
@@ -45,7 +48,7 @@ function traverseAst(node, visitor){
   visitor.call(null, node);
 
   for (var key in node)
-    if (node.hasOwnProperty(key) && key != 'parentNode' && key != 'parentCollection')
+    if (node.hasOwnProperty(key) && key != 'parentNode' && key != 'parentCollection' && key != 'root')
     {
       var value = node[key];
       if (typeof value == 'object' && value !== null)
@@ -85,6 +88,10 @@ function getRangeTokens(ast, start, end){
   return [first, token];
 }
 
+function getNodeRangeTokens(node){
+  return getRangeTokens(node.root, node.range[0], node.range[1]);
+}
+
 function translateAst(ast, start, end){
   var source = ast.source;
   var buffer = [];
@@ -117,12 +124,7 @@ function translateAst(ast, start, end){
 }
 
 function translateNode(node){
-  var ast = node;
-
-  while (ast.parentNode)
-    ast = ast.parentNode;
-
-  return translateAst(ast, node.range[0], node.range[1]);
+  return translateAst(node.root, node.range[0], node.range[1]);
 }
 
 module.exports = {
@@ -130,5 +132,6 @@ module.exports = {
   traverseAst: traverseAst,
   translateAst: translateAst,
   translateNode: translateNode,
-  getRangeTokens: getRangeTokens
+  getRangeTokens: getRangeTokens,
+  getNodeRangeTokens: getNodeRangeTokens
 };

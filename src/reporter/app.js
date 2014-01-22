@@ -7,6 +7,11 @@ var runner = require('core.runner');
 var tests = new basis.data.Dataset();
 var api = {
   loadTests: function(data){
+    if (!Array.isArray(data))
+      data = core.test.create(data).childNodes;
+    else
+      data = data.map(core.test.create);
+
     tests.set(
       [new basis.data.Object({
         data: {
@@ -19,7 +24,7 @@ var api = {
           this.setState('ready');
         },
         reset: function(){}
-      })].concat(data.map(core.test.create))
+      })].concat(data)
     );
   }
 };

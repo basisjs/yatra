@@ -13,6 +13,10 @@ var ERROR_WRONG_ANSWER = 'ERROR_WRONG_ANSWER';
 var ERROR_TYPE_MISSMATCH = 'ERROR_TYPE_MISSMATCH';
 var ERROR_TEST_FAULT = 'ERROR_TEST_FAULT';
 var ERROR_EMPTY = 'ERROR_EMPTY';
+var ERROR_TEST_CRUSH = 'ERROR_TEST_CRUSH';
+var ERROR_TIMEOUT = 'ERROR_TIMEOUT';
+
+var NOP = function(){};
 
 function sliceOwnOnly(obj){
   var result = {};
@@ -131,7 +135,6 @@ function prepareTestSourceCode(fn){
   return code.replace(new RegExp('(^|\\n)' + minOffset, 'g'), '$1');
 }
 
-
 function createTestFactory(data){
   // warn about deprecated properties
   if (data.testcase)
@@ -159,12 +162,18 @@ function createTestFactory(data){
 
   if (typeof test == 'function')
   {
+    var args = basis.utils.info.fn(test).args;
+
+    config.data.async = !!args;
+    config.data.testArgs = args ? args.split(/\s*,\s*/) : [];
     config.data.testSource = prepareTestSourceCode(test);
+
     Class = TestCase;
   }
   else
   {
     config.childNodes = !Array.isArray(test) ? [] : test;
+
     Class = TestSuite;
   }
 
@@ -181,6 +190,14 @@ var AbstractTest = basis.dom.wrapper.Node.subclass({
   hasOwnEnvironment: function(){
     return Boolean(this.data.init || this.data.html || !this.parentNode);
   },
+  getHtml: function(){
+    var cursor = this;
+
+    while (!cursor.data.html && cursor.parentNode)
+      cursor = cursor.parentNode;
+
+    return cursor.data.html;
+  },
   getEnvRunner: function(autocreate){
     if (this.envRunner)
       return this.envRunner;
@@ -192,7 +209,7 @@ var AbstractTest = basis.dom.wrapper.Node.subclass({
 
     if ((this.data.init || this.data.html || !envRunner) && autocreate)
     {
-      envRunner = envFactory.create(this.data.init, this.data.html);
+      envRunner = envFactory.create(this.data.init, this.getHtml());
       envRunner.addHandler({
         destroy: this.reset
       }, this);
@@ -219,12 +236,12 @@ var TestCase = AbstractTest.subclass({
 
   name: '',
   testSource: null,
-  test: null,
+  testWrappedSource: null,
 
   childClass: null,
 
   getSourceCode: function(){
-    if (this.test === null)
+    if (this.testWrappedSource === null)
     {
       var source = this.data.testSource;
       var buffer = [];
@@ -239,20 +256,29 @@ var TestCase = AbstractTest.subclass({
             node.callee.property.type == 'Identifier' &&
             node.callee.property.name == 'is')
         {
-          var tokens = astTools.getRangeTokens(ast, node.range[0], node.range[1]);
-          //console.log(tokens[0].value, tokens[1].value);
-          tokens[0].value = 'this.isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + tokens[0].value;
-          //console.log(translateNode(node));
+          var token = astTools.getRangeTokens(ast, node.range[0], node.range[1])[0];
+          token.value = '__isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + token.value;
+        }
+
+        if (node.type == 'FunctionExpression' || node.type == 'FunctionDeclaration')
+        {
+          var tokens = astTools.getNodeRangeTokens(node.body);
+          tokens[0].value +=
+            'try {\n';
+          tokens[1].value =
+            '\n} catch(e) {' +
+              '__exception(e)' +
+            '}' + tokens[1].value;
         }
       });
 
       buffer = astTools.translateAst(ast, 0, ast.source.length);
 
-      this.test = buffer;
+      this.testWrappedSource = buffer;
       //console.log(buffer);
     }
 
-    return this.test;
+    return this.testWrappedSource;
   },
 
   reset: function(){
@@ -265,39 +291,55 @@ var TestCase = AbstractTest.subclass({
     var warnMessages = [];
     var errorMessages = [];
     var error;
+    var time = NaN;
+    var startTime;
+    var timeoutTimer;
     var report = {
       testSource: this.data.testSource,
       successCount: 0,
       testCount: 0,
       errorLines: {}
     };
+    var async = this.data.async ? 1 : 0;
     var isNode = null;
+    var __isFor = function(range, line){
+      isNode = {
+        range: range,
+        line: line
+      };
+    };
     var env = {
-      isFor: function(range, line){
-        isNode = {
-          range: range,
-          line: line
-        };
+      async: function(fn){
+        async++;
+        basis.nextTick(function(){
+          async--;
+          fn.call(this);
+          if (!async)
+            testDone();
+        }.bind(this));
       },
       is: function checkAnswer(answer, result){
         var error = compareValues(answer, result);
 
         if (error)
         {
-          var line = isNode.line;
-          var errors = report.errorLines[line];
+          if (isNode)
+          {
+            var line = isNode.line;
+            var errors = report.errorLines[line];
 
-          if (!errors)
-            errors = report.errorLines[line] = [];
+            if (!errors)
+              errors = report.errorLines[line] = [];
 
-          errors.push({
-            node: isNode,
-            error: error,
-            answer: makeStaticCopy(answer),
-            answerStr: value2string(answer),
-            result: makeStaticCopy(result),
-            resultStr: value2string(result)
-          });
+            errors.push({
+              node: isNode,
+              error: error,
+              answer: makeStaticCopy(answer),
+              answerStr: value2string(answer),
+              result: makeStaticCopy(result),
+              resultStr: value2string(result)
+            });
+          }
         }
         else
           report.successCount++;
@@ -309,30 +351,26 @@ var TestCase = AbstractTest.subclass({
 
     this.setState(basis.data.STATE.PROCESSING);
 
-    this.getEnvRunner(true).run(this.getSourceCode(), this, function(testFn){
-      var start = basis.utils.benchmark.time();
-      var time = NaN;
+    var __exception = function(e){
+      report.exception = e;
+      report.testCount = 0;
+      report.successCount = 0;
+      error = ERROR_TEST_CRUSH;
 
-      try {
-        // basis.dev.warn = function(){
-        //   warnMessages.push(arguments);
-        //   _warn.apply(this, arguments);
-        // };
-        // basis.dev.error = function(){
-        //   errorMessages.push(arguments);
-        //   _error.apply(this, arguments);
-        // };
+      testDone();
+    };
 
-        testFn.call(env);
-        time = basis.utils.benchmark.time(start);
-      } catch(e) {
-        report.testCount++;
+    var asyncDone = async
+      ? basis.fn.runOnce(function(){
+          async--;
+          if (!async)
+            testDone();
+        })
+      : NOP;
 
-        error = e;
-      } finally {
-        // basis.dev.warn = _warn;
-        // basis.dev.error = _error;
-      }
+    var testDone = function(){
+      time = basis.utils.benchmark.time(startTime);
+      timeoutTimer = clearTimeout(timeoutTimer);
 
       if (!error && !report.testCount)
         error = ERROR_EMPTY;
@@ -355,7 +393,37 @@ var TestCase = AbstractTest.subclass({
           data: report
         })
       );
-    });
+    }.bind(this);
+
+
+    this.getEnvRunner(true).run(
+      this.data.testArgs.concat('__isFor', '__exception'),
+      this.getSourceCode(),
+      this,
+      function(testFn){
+        startTime = basis.utils.benchmark.time();
+
+        var args = basis.array.create(this.data.testArgs.length);
+        if (args.length)
+          args[0] = asyncDone;
+        args.push(__isFor, __exception);
+
+        try {
+          testFn.apply(env, args);
+        } catch(e) {
+          __exception(e);
+          return;
+        }
+
+        if (!async)
+          testDone(this);
+        else
+          timeoutTimer = setTimeout(function(){
+            error = ERROR_TIMEOUT;
+            testDone();
+          }, 250);
+      }
+    );
   }
 });
 
