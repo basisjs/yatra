@@ -1,10 +1,17 @@
 <b:style src="test.css"/>
 <div class="app-test app-test-{hasOwnEnvironment}">
-  <span class="app-test-name">
-    {name}
-  </span>
-  &#32;&mdash;&#32;
-  <span class="app-test-state app-test-state_state-{state}">
-    {stateMessage}
-  </span>
+  <div class="app-test-header">
+    <span class="app-test__select-button" event-click="select">
+      pick up
+    </span>
+    <span class="app-test-name">
+      {name}
+    </span>
+    <span class="app-test-splitter app-test-splitter_{state}">
+      &#32;&mdash;&#32;
+    </span>
+    <span class="app-test-state app-test-state_state-{state}">
+      {stateMessage}
+    </span>
+  </div>
 </div>

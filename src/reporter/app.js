@@ -7,7 +7,20 @@ var runner = require('core.runner');
 var tests = new basis.data.Dataset();
 var api = {
   loadTests: function(data){
-    tests.set(data.map(core.test.create));
+    tests.set(
+      [new basis.data.Object({
+        data: {
+          name: 'Fault tests'
+        },
+        getChildNodesDataset: function(){
+          return runner.faultTests;
+        },
+        run: function(){
+          this.setState('ready');
+        },
+        reset: function(){}
+      })].concat(data.map(core.test.create))
+    );
   }
 };
 
@@ -25,12 +38,23 @@ module.exports = basis.app.create({
       }
     }, testDetails);
 
+    testDetails.selection.addHandler({
+      itemsChanged: function(selection){
+        var selected = selection.pick();
+        if (selected)
+          this.setDataSource(selected.root.getChildNodesDataset());
+      }
+    }, toc);
+
+    toc.setDataSource(tests);
+    //testDetails.setDataSource(runner.faultTests);
+
     return this.root = new basis.ui.Node({
       container: document.body,
       template: resource('template/view.tmpl'),
       action: {
         run: function(){
-          runner.run(tests.getItems());
+          runner.run(toc.childNodes.slice(0));
         }
       },
       binding: {
@@ -38,19 +62,8 @@ module.exports = basis.app.create({
         total: runner.count.total,
         left: runner.count.left,
         done: runner.count.done,
-        toc: 'satellite:',
-        tests: 'satellite:'
-      },
-      satellite: {
-        toc: {
-          instance: toc,
-          dataSource: function(){
-            return tests;
-          }
-        },
-        tests: {
-          instance: testDetails
-        }
+        toc: toc,
+        tests: testDetails
       }
     });
   }

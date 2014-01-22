@@ -12,6 +12,54 @@ var TestCase = require('core.test').TestCase;
 
 
 //
+// Test source code view
+//
+
+var CodeView = basis.ui.Node.subclass({
+  template: resource('template/test-source.tmpl'),
+  binding: {
+    sourceCode: 'codeElement'
+  },
+
+  init: function(){
+    this.codeElement = document.createElement('div');
+    basis.ui.Node.prototype.init.call(this);
+    this.syncCode();
+  },
+  syncCode: function(){
+    this.codeElement.innerHTML = highlight(this.data.testSource, 'js', {
+      keepFormat: true,
+      noLineNumber: true
+    });
+
+    var errorLines = this.data.errorLines;
+    for (var line in errorLines)
+    {
+      this.codeElement.childNodes[line - 1].className += ' error-line';
+      this.codeElement.childNodes[line - 1].innerHTML +=
+        '<div class="error-line-details">' +
+          errorLines[line].map(function(lineError){
+            return (
+              '<div class="error-line-details-item">' +
+                '<span class="caption">Expected:</span>' +
+                '<span class="expected">' + lineError.answerStr + '</span>' +
+                '<span class="caption">Actual:</span>' +
+                '<span class="actual">' + lineError.resultStr + '</span>' +
+              '</div>'
+            );
+          }).join('') +
+        '</div>';
+    }
+  },
+  handler: {
+    update: function(){
+      this.syncCode();
+    }
+  }
+});
+
+
+//
 // Tree node classes
 //
 
@@ -54,7 +102,7 @@ var TestNode = basis.ui.Node.subclass({
 
 var TestSuiteNode = TestNode.subclass({
   dataSource: basis.data.Value.factory('rootChanged', function(node){
-    return node.root && node.root.getChildNodesDataset();
+    return node.root.getChildNodesDataset();
   }),
 
   template: resource('template/test-suite.tmpl'),
@@ -84,53 +132,14 @@ var TestCaseNode = TestNode.subclass({
                owner.state.data.data.testSource;
       },
       delegate: 'state.data',
-      instanceOf: basis.ui.Node.subclass({
-        template: resource('template/test-source.tmpl'),
-        binding: {
-          sourceCode: 'codeElement'
-        },
-
-        init: function(){
-          this.codeElement = document.createElement('div');
-          basis.ui.Node.prototype.init.call(this);
-          this.syncCode();
-        },
-        syncCode: function(){
-          this.codeElement.innerHTML = highlight(this.data.testSource, 'js', {
-            keepFormat: true,
-            noLineNumber: true
-          });
-
-          var errorLines = this.data.errorLines;
-          for (var line in errorLines)
-          {
-            this.codeElement.childNodes[line - 1].className += ' error-line';
-            this.codeElement.childNodes[line - 1].innerHTML += 
-              '<div class="error-line-details">' +
-                errorLines[line].map(function(lineError){
-                  return (
-                    '<div class="error-line-details-item">' +
-                      '<b>Expected:</b>' +
-                      '<span class="expected">' + lineError.answerStr + '</span>' +
-                      '<b>Actual:</b>' +
-                      '<span class="actual">' + lineError.resultStr + '</span>' +
-                    '</div>'
-                  );
-                }).join('') +
-              '</div>';
-          }
-        },
-        handler: {
-          update: function(){
-            this.syncCode();
-          }
-        }
-      })
+      instanceOf: CodeView
     }
   }
 });
 
 module.exports = {
+  TestNode: TestNode,
   TestCaseNode: TestCaseNode,
-  TestSuiteNode: TestSuiteNode
+  TestSuiteNode: TestSuiteNode,
+  CodeView: CodeView
 };

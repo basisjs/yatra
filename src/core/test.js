@@ -159,7 +159,7 @@ function createTestFactory(data){
 
   if (typeof test == 'function')
   {
-    config.data.test = test;
+    config.data.testSource = prepareTestSourceCode(test);
     Class = TestCase;
   }
   else
@@ -221,21 +221,12 @@ var TestCase = AbstractTest.subclass({
   testSource: null,
   test: null,
 
-  // name
-  // before
-  // test
-  // after
-  init: function(){
-    basis.dom.wrapper.Node.prototype.init.call(this);
-    this.testSource = prepareTestSourceCode(this.data.test);
-  },
-
   childClass: null,
 
   getSourceCode: function(){
     if (this.test === null)
     {
-      var source = this.testSource;
+      var source = this.data.testSource;
       var buffer = [];
       var token;
       var ast = astTools.parse(source);
@@ -275,7 +266,7 @@ var TestCase = AbstractTest.subclass({
     var errorMessages = [];
     var error;
     var report = {
-      testSource: this.testSource,
+      testSource: this.data.testSource,
       successCount: 0,
       testCount: 0,
       errorLines: {}

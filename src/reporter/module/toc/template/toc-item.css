@@ -39,7 +39,7 @@
   height: 100%;
   z-index: 0;
   opacity: 0;
-  -webkit-transition: width .2s ease-in, opacity 1s;
+  -webkit-transition: width .2s ease-in, opacity 1s .15s;
 }
 .app-toc-item__progress_processing
 {

@@ -1,13 +1,20 @@
 .Basis-SyntaxHighlight
 {
+  font-family: Consolas, Monaco, monospace;
   font-size: 12px;
   line-height: 1.5em;
-  background: #F8F8F8;
+  background: #FAFAFA;
   border: 1px solid  #E0E0E0;
-  margin: .5em -1px -8px -9px;
+  margin: 0 -1px -1px -1px;
   padding: 2px 8px 2px 2px;
   padding: 0 0 1px;
   overflow: visible;
+  box-shadow: 0 0 3px rgba(0, 0, 0, .1) inset;
+}
+.app-test-suite .Basis-SyntaxHighlight 
+{
+  margin-bottom: .5em;
+  margin-left: 0;
 }
 
 .Basis-SyntaxHighlight .even,
@@ -48,17 +55,29 @@
 .Basis-SyntaxHighlight .error-line-details-item
 {
   background: rgba(255, 255, 255, .9);
-  padding: 2px 4px;
+  padding: 0px 4px 2px;
   margin: 1px 0;
+  overflow: hidden;
 }
-.Basis-SyntaxHighlight .error-line-details-item B
+.Basis-SyntaxHighlight .error-line-details-item .caption
 {
-  font-size: 90%;
+  float: left;
+  clear: left;
+  min-width: 10ex;
 }
 .Basis-SyntaxHighlight .error-line-details-item .expected,
 .Basis-SyntaxHighlight .error-line-details-item .actual
 {
   color: black;
   display: block;
+  overflow: hidden;
   padding: 0px 2px 0px 1em;
+}
+.Basis-SyntaxHighlight .error-line-details-item .expected
+{
+  color: #090;
+}
+.Basis-SyntaxHighlight .error-line-details-item .actual
+{
+  color: #D00;
 }

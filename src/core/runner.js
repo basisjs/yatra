@@ -5,6 +5,7 @@ require('basis.utils.benchmark');
 require('core.test');
 
 var testsToRun = new basis.data.Dataset();
+
 var processingQueue = new basis.data.dataset.Subset({
   source: testsToRun,
   ruleEvents: 'stateChanged',
@@ -13,7 +14,6 @@ var processingQueue = new basis.data.dataset.Subset({
            test.state != basis.data.STATE.ERROR;
   }
 });
-
 var processingQueueTop = new basis.data.dataset.Slice({
   source: processingQueue,
   rule: 'basisObjectId',
@@ -27,6 +27,14 @@ var processingQueueTop = new basis.data.dataset.Slice({
           });
         });
     }
+  }
+});
+
+var faultTests = new basis.data.dataset.Subset({
+  source: testsToRun,
+  ruleEvents: 'stateChanged',
+  rule: function(test){
+    return test.state == basis.data.STATE.ERROR;
   }
 });
 
@@ -47,11 +55,13 @@ testLeft.addHandler({
   }
 });
 
-function extractTests(tests){
+function extractTests(data){
   var result = [];
 
-  for (var i = 0, test; test = tests[i]; i++)
+  for (var i = 0, item; item = data[i]; i++)
   {
+    var test = item.root;
+
     if (test instanceof core.test.TestCase)
       result.push(test);
 
@@ -73,7 +83,7 @@ function run(data){
   }
 
   data.forEach(function(item){
-    item.reset();
+    item.root.reset();
   });
 
   testsToRun.set(extractTests(data));
@@ -87,6 +97,7 @@ function stop(){
 
 module.exports = {
   time: time,
+  faultTests: faultTests,
   count: {
     total: testCount,
     left: testLeft,

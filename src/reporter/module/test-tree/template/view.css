@@ -16,9 +16,6 @@
 .app-test-tree__content > .app-test
 {
   border: 1px solid #E0E0E0;
+  background: white;
   margin-bottom: 1px;
-}
-.app-test-tree__content > .app-test-case .Basis-SyntaxHighlight 
-{
-  margin-bottom: -9px;
 }
