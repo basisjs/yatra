@@ -306,24 +306,25 @@ var TestCase = AbstractTest.subclass({
     var time = NaN;
     var startTime;
     var timeoutTimer;
-    var report = {
-      testSource: this.data.testSource,
-      lastLine: 0,
-      successCount: 0,
-      testCount: 0,
-      errorLines: {}
-    };
     var async = this.data.async ? 1 : 0;
     var isNode = null;
-    var __isFor = function(range, line){
-      isNode = {
-        range: range,
-        line: line
-      };
+
+    var report = {
+      testSource: this.data.testSource,
+      time: time,
+      lastLine: 0,
+
+      empty: false,
+      pending: false,
+      successCount: 0,
+      testCount: 0,
+
+      error: null,
+      exception: null,
+      errorLines: {},
+      warns: null
     };
-    var __enterLine = function(line){
-      report.lastLine = line
-    };
+
     var env = {
       async: function(fn){
         async++;
@@ -334,7 +335,7 @@ var TestCase = AbstractTest.subclass({
             testDone();
         }.bind(this));
       },
-      is: function checkAnswer(answer, result){
+      is: function(answer, result){
         var error = compareValues(answer, result);
 
         if (error)
@@ -365,15 +366,23 @@ var TestCase = AbstractTest.subclass({
       report: report
     };
 
-    this.setState(basis.data.STATE.PROCESSING);
+    var __isFor = function(range, line){
+      isNode = {
+        range: range,
+        line: line
+      };
+    };
+
+    var __enterLine = function(line){
+      report.lastLine = line
+    };
 
     var __exception = function(e){
       report.exception = e;
       report.testCount = 0;
       report.successCount = 0;
-      error = ERROR_TEST_CRUSH;
 
-      testDone();
+      testDone(ERROR_TEST_CRUSH);
     };
 
     var asyncDone = async
@@ -384,12 +393,9 @@ var TestCase = AbstractTest.subclass({
         })
       : NOP;
 
-    var testDone = function(){
+    var testDone = function(error){
       time = basis.utils.benchmark.time(startTime);
       timeoutTimer = clearTimeout(timeoutTimer);
-
-      if (!error && !report.testCount)
-        error = ERROR_EMPTY;
 
       if (!error && report.testCount != report.successCount)
         error = ERROR_TEST_FAULT;
@@ -398,6 +404,7 @@ var TestCase = AbstractTest.subclass({
         time: time,
         error: error,
         empty: !error && report.testCount == 0,
+        pending: !report.testCount,
         warns: warnMessages.length ? warnMessages : null
       });
 
@@ -411,33 +418,40 @@ var TestCase = AbstractTest.subclass({
       );
     }.bind(this);
 
+    // set processing state
+    this.setState(basis.data.STATE.PROCESSING);
 
+    // prepare env and run test
     this.getEnvRunner(true).run(
-      this.data.testArgs.concat('__isFor', '__enterLine', '__exception'),
-      this.getSourceCode(),
+      'function(' + this.data.testArgs.concat('__isFor', '__enterLine', '__exception').join(', ') + '){\n' +
+        this.getSourceCode() +
+      '\n}',
       this,
       function(testFn){
         startTime = basis.utils.benchmark.time();
 
+        // prepare args
         var args = basis.array.create(this.data.testArgs.length);
         if (args.length)
           args[0] = asyncDone;
         args.push(__isFor, __enterLine, __exception);
 
+        // run test
         try {
           testFn.apply(env, args);
         } catch(e) {
-          __exception(e);
-          return;
+          return __exception(e);
         }
 
+        // if test is
         if (!async)
-          testDone(this);
+          // if test is not async - task done
+          testDone();
         else
+          // if test is async - set timeout
           timeoutTimer = setTimeout(function(){
-            error = ERROR_TIMEOUT;
-            testDone();
-          }, 250);
+            testDone(ERROR_TIMEOUT);
+          }, this.data.timeout || 250);
       }
     );
   }
