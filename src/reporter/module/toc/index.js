@@ -29,8 +29,8 @@ var Item = basis.ui.Node.subclass({
     }]
   },
   action: {
-    pickup: function(){
-      if (this.root instanceof core.test.AbstractTest)
+    pickup: function(event){
+      if (this.parentNode && this.root instanceof core.test.TestSuite)
         this.parentNode.setDelegate(this.root);
     }
   }
@@ -46,7 +46,8 @@ var view = new basis.ui.Node({
 
   template: resource('template/toc.tmpl'),
   binding: {
-    faultTests: 'satellite:'
+    faultTests: 'satellite:',
+    levelUp: 'satellite:'
   },
 
   selection: true,
@@ -77,7 +78,32 @@ view.setSatellite('faultTests', new Item({
   })
 }));
 
-basis.nextTick(function(){
+//
+// special toc item that level up tests
+//
+view.setSatellite('levelUp', {
+  events: 'rootChanged',
+  existsIf: function(owner){
+    return owner.root.parentNode;
+  },
+  delegate: function(owner){
+    return owner.root.parentNode;
+  },
+  instance: new Item({
+    binding: {
+      name: function(){
+        return '..';
+      }
+    },
+    action: {
+      select: function(){
+        this.owner.setDelegate(this.root);
+      }
+    }
+  })
+});
+
+app.ready(function(){
   if (!view.selection.itemCount)
     view.satellite.faultTests.select();
 });

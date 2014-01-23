@@ -34,7 +34,11 @@ var FrameEnv = basis.ui.Node.subclass({
   action: {
     ready: function(){
       var frameWindow = this.element.contentWindow;
-      var initCode = typeof this.initEnv == 'function' ? basis.utils.info.fn(this.initEnv).body : '';
+      var initCode = '';
+
+      if (typeof this.initEnv == 'function')
+        initCode = basis.utils.info.fn(this.initEnv).body
+          .replace(/^([\r\n]|\s)*"use strict";/, '');  // Firefox adds "use strict" at the begining of function body
 
       runInContext(frameWindow, resource('iframe_inject.js').get(true));
 

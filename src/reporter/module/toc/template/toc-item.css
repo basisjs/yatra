@@ -5,7 +5,13 @@
   margin: 1px;
   position: relative;
   cursor: pointer;
-  -webkit-transition: padding .15s, margin .15s;
+    -webkit-transition: padding .15s, margin .15s;
+    -moz-transition: padding .15s, margin .15s;
+  transition: padding .15s, margin .15s;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  user-select: none;
 }
 .app-toc-item:hover
 {
@@ -24,7 +30,9 @@
   opacity: .15;
   height: 20px;
   width: 12px;
-  -webkit-transition: opacity .2s, right .35s;
+    -webkit-transition: opacity .2s, right .35s;
+    -moz-transition: opacity .2s, right .35s;
+  transition: opacity .2s, right .35s;
 }
 .app-toc-item:hover:after
 {
@@ -56,12 +64,16 @@
   height: 100%;
   z-index: 0;
   opacity: 0;
-  -webkit-transition: width .2s ease-in, opacity 1s .15s;
+    -webkit-transition: width .2s ease-in, opacity 1s .15s;
+    -moz-transition: width .2s ease-in, opacity 1s .15s;
+  transition: width .2s ease-in, opacity 1s .15s;
 }
 .app-toc-item__progress_processing
 {
   opacity: .4;
-  -webkit-transition: width .5s ease-out;
+    -webkit-transition: width .25s ease-out;
+    -moz-transition: width .25s ease-out;
+  transition: width .25s ease-out;
 }
 .app-toc-item__progress_undefined
 {

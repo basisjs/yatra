@@ -3,27 +3,25 @@ require('basis.ui');
 require('core.test');
 
 var runner = require('core.runner');
-var toc = require('module/toc/index.js');
-var testDetails = require('module/test-tree/index.js');
-
-var tests = new basis.data.Dataset();
-var rootTestSuite;
+var rootTestSuite = new basis.data.Object({
+  getChildNodesDataset: function(){}
+});
 
 var api = {
   loadTests: function(data){
     if (Array.isArray(data))
       data = { test: data };
 
-    rootTestSuite = core.test.create(data);
-    tests.set(rootTestSuite.childNodes);
-
-    toc.setDelegate(rootTestSuite);
+    rootTestSuite.setDelegate(core.test.create(data));
   }
 };
 
 module.exports = basis.app.create({
   title: 'Basis.js test environment',
   init: function(){
+    var toc = require('module/toc/index.js');
+    var testDetails = require('module/test-tree/index.js');
+
     basis.object.extend(this, api);
 
     toc.addHandler({

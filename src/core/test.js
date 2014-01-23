@@ -127,7 +127,10 @@ function compareValues(actual, expected){
 }
 
 function prepareTestSourceCode(fn){
-  var code = basis.utils.info.fn(fn).body.replace(/\r/g, '').replace(/^(\s*\n)+|(\n\s*)*$/g, '');
+  var code = basis.utils.info.fn(fn).body
+    .replace(/([\r\n]|\s)*\"use strict\";/, '') // Firefox adds "use strict" at the begining of function body
+    .replace(/\r/g, '')
+    .replace(/^(\s*\n)+|(\n\s*)*$/g, '');
   var minOffset = code.split(/\n+/).map(function(line){
     return line.match(/^(\s*)/)[0];
   }).sort()[0];
