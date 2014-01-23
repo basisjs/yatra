@@ -8,6 +8,7 @@ require('basis.utils.benchmark');
 var envFactory = require('core.env');
 var astTools = require('core.ast');
 var arrayFrom = basis.array.from;
+var Object_toString = Object.prototype.toString;
 
 var ERROR_WRONG_ANSWER = 'ERROR_WRONG_ANSWER';
 var ERROR_TYPE_MISSMATCH = 'ERROR_TYPE_MISSMATCH';
@@ -49,7 +50,8 @@ function value2string(value, linear){
       return '\'' + value.replace(/\'/g, '\\\'') + '\'';
 
     case 'function':
-      return !linear ? value.toString() : value.toString().replace(/\{([\r\n]|.)*\}/, '{..}');
+      value = String(value);
+      return !linear ? value : value.replace(/\{([\r\n]|.)*\}/, '{..}');
 
     case 'object':
       if (value === null)
@@ -58,7 +60,9 @@ function value2string(value, linear){
       if (Array.isArray(value))
         return '[' + value.map(value2string).join(', ') + ']';
 
-      if (value.constructor == Date)
+      // NOTE: constructor check and instanceof doesn't work here,
+      // because value is from sanbox
+      if (Object_toString.call(value) === '[object Date]')
         return String(value);
 
       if (!linear)
@@ -101,6 +105,9 @@ function compareValues(actual, expected){
           return;
 
         if ((!expected && actual) || (expected && !actual))
+          return ERROR_WRONG_ANSWER;
+
+        if (String(expected) != String(actual))
           return ERROR_WRONG_ANSWER;
 
         if (actual && 'length' in actual)
