@@ -81,6 +81,18 @@
 {
   color: #D00;
 }
+.Basis-SyntaxHighlight .error-line-details-item .diff-added
+{
+  background: #B44;
+  color: white;
+  padding: 0 1px;
+}
+.Basis-SyntaxHighlight .error-line-details-item .diff-removed
+{
+  background: #5A5;
+  color: white;
+  padding: 0 1px;
+}
 
 .Basis-SyntaxHighlight .exception-line
 {

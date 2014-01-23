@@ -342,8 +342,8 @@ var TestCase = AbstractTest.subclass({
             testDone();
         }.bind(this));
       },
-      is: function(answer, result){
-        var error = compareValues(answer, result);
+      is: function(expected, actual){
+        var error = compareValues(expected, actual);
 
         if (error)
         {
@@ -358,10 +358,10 @@ var TestCase = AbstractTest.subclass({
             errors.push({
               node: isNode,
               error: error,
-              answer: makeStaticCopy(answer),
-              answerStr: value2string(answer),
-              result: makeStaticCopy(result),
-              resultStr: value2string(result)
+              expected: makeStaticCopy(expected),
+              expectedStr: value2string(expected),
+              actual: makeStaticCopy(actual),
+              actualStr: value2string(actual)
             });
           }
         }

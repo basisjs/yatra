@@ -9,6 +9,7 @@ require('basis.ui');
 var document = global.document;
 var highlight = require('basis.utils.highlight').highlight;
 var TestCase = require('core.test').TestCase;
+var strDiff = require('diff');
 
 
 //
@@ -51,12 +52,40 @@ var CodeView = basis.ui.Node.subclass({
       lines[lineNum - 1].innerHTML +=
         '<div class="error-line-details">' +
           errorLines[lineNum].map(function(lineError){
+            var diffType =
+              typeof lineError.expected == 'string' &&
+              typeof lineError.actual == 'string'
+                ? 'diffChars'
+                : 'diffWords';
+
+            var diff = strDiff[diffType](lineError.expectedStr, lineError.actualStr);
+            var expected = '';
+            var actual = '';
+
+            for (var i = 0, chunk; chunk = diff[i]; i++)
+            {
+              if (chunk.removed)
+              {
+                expected += '<span class="diff-removed">' + chunk.value + '</span>';
+                continue;
+              }
+
+              if (chunk.added)
+              {
+                actual += '<span class="diff-added">' + chunk.value + '</span>';
+                continue;
+              }
+
+              expected += chunk.value;
+              actual += chunk.value;
+            }
+
             return (
               '<div class="error-line-details-item">' +
                 '<span class="caption">Expected:</span>' +
-                '<span class="expected">' + lineError.answerStr + '</span>' +
+                '<span class="expected">' + expected + '</span>' +
                 '<span class="caption">Actual:</span>' +
-                '<span class="actual">' + lineError.resultStr + '</span>' +
+                '<span class="actual">' + actual + '</span>' +
               '</div>'
             );
           }).join('') +
