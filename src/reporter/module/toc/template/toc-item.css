@@ -5,6 +5,7 @@
   margin: 1px;
   position: relative;
   cursor: pointer;
+  -webkit-transition: padding .15s, margin .15s;
 }
 .app-toc-item:hover
 {
@@ -13,21 +14,37 @@
 
 .app-toc-item:after
 {
-  content: '>';
-  font-size: 16px;
-  line-height: 16px;
+  content: '';
   position: absolute;
-  right: 4px;
+  right: 5px;
   top: 50%;
-  margin-top: -8px;
+  margin-top: -10px;
   color: #888;
+  background: url(arrow.png) no-repeat center center;
+  opacity: .15;
+  height: 20px;
+  width: 12px;
+  -webkit-transition: opacity .2s, right .35s;
+}
+.app-toc-item:hover:after
+{
+  opacity: .5;
 }
 
 .app-toc-item_selected,
 .app-toc-item_selected:hover
 {
   background: #FFF0D0;
+  background: #F0F0F0;
   cursor: default;
+  padding-right: 17px;
+  margin-right: -8px;
+}
+.app-toc-item_selected:after,
+.app-toc-item_selected:hover:after
+{
+  right: -15px;
+  opacity: 0;
 }
 
 .app-toc-item__progress
@@ -44,7 +61,7 @@
 .app-toc-item__progress_processing
 {
   opacity: .4;
-  -webkit-transition: width .25s ease-in;
+  -webkit-transition: width .5s ease-out;
 }
 .app-toc-item__progress_undefined
 {
@@ -55,7 +72,7 @@
 {
   position: relative;
   float: right;
-  padding: 0 1em;
+  padding: 0 14px 0 1ex;
   white-space: nowrap;
 }
 .app-toc-item__state-ready

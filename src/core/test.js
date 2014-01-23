@@ -440,10 +440,6 @@ var TestCase = AbstractTest.subclass({
 //     : 1;
 // }
 
-function aggregateCount(){
-  return true;
-}
-
 var TestSuite = AbstractTest.subclass({
   className: 'TestSuite',
 
@@ -453,15 +449,24 @@ var TestSuite = AbstractTest.subclass({
   init: function(){
     AbstractTest.prototype.init.call(this);
 
+    this.nestedTests_ = new basis.data.Dataset({
+      items: this.childNodes.reduce(function(res, item){
+        return res.concat(
+          item instanceof TestSuite
+            ? item.nestedTests_.getItems()
+            : item
+        );
+      }, [])
+    });
     this.nonEmpty_ = new basis.data.dataset.Subset({
-      source: this.getChildNodesDataset(),
+      source: this.nestedTests_,
       ruleEvents: 'stateChanged',
       rule: function(test){
         return test.state != basis.data.STATE.ERROR ||
                !test.state.data ||
                test.state.data.data.error != ERROR_EMPTY;
       }
-    })
+    });
     this.testByState_ = new basis.data.dataset.Split({
       source: this.nonEmpty_,
       ruleEvents: 'stateChanged',
@@ -471,28 +476,26 @@ var TestSuite = AbstractTest.subclass({
     });
 
     this.state_ = new basis.data.value.Expression(
-      basis.data.index.sum(this.nonEmpty_, aggregateCount),
-      basis.data.index.sum(this.testByState_.getSubset('processing', true), aggregateCount),
-      basis.data.index.sum(this.testByState_.getSubset('error', true), aggregateCount),
-      basis.data.index.sum(this.testByState_.getSubset('ready', true), aggregateCount),
+      basis.data.index.count(this.nonEmpty_),
+      basis.data.index.count(this.testByState_.getSubset('processing', true)),
+      basis.data.index.count(this.testByState_.getSubset('error', true)),
+      basis.data.index.count(this.testByState_.getSubset('ready', true)),
       function(count, processing, error, ready){
-        if (processing + error + ready == 0)
-        {
-          if (!count)
-            return [
-              basis.data.STATE.ERROR,
-              new basis.data.Object({
-                data: {
-                  error: ERROR_EMPTY,
-                  empty: true,
-                  testCount: count,
-                  successCount: ready
-                }
-              })
-            ];
+        if (!count)
+          return [
+            basis.data.STATE.ERROR,
+            new basis.data.Object({
+              data: {
+                error: ERROR_EMPTY,
+                empty: true,
+                testCount: count,
+                successCount: ready
+              }
+            })
+          ];
 
+        if (processing + error + ready == 0)
           return [basis.data.STATE.UNDEFINED];
-        }
 
         if (processing || error + ready < count)
           return [
@@ -535,6 +538,8 @@ var TestSuite = AbstractTest.subclass({
     this.testByState_ = null;
     this.nonEmpty_.destroy()
     this.nonEmpty_ = null;
+    this.nestedTests_.destroy();
+    this.nestedTests_ = null;
     this.state_.destroy();
     this.state_ = null;
 

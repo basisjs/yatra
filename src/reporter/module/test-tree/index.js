@@ -1,18 +1,26 @@
 require('core.test');
 require('app.test');
 
-module.exports = new app.test.TestSuiteNode({
+var view = new app.test.TestSuiteNode({
   template: resource('template/view.tmpl'),
   binding: {
+    type: ['rootChanged', function(node){
+      if (node.root instanceof core.test.TestSuite)
+        return 'suite';
+      if (node.root instanceof core.test.TestCase)
+        return 'case';
+      return 'unknown';
+    }],
+    sourceCode: 'satellite:',
     hasDelegate: ['delegateChanged', function(node){
       return !!node.delegate;
-    }],
-    sourceCode: 'satellite:'
+    }]
   },
 
   selection: true,
   satellite: {
     sourceCode: {
+      instanceOf: app.test.CodeView,
       events: 'rootChanged stateChanged',
       existsIf: function(owner){
         return owner.root instanceof core.test.TestCase;
@@ -22,8 +30,18 @@ module.exports = new app.test.TestSuiteNode({
                owner.state.data instanceof basis.data.Object
                   ? owner.state.data
                   : owner;
-      },
-      instanceOf: app.test.CodeView
+      }
     }
   }
 });
+
+// make view adds to it's own selection on select
+// funny but that works
+view.contextSelection = view.selection;
+view.addHandler({
+  delegateChanged: function(){
+    this.selection.clear();
+  }
+});
+
+module.exports = view;

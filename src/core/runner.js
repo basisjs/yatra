@@ -120,10 +120,10 @@ function stop(){
     awaitProcessingTests.add(processingQueue.getItems().filter(function(test){
       return test.state == basis.data.STATE.PROCESSING;
     }));
-
-    // remove all tests from processing queue
-    processingQueue.setSource();
   }
+
+  // remove all tests from processing queue
+  processingQueue.setSource();
 }
 
 module.exports = {

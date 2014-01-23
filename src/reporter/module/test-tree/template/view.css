@@ -3,16 +3,44 @@
   padding: 10px;
   display: none;
 }
+
 .app-test-tree_hasDelegate
 {
   display: block;
 }
 .app-test-tree__header
 {
-  font-size: 200%;
   padding-left: 8px;
-  margin-bottom: .4em;
+  margin-bottom: 7px;
 }
+.app-test-tree__caption
+{
+  font-size: 200%;
+}
+.app-test-tree__buttons
+{
+  float: right;
+  padding: 8px 4px 0 0;
+}
+.app-test-tree__button
+{
+  text-decoration: underline;
+  cursor: pointer;
+  color: #666;
+}
+.app-test-tree__button:hover
+{
+  color: black;
+}
+.app-test-tree__button-pickup
+{
+  display: none;
+}
+.app-test-tree__button-pickup_suite
+{
+  display: inline;
+}
+
 .app-test-tree__content > .app-test
 {
   border: 1px solid #E0E0E0;

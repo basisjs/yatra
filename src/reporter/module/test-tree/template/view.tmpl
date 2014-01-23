@@ -1,6 +1,11 @@
 <b:style src="view.css"/>
 <div class="app-test-tree app-test-tree_{hasDelegate}">
-  <div class="app-test-tree__header">{name}</div>
+  <div class="app-test-tree__header">
+    <div class="app-test-tree__buttons">
+      <span class="app-test-tree__button app-test-tree__button-pickup app-test-tree__button-pickup_{type}" event-click="select">pick up</span>
+    </div>
+    <span class="app-test-tree__caption">{name}</span>
+  </div>
   <div{childNodesElement} class="app-test-tree__content"/>
   <!--{sourceCode}-->
 </div>

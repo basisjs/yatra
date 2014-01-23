@@ -3,29 +3,21 @@ require('basis.ui');
 require('core.test');
 
 var runner = require('core.runner');
+var toc = require('module/toc/index.js');
+var testDetails = require('module/test-tree/index.js');
 
 var tests = new basis.data.Dataset();
+var rootTestSuite;
+
 var api = {
   loadTests: function(data){
-    if (!Array.isArray(data))
-      data = core.test.create(data).childNodes;
-    else
-      data = data.map(core.test.create);
+    if (Array.isArray(data))
+      data = { test: data };
 
-    tests.set(
-      [new basis.data.Object({
-        data: {
-          name: 'Fault tests'
-        },
-        getChildNodesDataset: function(){
-          return runner.faultTests;
-        },
-        run: function(){
-          this.setState('ready');
-        },
-        reset: function(){}
-      })].concat(data)
-    );
+    rootTestSuite = core.test.create(data);
+    tests.set(rootTestSuite.childNodes);
+
+    toc.setDelegate(rootTestSuite);
   }
 };
 
@@ -33,9 +25,6 @@ module.exports = basis.app.create({
   title: 'Basis.js test environment',
   init: function(){
     basis.object.extend(this, api);
-
-    var toc = require('module/toc/index.js');
-    var testDetails = require('module/test-tree/index.js');
 
     toc.addHandler({
       childNodesModified: function(){
@@ -56,15 +45,14 @@ module.exports = basis.app.create({
       }
     }, toc);
 
-    toc.setDataSource(tests);
-    //testDetails.setDataSource(runner.faultTests);
+    toc.setDelegate(rootTestSuite);
 
     return this.root = new basis.ui.Node({
       container: document.body,
       template: resource('template/view.tmpl'),
       action: {
         reset: function(){
-          toc.setDataSource(tests);
+          toc.setDelegate(rootTestSuite);
         },
         run: function(){
           runner.run();
