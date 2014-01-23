@@ -321,7 +321,6 @@ var TestCase = AbstractTest.subclass({
       time: time,
       lastLine: 0,
 
-      empty: false,
       pending: false,
       successCount: 0,
       testCount: 0,
@@ -410,8 +409,7 @@ var TestCase = AbstractTest.subclass({
       basis.object.extend(report, {
         time: time,
         error: error,
-        empty: !error && report.testCount == 0,
-        pending: !report.testCount,
+        pending: !error && !report.testCount,
         warns: warnMessages.length ? warnMessages : null
       });
 
@@ -513,7 +511,6 @@ var TestSuite = AbstractTest.subclass({
             basis.data.STATE.READY,
             new basis.data.Object({
               data: {
-                empty: true,
                 pending: true,
                 testCount: count,
                 successCount: ready
@@ -535,7 +532,6 @@ var TestSuite = AbstractTest.subclass({
           new basis.data.Object({
             data: {
               error: error ? ERROR_TEST_FAULT : null,
-              empty: !count,
               testCount: count,
               successCount: ready
             }

@@ -47,3 +47,7 @@
   background: white;
   margin-bottom: 8px;
 }
+.app-test-tree__content > .app-test:last-child
+{
+  margin-bottom: 0;
+}
