@@ -255,6 +255,12 @@ var TestCase = AbstractTest.subclass({
       var ast = astTools.parse(source);
 
       astTools.traverseAst(ast, function(node){
+        if (node.parentNode && (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program'))
+        {
+          var firstToken = astTools.getNodeRangeTokens(node)[0];
+          firstToken.value = '__enterLine(' + firstToken.loc.start.line + ');' + firstToken.value;
+        }
+
         if (node.type == 'CallExpression' &&
             node.callee.type == 'MemberExpression' &&
             node.callee.object.type == 'ThisExpression' &&
@@ -262,7 +268,7 @@ var TestCase = AbstractTest.subclass({
             node.callee.property.type == 'Identifier' &&
             node.callee.property.name == 'is')
         {
-          var token = astTools.getRangeTokens(ast, node.range[0], node.range[1])[0];
+          var token = astTools.getNodeRangeTokens(node)[0];
           token.value = '__isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + token.value;
         }
 
@@ -302,6 +308,7 @@ var TestCase = AbstractTest.subclass({
     var timeoutTimer;
     var report = {
       testSource: this.data.testSource,
+      lastLine: 0,
       successCount: 0,
       testCount: 0,
       errorLines: {}
@@ -313,6 +320,9 @@ var TestCase = AbstractTest.subclass({
         range: range,
         line: line
       };
+    };
+    var __enterLine = function(line){
+      report.lastLine = line
     };
     var env = {
       async: function(fn){
@@ -403,7 +413,7 @@ var TestCase = AbstractTest.subclass({
 
 
     this.getEnvRunner(true).run(
-      this.data.testArgs.concat('__isFor', '__exception'),
+      this.data.testArgs.concat('__isFor', '__enterLine', '__exception'),
       this.getSourceCode(),
       this,
       function(testFn){
@@ -412,7 +422,7 @@ var TestCase = AbstractTest.subclass({
         var args = basis.array.create(this.data.testArgs.length);
         if (args.length)
           args[0] = asyncDone;
-        args.push(__isFor, __exception);
+        args.push(__isFor, __enterLine, __exception);
 
         try {
           testFn.apply(env, args);

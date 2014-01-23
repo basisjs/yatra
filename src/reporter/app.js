@@ -39,7 +39,7 @@ module.exports = basis.app.create({
       itemsChanged: function(selection){
         var selected = selection.pick();
         if (selected)
-          this.setDataSource(selected.root.getChildNodesDataset());
+          this.setDelegate(selected.root);
       }
     }, toc);
 

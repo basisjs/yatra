@@ -32,13 +32,25 @@ var CodeView = basis.ui.Node.subclass({
       noLineNumber: true
     });
 
-    var errorLines = this.data.errorLines;
-    for (var line in errorLines)
+    var lines = this.codeElement.childNodes;
+    if (this.data.exception)
     {
-      this.codeElement.childNodes[line - 1].className += ' error-line';
-      this.codeElement.childNodes[line - 1].innerHTML +=
+      var startLine = (this.data.lastLine || 1) - 1;
+
+      lines[startLine++].className += ' exception-line';
+      for (var i = startLine; i < lines.length; i++)
+        lines[i].className += ' disabled-line';
+
+      return;
+    }
+
+    var errorLines = this.data.errorLines;
+    for (var lineNum in errorLines)
+    {
+      lines[lineNum - 1].className += ' error-line';
+      lines[lineNum - 1].innerHTML +=
         '<div class="error-line-details">' +
-          errorLines[line].map(function(lineError){
+          errorLines[lineNum].map(function(lineError){
             return (
               '<div class="error-line-details-item">' +
                 '<span class="caption">Expected:</span>' +

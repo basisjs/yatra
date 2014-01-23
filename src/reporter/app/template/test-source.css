@@ -81,3 +81,16 @@
 {
   color: #D00;
 }
+
+.Basis-SyntaxHighlight .exception-line
+{
+  background: #A00000;
+}
+.Basis-SyntaxHighlight .exception-line SPAN
+{
+  color: white;
+}
+.Basis-SyntaxHighlight .disabled-line SPAN
+{
+  color: #CCC;
+}
