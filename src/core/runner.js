@@ -49,10 +49,12 @@ var processingQueueTop = new basis.data.dataset.Slice({
 
 var testStartTime;
 var time = new basis.data.Value({ value: 0 });
-var testCount = basis.data.index.count(testsToRun);
-var testLeft = basis.data.index.count(processingQueue);
-var testDone = new basis.data.value.Expression(testCount, testLeft, function(total, left){
-  return total - left;
+var testCount = basis.data.Value.from(testsToRun, 'itemsChanged', 'itemCount');
+var testDone = basis.data.index.count(testsToRun, 'stateChanged', function(test){
+  return test.state == basis.data.STATE.ERROR || test.state == basis.data.STATE.READY;
+});
+var testLeft = new basis.data.value.Expression(testCount, testDone, function(total, done){
+  return total - done;
 });
 
 testLeft.addHandler({

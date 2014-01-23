@@ -90,15 +90,29 @@ var TestNode = basis.ui.Node.subclass({
         ? node.state.data.data.error
         : '';
     }],
+    pending: ['stateChanged', function(node){
+      return node.state.data instanceof basis.data.Object && !!node.state.data.data.pending;
+    }],
+    stateData: ['stateChanged', function(node){
+      return node.state == basis.data.STATE.PROCESSING
+             ? (100 * node.state.data || 0).toFixed(2)
+             : (node.state.data && node.state.data.data.error) || '';
+    }],
     stateMessage: ['stateChanged', function(node){
+      var report = node.state.data;
+
       switch (String(node.state))
       {
         case basis.data.STATE.READY:
+          if (report instanceof basis.data.Object)
+          {
+            if (report.data.pending)
+              return 'Pending';
+          }
+
           return 'OK';
 
         case basis.data.STATE.ERROR:
-          var report = node.state.data;
-
           if (report instanceof basis.data.Object == false)
             return 'Error';
 
@@ -116,11 +130,6 @@ var TestNode = basis.ui.Node.subclass({
         default:
           return '';
       }
-    }],
-    stateData: ['stateChanged', function(node){
-      return node.state == basis.data.STATE.PROCESSING
-             ? (100 * node.state.data || 0).toFixed(2)
-             : (node.state.data && node.state.data.data.error) || '';
     }]
   }
 });

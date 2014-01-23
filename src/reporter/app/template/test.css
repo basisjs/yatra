@@ -49,6 +49,7 @@
 {
   color: #D00;
 }
+.app-test-state_pending,
 .app-test-state_state-processing
 {
   color: #DA0;

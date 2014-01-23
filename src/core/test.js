@@ -485,36 +485,29 @@ var TestSuite = AbstractTest.subclass({
         );
       }, [])
     });
-    this.nonEmpty_ = new basis.data.dataset.Subset({
-      source: this.nestedTests_,
-      ruleEvents: 'stateChanged',
-      rule: function(test){
-        return test.state != basis.data.STATE.ERROR ||
-               !test.state.data ||
-               test.state.data.data.error != ERROR_EMPTY;
-      }
-    });
     this.testByState_ = new basis.data.dataset.Split({
-      source: this.nonEmpty_,
+      source: this.nestedTests_,
       ruleEvents: 'stateChanged',
       rule: function(test){
         return String(test.state);
       }
     });
 
+    window.xxx = this;
+
     this.state_ = new basis.data.value.Expression(
-      basis.data.index.count(this.nonEmpty_),
-      basis.data.index.count(this.testByState_.getSubset('processing', true)),
-      basis.data.index.count(this.testByState_.getSubset('error', true)),
-      basis.data.index.count(this.testByState_.getSubset('ready', true)),
+      basis.data.Value.from(this.nestedTests_, 'itemsChanged', 'itemCount'),
+      basis.data.Value.from(this.testByState_.getSubset('processing', true), 'itemsChanged', 'itemCount'),
+      basis.data.Value.from(this.testByState_.getSubset('error', true), 'itemsChanged', 'itemCount'),
+      basis.data.Value.from(this.testByState_.getSubset('ready', true), 'itemsChanged', 'itemCount'),
       function(count, processing, error, ready){
         if (!count)
           return [
-            basis.data.STATE.ERROR,
+            basis.data.STATE.READY,
             new basis.data.Object({
               data: {
-                error: ERROR_EMPTY,
                 empty: true,
+                pending: true,
                 testCount: count,
                 successCount: ready
               }
