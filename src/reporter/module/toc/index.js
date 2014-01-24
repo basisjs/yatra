@@ -8,17 +8,31 @@ var Item = basis.ui.Node.subclass({
     progress: ['stateChanged', function(node){
       return 100 * (node.state == basis.data.STATE.PROCESSING ? node.state.data : 1);
     }],
+    pending: ['stateChanged', function(node){
+      return node.state.data instanceof basis.data.Object && !!node.state.data.data.pending;
+    }],
     stateMessage: ['stateChanged', function(node){
+      var report = node.state.data;
+
       switch (String(node.state))
       {
         case basis.data.STATE.READY:
+          if (report.data && report.data.pending)
+            return 'Pending';
+
           return 'OK';
 
         case basis.data.STATE.ERROR:
-          var report = node.state.data;
-          return report instanceof basis.data.Object
-            ? (report.data.testCount - report.data.successCount) + ' of ' + report.data.testCount + ' fault'
-            : 'Error';
+          if (report instanceof basis.data.Object == false)
+            return 'Error';
+
+          if (report.data.exception)
+            return 'Exception';
+
+          if (report.data.error == 'ERROR_TIMEOUT')
+            return 'Timeout';
+
+          return (report.data.testCount - report.data.successCount) + ' of ' + report.data.testCount + ' fault';
 
         case basis.data.STATE.PROCESSING:
           return 'running';

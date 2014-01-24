@@ -5,6 +5,12 @@
       <span class="app-test-tree__button app-test-tree__button-pickup app-test-tree__button-pickup_{type}" event-click="select">pick up</span>
     </div>
     <span class="app-test-tree__caption">{name}</span>
+    <span class="app-test-splitter app-test-splitter_{state}">
+      &#32;&mdash;&#32;
+    </span>
+    <span class="app-test-state app-test-state_state-{state} app-test-state_{pending}">
+      {stateMessage}
+    </span>
   </div>
   <div{childNodesElement} class="app-test-tree__content"/>
   <!--{sourceCode}-->

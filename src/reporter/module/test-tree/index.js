@@ -4,6 +4,7 @@ require('app.test');
 var view = new app.test.TestSuiteNode({
   template: resource('template/view.tmpl'),
   binding: {
+    sourceCode: 'satellite:',
     type: ['rootChanged', function(node){
       if (node.root instanceof core.test.TestSuite)
         return 'suite';
@@ -11,7 +12,6 @@ var view = new app.test.TestSuiteNode({
         return 'case';
       return 'unknown';
     }],
-    sourceCode: 'satellite:',
     hasDelegate: ['delegateChanged', function(node){
       return !!node.delegate;
     }]

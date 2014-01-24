@@ -426,6 +426,9 @@ var TestCase = AbstractTest.subclass({
     // set processing state
     this.setState(basis.data.STATE.PROCESSING);
 
+    if (this.data.pending)
+      return testDone();
+
     // prepare env and run test
     this.getEnvRunner(true).run(
       'function(' + this.data.testArgs.concat('__isFor', '__enterLine', '__exception').join(', ') + '){\n' +
@@ -462,15 +465,6 @@ var TestCase = AbstractTest.subclass({
   }
 });
 
-// function aggregateCount(test){
-//   return test.nonEmpty_ ? test.nonEmpty_.itemCount : 1;
-// }
-
-// function aggregateErrors(test){
-//   return test.nonEmpty_ && test.state.data
-//     ? test.state.data.data.testCount - test.state.data.data.successCount
-//     : 1;
-// }
 
 var TestSuite = AbstractTest.subclass({
   className: 'TestSuite',

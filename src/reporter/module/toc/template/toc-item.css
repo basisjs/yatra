@@ -95,7 +95,8 @@
 {
   color: #D00;
 }
-.app-toc-item__state-processing
+.app-toc-item__state-processing,
+.app-toc-item__state-pending
 {
   color: #DA0;
 }
