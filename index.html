@@ -37,6 +37,14 @@
   <script>
     var path = location.search.replace(/^\?/, '');
     basis.resource('src/reporter/app.js').fetch().ready(function(app){
+      var originalJsWrapper = basis.resource.extensions['.js'];
+      basis.resource.extensions['.js'] = function(content, url){
+        var exports = originalJsWrapper(content, url);
+        if (exports)
+          exports.filename_ = url;
+        return exports;
+      };
+
       basis.resource(path).ready(function(content){
         var t = new Date();
         app.loadTests(content);

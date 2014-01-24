@@ -14,7 +14,7 @@ var ERROR_WRONG_ANSWER = 'ERROR_WRONG_ANSWER';
 var ERROR_TYPE_MISSMATCH = 'ERROR_TYPE_MISSMATCH';
 var ERROR_TEST_FAULT = 'ERROR_TEST_FAULT';
 var ERROR_EMPTY = 'ERROR_EMPTY';
-var ERROR_TEST_CRUSH = 'ERROR_TEST_CRUSH';
+var ERROR_TEST_CRASH = 'ERROR_TEST_CRASH';
 var ERROR_TIMEOUT = 'ERROR_TIMEOUT';
 
 var NOP = function(){};
@@ -191,11 +191,34 @@ function createTestFactory(data){
   return new Class(config);
 }
 
+var FILE_HANDLER = {
+  update: function(file, delta){
+    if ('content' in delta)
+    {
+      var exports = basis.resource.extensions['.js'](file.data.content, file.data.filename + '.' + Math.random());
+      var config = Array.isArray(exports) ? { test: exports } : exports;
+      var newNode = createTestFactory(config);
+      this.parentNode.replaceChild(newNode, this);
+      this.destroy();
+    }
+  }
+};
+
 var AbstractTest = basis.dom.wrapper.Node.subclass({
   className: 'AbstractTest',
 
   name: '',
   envRunner: null,
+
+  init: function(){
+    basis.dom.wrapper.Node.prototype.init.call(this);
+
+    // if (this.data.filename_ && basis.devtools)
+    // {
+    //   this.file = basis.devtools.getFile(this.data.filename_, true);
+    //   this.file.addHandler(FILE_HANDLER, this);
+    // }
+  },
 
   hasOwnEnvironment: function(){
     return Boolean(this.data.init || this.data.html || !this.parentNode);
@@ -239,8 +262,20 @@ var AbstractTest = basis.dom.wrapper.Node.subclass({
     }
   },
 
-  run: function(){
-    // nothing to do
+  destroy: function(){
+    basis.dom.wrapper.Node.prototype.destroy.call(this);
+
+    if (this.envRunner)
+    {
+      this.envRunner.destroy();
+      this.envRunner = null;
+    }
+
+    if (this.file)
+    {
+      this.file.removeHandler(FILE_HANDLER, this);
+      this.file = null;
+    }
   }
 });
 
@@ -388,7 +423,7 @@ var TestCase = AbstractTest.subclass({
       report.testCount = 0;
       report.successCount = 0;
 
-      testDone(ERROR_TEST_CRUSH);
+      testDone(ERROR_TEST_CRASH);
     };
 
     var asyncDone = async
@@ -492,8 +527,6 @@ var TestSuite = AbstractTest.subclass({
       }
     });
 
-    window.xxx = this;
-
     this.state_ = new basis.data.value.Expression(
       basis.data.Value.from(this.nestedTests_, 'itemsChanged', 'itemCount'),
       basis.data.Value.from(this.testByState_.getSubset('processing', true), 'itemsChanged', 'itemCount'),
@@ -553,14 +586,12 @@ var TestSuite = AbstractTest.subclass({
   destroy: function(){
     this.testByState_.destroy()
     this.testByState_ = null;
-    this.nonEmpty_.destroy()
-    this.nonEmpty_ = null;
     this.nestedTests_.destroy();
     this.nestedTests_ = null;
     this.state_.destroy();
     this.state_ = null;
 
-    basis.dom.wrapper.Node.prototype.destroy.call(this);
+    AbstractTest.prototype.destroy.call(this);
   }
 });
 

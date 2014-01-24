@@ -1,7 +1,7 @@
 .app-toc-item
 {
   background: white;
-  padding: 8px;
+  padding: 8px 16px 8px 8px;
   margin: 1px;
   position: relative;
   cursor: pointer;
@@ -84,7 +84,7 @@
 {
   position: relative;
   float: right;
-  padding: 0 14px 0 1ex;
+  padding: 0 6px 0 1ex;
   white-space: nowrap;
 }
 .app-toc-item__state-ready
