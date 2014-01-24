@@ -49,6 +49,11 @@ var processingQueueTop = new basis.data.dataset.Slice({
 
 var testStartTime;
 var time = new basis.data.Value({ value: 0 });
+var assertCount = basis.data.index.sum(testsToRun, 'stateChanged', function(test){
+  if (test.state.data instanceof basis.data.Object)
+    return test.state.data.data.testCount;
+  return 0;
+});
 var testCount = basis.data.Value.from(testsToRun, 'itemsChanged', 'itemCount');
 var testDone = basis.data.index.count(testsToRun, 'stateChanged', function(test){
   return test.state == basis.data.STATE.ERROR || test.state == basis.data.STATE.READY;
@@ -131,7 +136,9 @@ function stop(){
 module.exports = {
   time: time,
   faultTests: faultTests,
+
   count: {
+    assert: assertCount,
     total: testCount,
     left: testLeft,
     done: testDone
