@@ -24,13 +24,11 @@ var FrameEnv = basis.ui.Node.subclass({
       ' style="width: 10px; height: 10px; top: -100px; position: absolute; border: none; opacity: 0.0001"/>',
   binding: {
     src: function(node){
-      var src = basis.asset(__dirname + 'iframe.html');
-
       if (node.html && node.html != 'default')
-        src = node.html;
+        return node.html;
 
       // default env
-      return src + '?' + Math.random();
+      return basis.asset(__dirname + 'iframe.html');
     }
   },
   action: {
