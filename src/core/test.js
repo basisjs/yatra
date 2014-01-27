@@ -284,55 +284,65 @@ var TestCase = AbstractTest.subclass({
 
   name: '',
   testSource: null,
-  testWrappedSource: null,
+  testWrappedSources: null,
 
   childClass: null,
 
-  getSourceCode: function(){
-    if (this.testWrappedSource === null)
+  getSourceCode: function(breakpointAt){
+    if (this.testWrappedSources === null)
     {
-      var source = this.data.testSource;
-      var buffer = [];
-      var token;
-      var ast = astTools.parse(source);
-
-      astTools.traverseAst(ast, function(node){
-        if (node.parentNode && (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program'))
-        {
-          var firstToken = astTools.getNodeRangeTokens(node)[0];
-          firstToken.value = '__enterLine(' + firstToken.loc.start.line + ');' + firstToken.value;
-        }
-
-        if (node.type == 'CallExpression' &&
-            node.callee.type == 'MemberExpression' &&
-            node.callee.object.type == 'ThisExpression' &&
-            node.callee.computed == false &&
-            node.callee.property.type == 'Identifier' &&
-            node.callee.property.name == 'is')
-        {
-          var token = astTools.getNodeRangeTokens(node)[0];
-          token.value = '__isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + token.value;
-        }
-
-        if (node.type == 'FunctionExpression' || node.type == 'FunctionDeclaration')
-        {
-          var tokens = astTools.getNodeRangeTokens(node.body);
-          tokens[0].value +=
-            'try {\n';
-          tokens[1].value =
-            '\n} catch(e) {' +
-              '__exception(e)' +
-            '}' + tokens[1].value;
-        }
-      });
-
-      buffer = astTools.translateAst(ast, 0, ast.source.length);
-
-      this.testWrappedSource = buffer;
-      //console.log(buffer);
+      this.testWrappedSources = {};
     }
 
-    return this.testWrappedSource;
+    if (typeof breakpointAt != 'number')
+      breakpointAt = 'none';
+
+    if (!this.testWrappedSources[breakpointAt])
+    {
+      var ast = astTools.parse(this.data.testSource);
+
+      if (breakpointAt == 'none')
+      {
+        astTools.traverseAst(ast, function(node){
+          if (node.parentNode && (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program'))
+          {
+            var firstToken = astTools.getNodeRangeTokens(node)[0];
+            firstToken.value = '__enterLine(' + firstToken.loc.start.line + ');' + firstToken.value;
+          }
+
+          if (node.type == 'CallExpression' &&
+              node.callee.type == 'MemberExpression' &&
+              node.callee.object.type == 'ThisExpression' &&
+              node.callee.computed == false &&
+              node.callee.property.type == 'Identifier' &&
+              node.callee.property.name == 'is')
+          {
+            var token = astTools.getNodeRangeTokens(node)[0];
+            token.value = '__isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + token.value;
+          }
+
+          if (node.type == 'FunctionExpression' || node.type == 'FunctionDeclaration')
+          {
+            var tokens = astTools.getNodeRangeTokens(node.body);
+            tokens[0].value +=
+              'try {\n';
+            tokens[1].value =
+              '\n} catch(e) {' +
+                '__exception(e)' +
+              '}' + tokens[1].value;
+          }
+        });
+      }
+
+      var wrapperSource = astTools.translateAst(ast, 0, ast.source.length);
+      this.testWrappedSources[breakpointAt] =
+        'function(' + this.data.testArgs.concat('__isFor', '__enterLine', '__exception').join(', ') + '){\n' +
+          wrapperSource +
+        '\n}';
+      //console.log(wrapperSource);
+    }
+
+    return this.testWrappedSources[breakpointAt];
   },
 
   reset: function(){
@@ -352,6 +362,7 @@ var TestCase = AbstractTest.subclass({
     var isNode = null;
 
     var report = {
+      test: null,
       testSource: this.data.testSource,
       time: time,
       lastLine: 0,
@@ -383,13 +394,14 @@ var TestCase = AbstractTest.subclass({
         {
           if (isNode)
           {
-            var line = isNode.line;
+            var line = isNode.line - 1;
             var errors = report.errorLines[line];
 
             if (!errors)
               errors = report.errorLines[line] = [];
 
             errors.push({
+              num: report.testCount,
               node: isNode,
               error: error,
               expected: makeStaticCopy(expected),
@@ -408,6 +420,7 @@ var TestCase = AbstractTest.subclass({
     };
 
     var __isFor = function(range, line){
+      report.lastLine = line
       isNode = {
         range: range,
         line: line
@@ -442,6 +455,7 @@ var TestCase = AbstractTest.subclass({
         error = ERROR_TEST_FAULT;
 
       basis.object.extend(report, {
+        test: this,
         time: time,
         error: error,
         pending: !error && !report.testCount,
@@ -466,9 +480,7 @@ var TestCase = AbstractTest.subclass({
 
     // prepare env and run test
     this.getEnvRunner(true).run(
-      'function(' + this.data.testArgs.concat('__isFor', '__enterLine', '__exception').join(', ') + '){\n' +
-        this.getSourceCode() +
-      '\n}',
+      this.getSourceCode(),
       this,
       function(testFn){
         startTime = basis.utils.benchmark.time();

@@ -17,14 +17,25 @@ function importScripts(){
     importScript(arguments[i])
 }
 
-var deprecateTestFunction;
-function deprecateTestEnvironment(){
-  if (typeof deprecateTestFunction == 'function')
-    deprecateTestFunction();
-}
+function __initTestEnvironment(initCode, deprecateTestEnvironment){
+  // basis.js default behaviour
+  if (typeof basisjsToolsFileSync != 'undefined')
+    basisjsToolsFileSync.notifications.attach(function(type, filename){
+      if (typeof basis == 'undefined')
+        return; // no basis.js available
 
-function __initTestEnvironment(initCode, deprecateFn){
-  deprecateTestFunction = deprecateFn;
+      if (type == 'update' && (
+            basis.filename_ == filename ||
+            (basis.resource && basis.resource.exists(filename))
+         ))
+        deprecateTestEnvironment();
+    });
+
+  // fallback deprecate function
+  if (typeof deprecateTestEnvironment != 'function')
+    deprecateTestEnvironment = function(){};
+
+  // main part
   return eval(initCode + ';(function(__code){\n' +
   '  return eval("(" + __code + ")");' +
   '})');

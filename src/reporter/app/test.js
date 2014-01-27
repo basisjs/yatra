@@ -36,7 +36,7 @@ var CodeView = basis.ui.Node.subclass({
     var lines = this.codeElement.childNodes;
     if (this.data.exception)
     {
-      var startLine = (this.data.lastLine || 1) - 1;
+      var startLine = this.data.lastLine;
 
       lines[startLine++].className += ' exception-line';
       for (var i = startLine; i < lines.length; i++)
@@ -48,8 +48,8 @@ var CodeView = basis.ui.Node.subclass({
     var errorLines = this.data.errorLines;
     for (var lineNum in errorLines)
     {
-      lines[lineNum - 1].className += ' error-line';
-      lines[lineNum - 1].innerHTML +=
+      lines[lineNum].className += ' error-line';
+      lines[lineNum].innerHTML +=
         '<div class="error-line-details">' +
           errorLines[lineNum].map(function(lineError){
             var diffType =
@@ -82,6 +82,7 @@ var CodeView = basis.ui.Node.subclass({
 
             return (
               '<div class="error-line-details-item">' +
+                '<span class="num">' + (lineError.num + 1) + '</span>' +
                 '<span class="caption">Expected:</span>' +
                 '<span class="expected">' + expected + '</span>' +
                 '<span class="caption">Actual:</span>' +

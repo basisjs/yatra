@@ -59,6 +59,25 @@
   margin: 1px 0;
   overflow: hidden;
 }
+.Basis-SyntaxHighlight .error-line-details-item .num
+{
+  float: right;
+  padding: 2px 4px 1px;
+  margin: 2px -2px 2px 10px;
+  line-height: 1;
+  font-size: 80%;
+  cursor: pointer;
+}
+.Basis-SyntaxHighlight .error-line-details-item .num:before
+{
+  content: '#';
+  color: #DDD;
+}
+.Basis-SyntaxHighlight .error-line-details-item .num:hover
+{
+  background: #C88;
+  color: white;
+}
 .Basis-SyntaxHighlight .error-line-details-item .caption
 {
   float: left;

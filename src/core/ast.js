@@ -1,5 +1,8 @@
 var esprima = require('esprima');
 
+var TRAVERSE_ABORT = 1;
+var TRAVERSE_STOP_DEEP = 2;
+
 var NODE_BRANCHES = {
   ArrayExpression: ['elements'],
   AssignmentExpression: ['left', 'right'],
@@ -85,7 +88,9 @@ function parse(code){
 }
 
 function traverseAst(node, visitor){
-  visitor.call(null, node);
+  var res = visitor.call(null, node);
+  if (res)
+    return res == TRAVERSE_ABORT ? res : false;
 
   var branches = NODE_BRANCHES[node.type];
   for (var i = 0, key; key = branches[i]; i++)
@@ -94,11 +99,16 @@ function traverseAst(node, visitor){
     if (typeof value == 'object' && value !== null)
     {
       if (Array.isArray(value))
-        value.forEach(function(child){
-          traverseAst(child, visitor);
-        });
+      {
+        for (var j = 0, child; child = value[j]; j++)
+          if (traverseAst(child, visitor) & TRAVERSE_ABORT)
+            return TRAVERSE_ABORT;
+      }
       else
-        traverseAst(value, visitor);
+      {
+        if (traverseAst(value, visitor) & TRAVERSE_ABORT)
+          return TRAVERSE_ABORT;
+      }
     }
   }
 }
@@ -168,6 +178,9 @@ function translateNode(node){
 }
 
 module.exports = {
+  TRAVERSE_ABORT: TRAVERSE_ABORT,
+  TRAVERSE_STOP_DEEP: TRAVERSE_STOP_DEEP,
+
   parse: parse,
   traverseAst: traverseAst,
   translateAst: translateAst,

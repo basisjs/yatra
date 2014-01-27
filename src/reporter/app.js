@@ -4,7 +4,9 @@ require('core.test');
 
 var runner = require('core.runner');
 var rootTestSuite = new basis.data.Object({
-  getChildNodesDataset: function(){}
+  getChildNodesDataset: function(){
+    // stub method
+  }
 });
 
 module.exports = basis.app.create({
