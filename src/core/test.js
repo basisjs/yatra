@@ -307,7 +307,7 @@ var TestCase = AbstractTest.subclass({
           if (node.parentNode && (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program'))
           {
             var firstToken = astTools.getNodeRangeTokens(node)[0];
-            firstToken.value = '__enterLine(' + firstToken.loc.start.line + ');' + firstToken.value;
+            firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + ');' + firstToken.value;
           }
 
           if (node.type == 'CallExpression' &&
@@ -318,7 +318,7 @@ var TestCase = AbstractTest.subclass({
               node.callee.property.name == 'is')
           {
             var token = astTools.getNodeRangeTokens(node)[0];
-            token.value = '__isFor([' + node.range + '], ' + node.loc.end.line + ') || ' + token.value;
+            token.value = '__isFor([' + node.range + '], ' + (node.loc.end.line - 1) + ') || ' + token.value;
           }
 
           if (node.type == 'FunctionExpression' || node.type == 'FunctionDeclaration')
@@ -394,7 +394,7 @@ var TestCase = AbstractTest.subclass({
         {
           if (isNode)
           {
-            var line = isNode.line - 1;
+            var line = isNode.line;
             var errors = report.errorLines[line];
 
             if (!errors)

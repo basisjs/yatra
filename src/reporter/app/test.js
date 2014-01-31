@@ -16,6 +16,13 @@ var strDiff = require('diff');
 // Test source code view
 //
 
+function htmlEscape(str){
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 var CodeView = basis.ui.Node.subclass({
   template: resource('template/test-source.tmpl'),
   binding: {
@@ -26,6 +33,11 @@ var CodeView = basis.ui.Node.subclass({
     this.codeElement = document.createElement('div');
     basis.ui.Node.prototype.init.call(this);
     this.syncCode();
+  },
+  handler: {
+    update: function(){
+      this.syncCode();
+    }
   },
   syncCode: function(){
     this.codeElement.innerHTML = highlight(this.data.testSource, 'js', {
@@ -66,18 +78,18 @@ var CodeView = basis.ui.Node.subclass({
             {
               if (chunk.removed)
               {
-                expected += '<span class="diff-removed">' + chunk.value + '</span>';
+                expected += '<span class="diff-removed">' + htmlEscape(chunk.value) + '</span>';
                 continue;
               }
 
               if (chunk.added)
               {
-                actual += '<span class="diff-added">' + chunk.value + '</span>';
+                actual += '<span class="diff-added">' + htmlEscape(chunk.value) + '</span>';
                 continue;
               }
 
-              expected += chunk.value;
-              actual += chunk.value;
+              expected += htmlEscape(chunk.value);
+              actual += htmlEscape(chunk.value);
             }
 
             return (
@@ -91,11 +103,6 @@ var CodeView = basis.ui.Node.subclass({
             );
           }).join('') +
         '</div>';
-    }
-  },
-  handler: {
-    update: function(){
-      this.syncCode();
     }
   }
 });
