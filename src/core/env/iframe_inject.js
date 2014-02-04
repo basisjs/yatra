@@ -25,7 +25,7 @@ function __initTestEnvironment(initCode, deprecateTestEnvironment){
         return; // no basis.js available
 
       if (type == 'update' && (
-            basis.filename_ == filename ||
+            (basis.filename_ == filename) ||
             (basis.resource && basis.resource.exists(filename))
          ))
         deprecateTestEnvironment();

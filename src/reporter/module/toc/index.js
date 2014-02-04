@@ -1,6 +1,7 @@
 require('basis.ui');
 
 var runner = require('core.runner');
+var TestSuite = require('core.test').TestSuite;
 var Item = basis.ui.Node.subclass({
   template: resource('template/toc-item.tmpl'),
   binding: {
@@ -44,7 +45,7 @@ var Item = basis.ui.Node.subclass({
   },
   action: {
     pickup: function(event){
-      if (this.parentNode && this.root instanceof core.test.TestSuite)
+      if (this.parentNode && this.root instanceof TestSuite)
         this.parentNode.setDelegate(this.root);
     }
   }
@@ -84,7 +85,7 @@ view.setSatellite('faultTests', new Item({
   contextSelection: view.selection,  // make node selectable as regular view item
   delegate: new basis.data.Object({  // hack: test details view resolve test
     data: {                          // content as `root.getChildNodesDataset()`
-      name: 'Fails'
+      name: 'Summary'
     },
     getChildNodesDataset: function(){
       return runner.faultTests;
@@ -117,7 +118,7 @@ view.setSatellite('levelUp', {
   })
 });
 
-app.ready(function(){
+basis.ready(function(){
   if (!view.selection.itemCount)
     view.satellite.faultTests.select();
 });

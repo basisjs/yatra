@@ -2,8 +2,8 @@ require('basis.data');
 require('basis.data.dataset');
 require('basis.data.index');
 require('basis.utils.benchmark');
-require('core.test');
 
+var TestCase = require('core.test').TestCase;
 var testsToRun = new basis.data.Dataset();
 var awaitProcessingTests = new basis.data.Dataset({
   listen: {
@@ -78,7 +78,7 @@ function extractTests(data){
   {
     var test = item.root;
 
-    if (test instanceof core.test.TestCase)
+    if (test instanceof TestCase)
       result.push(test);
 
     if (test.firstChild)

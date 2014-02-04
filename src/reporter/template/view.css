@@ -4,6 +4,53 @@
   min-height: 100%;
   overflow: hidden;
   min-width: 640px;
+  padding-top: 40px;
+}
+
+#header
+{
+  background: #B22;
+  color: white;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, .75);
+}
+#header .header-caption
+{
+  font-size: 20px;
+  padding: 8px 10px 12px;
+  line-height: 1;
+  float: left;
+}
+#header .header-buttons
+{
+  float: right;
+  padding: 5px;
+}
+#header .header-button
+{
+  border: 1px solid black;
+  border-color: rgba(0, 0, 0, .33);
+  border-radius: 3px;
+  background-clip: padding-box;
+  height: 28px;
+  font-size: 16px;
+  padding: 0 1em;
+}
+#header .header-test-suite-location
+{
+  background: black;
+  background: rgba(0, 0, 0, .66);
+  overflow: hidden;
+  float: left;
+  padding: 5px 8px 4px;
+  line-height: 1;
+  font-size: 13px;
+  margin: 9px 10px 0;
 }
 
 #sidebar

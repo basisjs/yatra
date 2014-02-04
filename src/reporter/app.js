@@ -1,106 +1,104 @@
 require('basis.app');
 require('basis.ui');
-require('core.test');
 
 var runner = require('core.runner');
+var toc = require('module/toc/index.js');
+var testDetails = require('module/test-tree/index.js');
 var rootTestSuite = new basis.data.Object({
   getChildNodesDataset: function(){
     // stub method
   }
 });
 
-module.exports = basis.app.create({
-  title: 'Basis.js test environment',
-  init: function(){
-    var toc = require('module/toc/index.js');
-    var testDetails = require('module/test-tree/index.js');
+function findTest(test, filename){
+  if (test.data.filename_ === filename)
+    return test;
 
-    function findTestByFilename(test, filename){
-      if (test.data.filename_ === filename)
-        return test;
-
-      if (test.childNodes)
-        for (var i = 0, child; child = test.childNodes[i]; i++)
-        {
-          var res = findTestByFilename(child, filename);
-          if (res)
-            return res;
-        }
+  if (test.childNodes)
+    for (var i = 0, child; child = test.childNodes[i]; i++)
+    {
+      var res = findTest(child, filename);
+      if (res)
+        return res;
     }
+}
 
-    // app API
-    basis.object.extend(this, {
-      loadTests: function(data){
-        if (Array.isArray(data))
-          data = { test: data };
+basis.ready(function(){
+  // table of content setup
+  toc.addHandler({
+    delegateChanged: function(){
+      var cursor = this;
 
-        var rootTest = core.test.create(data);
-        var filename = location.hash.substr(1);
-        var testByFilename;
+      while (!cursor.data.filename_ && cursor.root.parentNode)
+        cursor = cursor.root.parentNode;
 
-        if (filename)
-          testByFilename = findTestByFilename(rootTest, filename);
+      location.hash = '#' + (
+        cursor.root.parentNode && cursor.data.filename_
+          ? cursor.data.filename_
+          : ''
+      );
+    },
+    childNodesModified: function(){
+      runner.loadTests(this.childNodes.slice(0));
+    }
+  });
+  toc.selection.addHandler({
+    itemsChanged: function(selection){
+      this.setDelegate(selection.pick());
+    }
+  }, testDetails);
 
-        toc.setDelegate(testByFilename || rootTestSuite);
-        rootTestSuite.setDelegate(rootTest);
-      }
-    });
+  // content section setup
+  testDetails.selection.addHandler({
+    itemsChanged: function(selection){
+      var selected = selection.pick();
+      if (selected)
+        this.setDelegate(selected.root);
+    }
+  }, toc);
 
-    // table of content setup
-    toc.setDelegate(rootTestSuite);
-    toc.addHandler({
-      delegateChanged: function(){
-        var cursor = this;
-
-        while (!cursor.data.filename_ && cursor.root.parentNode)
-          cursor = cursor.root.parentNode;
-
-        location.hash = '#' + (
-          cursor.root.parentNode && cursor.data.filename_
-            ? cursor.data.filename_
-            : ''
-        );
+  // return interface root
+  new basis.ui.Node({
+    container: document.body,
+    template: resource('template/view.tmpl'),
+    action: {
+      reset: function(){
+        toc.setDelegate(rootTestSuite);
       },
-      childNodesModified: function(){
-        runner.loadTests(this.childNodes.slice(0));
+      run: function(){
+        runner.run();
       }
-    });
-    toc.selection.addHandler({
-      itemsChanged: function(selection){
-        this.setDelegate(selection.pick());
-      }
-    }, testDetails);
-
-    // content section setup
-    testDetails.selection.addHandler({
-      itemsChanged: function(selection){
-        var selected = selection.pick();
-        if (selected)
-          this.setDelegate(selected.root);
-      }
-    }, toc);
-
-    // return interface root
-    return this.root = new basis.ui.Node({
-      container: document.body,
-      template: resource('template/view.tmpl'),
-      action: {
-        reset: function(){
-          toc.setDelegate(rootTestSuite);
-        },
-        run: function(){
-          runner.run();
-        }
-      },
-      binding: {
-        time: runner.time,
-        total: runner.count.total,
-        assert: runner.count.assert,
-        left: runner.count.left,
-        done: runner.count.done,
-        toc: toc,
-        tests: testDetails
-      }
-    });
-  }
+    },
+    binding: {
+      time: runner.time,
+      total: runner.count.total,
+      assert: runner.count.assert,
+      left: runner.count.left,
+      done: runner.count.done,
+      toc: toc,
+      tests: testDetails
+    }
+  });
 });
+
+module.exports = {
+  loadTests: function(data, reference){
+    if (Array.isArray(data))
+      data = { test: data };
+
+    var rootTest = require('core.test').create(data);
+    var filename = location.hash.substr(1);
+    var testByFilename;
+
+    if (filename)
+      testByFilename = findTest(rootTest, filename);
+
+    toc.setDelegate(testByFilename || rootTestSuite);
+    rootTestSuite.setDelegate(rootTest);
+  }
+};
+
+if (basis.config.exports)
+  basis.nextTick(function(){
+    basis.require(basis.config.exports);
+  });

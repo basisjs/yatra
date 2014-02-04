@@ -1,10 +1,14 @@
 <b:style src="view.css"/>
 <div id="layout">
+  <div id="header">
+    <span class="header-caption">Basis.js test runner</span>
+    <div class="header-buttons">
+      <button class="header-button" event-click="run">run</button>
+      <button class="header-button" event-click="reset">reset</button>
+    </div>
+    <div class="header-test-suite-location">{done} / {total} ({assert}) (time: {time} ms)</div>
+  </div>
   <div id="sidebar">
-    <button event-click="run">run</button>
-    <button event-click="reset">reset</button>
-    <div>{done} / {total} ({assert}) (time: {time} ms)</div>
-    <!--{progress}-->
     <!--{toc}-->
   </div>
   <div id="content">

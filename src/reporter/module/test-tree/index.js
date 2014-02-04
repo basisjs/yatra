@@ -1,14 +1,14 @@
-require('core.test');
-require('app.test');
+var coreTest = require('core.test');
+var appTest = require('app.test');
 
-var view = new app.test.TestSuiteNode({
+var view = new appTest.TestSuiteNode({
   template: resource('template/view.tmpl'),
   binding: {
     sourceCode: 'satellite:',
     type: ['rootChanged', function(node){
-      if (node.root instanceof core.test.TestSuite)
+      if (node.root instanceof coreTest.TestSuite)
         return 'suite';
-      if (node.root instanceof core.test.TestCase)
+      if (node.root instanceof coreTest.TestCase)
         return 'case';
       return 'unknown';
     }],
@@ -20,10 +20,10 @@ var view = new app.test.TestSuiteNode({
   selection: true,
   satellite: {
     sourceCode: {
-      instanceOf: app.test.CodeView,
+      instanceOf: appTest.CodeView,
       events: 'rootChanged stateChanged',
       existsIf: function(owner){
-        return owner.root instanceof core.test.TestCase;
+        return owner.root instanceof coreTest.TestCase;
       },
       delegate: function(owner){
         return owner.state == basis.data.STATE.ERROR &&
