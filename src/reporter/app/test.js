@@ -7,7 +7,7 @@ require('basis.ui');
 //
 
 var document = global.document;
-var highlight = require('basis.utils.highlight').highlight;
+var highlight = require('app.highlight');
 var TestCase = require('core.test').TestCase;
 var strDiff = require('diff');
 
@@ -40,7 +40,7 @@ var CodeView = basis.ui.Node.subclass({
     }
   },
   syncCode: function(){
-    this.codeElement.innerHTML = highlight(this.data.testSource, 'js', {
+    this.codeElement.innerHTML = highlight(this.data.testSource, {
       keepFormat: true,
       noLineNumber: true
     });
