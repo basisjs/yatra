@@ -36,7 +36,12 @@ var FrameEnv = basis.ui.Node.subclass({
       var frameWindow = this.element.contentWindow;
       var initCode = '';
 
-      runInContext(frameWindow, resource('iframe_inject.js').get(true));
+      var code = resource('iframe_inject.code').fetch();
+
+      if (typeof code == 'function')
+        code = basis.utils.info.fn(code).body;
+
+      runInContext(frameWindow, code);
 
       if (typeof this.initEnv == 'function')
         initCode = basis.utils.info.fn(this.initEnv).body;
