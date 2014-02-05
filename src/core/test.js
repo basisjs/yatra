@@ -40,6 +40,10 @@ function createTestFactory(data){
     test = function(){};
   }
 
+  // fallback name
+  if (!data.name)
+    data.name = 'Untitled test';
+
   // resolve test instance class
   var Class;
   var config = {
@@ -469,7 +473,7 @@ var TestSuite = AbstractTest.subclass({
               pending: pending == count,
               error: error ? ERROR_TEST_FAULT : null,
               testCount: count,
-              successCount: ready
+              successCount: ready + pending
             }
           })
         ];
