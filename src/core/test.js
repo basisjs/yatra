@@ -184,10 +184,28 @@ var TestCase = AbstractTest.subclass({
       if (breakpointAt == 'none')
       {
         astTools.traverseAst(ast, function(node){
-          if (node.parentNode && (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program'))
+          if (node.type == 'FunctionExpression')
           {
-            var firstToken = astTools.getNodeRangeTokens(node)[0];
-            firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + ');' + firstToken.value;
+            var tokens = astTools.getNodeRangeTokens(node);
+            var orig = astTools.translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
+            tokens[0].value = '__wrapFunctionExpression(' + tokens[0].value;
+            tokens[1].value += ', ' + orig + ')';
+          }
+
+          if (node.type == 'FunctionDeclaration')
+          {
+            // var tokens = astTools.getNodeRangeTokens(node);
+            // var orig = astTools.translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
+            // tokens[1].value += node.id.name + '.originalFn_ = (' + orig + ');';
+
+            var tokens = astTools.getNodeRangeTokens(node.body);
+            tokens[0].value +=
+              '\ntry {\n';
+            tokens[1].value =
+              '\n} catch(e) {' +
+                '__exception(e);' +
+                'throw e;' +
+              '}\n' + tokens[1].value;
           }
 
           if (node.type == 'CallExpression' &&
@@ -201,23 +219,17 @@ var TestCase = AbstractTest.subclass({
             token.value = '__isFor([' + node.range + '], ' + (node.loc.end.line - 1) + ') || ' + token.value;
           }
 
-          if (node.type == 'FunctionExpression' || node.type == 'FunctionDeclaration')
+          if (node.parentNode && (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program'))
           {
-            var tokens = astTools.getNodeRangeTokens(node.body);
-            tokens[0].value +=
-              '\ntry {\n';
-            tokens[1].value =
-              '\n} catch(e) {' +
-                '__exception(e);' +
-                'throw e;' +
-              '}\n' + tokens[1].value;
+            var firstToken = astTools.getNodeRangeTokens(node)[0];
+            firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + ');' + firstToken.value;
           }
         });
       }
 
       var wrapperSource = astTools.translateAst(ast, 0, ast.source.length);
       this.testWrappedSources[breakpointAt] =
-        'function(' + this.data.testArgs.concat('__isFor', '__enterLine', '__exception').join(', ') + '){\n' +
+        'function(' + this.data.testArgs.concat('__isFor', '__enterLine', '__exception', '__wrapFunctionExpression').join(', ') + '){\n' +
           wrapperSource +
         '\n}';
       //console.log(wrapperSource);
@@ -322,6 +334,19 @@ var TestCase = AbstractTest.subclass({
       report.lastLine = line
     };
 
+    var __wrapFunctionExpression = function(fn, orig){
+      var wrappedFn = function(){
+        try {
+          return fn.apply(this, arguments);
+        } catch(e) {
+          __exception(e);
+          throw e;
+        }
+      };
+      wrappedFn.originalFn_ = orig;
+      return wrappedFn;
+    }
+
     var __exception = function(e){
       if (report.exception)
         return;
@@ -386,7 +411,7 @@ var TestCase = AbstractTest.subclass({
         var args = basis.array.create(this.data.testArgs.length);
         if (args.length)
           args[0] = asyncDone;
-        args.push(__isFor, __enterLine, __exception);
+        args.push(__isFor, __enterLine, __exception, __wrapFunctionExpression);
 
         // run test
         try {

@@ -36,6 +36,9 @@ function value2string(value, linear){
       return '\'' + value.replace(/\'/g, '\\\'') + '\'';
 
     case 'function':
+      if (value.originalFn_)
+        value = value.originalFn_;
+
       value = String(value);
       return !linear ? value : value.replace(/\{([\r\n]|.)*\}/, '{..}');
 
@@ -105,6 +108,12 @@ function compareValues(actual, expected){
       return ERROR_WRONG_ANSWER;
 
     case 'function':
+      if (expected.originalFn_)
+        expected = expected.originalFn_;
+
+      if (actual.originalFn_)
+        actual = actual.originalFn_;
+
       if (String(expected) == String(actual))
         return;
 
