@@ -36,7 +36,9 @@ var FrameEnv = basis.ui.Node.subclass({
       var frameWindow = this.element.contentWindow;
       var initCode = '';
 
-      var code = require('./iframe_inject.code');
+      // NOTE: to not use require here, because builder replace url for [number].code
+      // and basis.require wrogly theats it as namespace
+      var code = resource('./iframe_inject.code').fetch();
 
       if (typeof code == 'function')
         code = basis.utils.info.fn(code).body;
