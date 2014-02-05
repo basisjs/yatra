@@ -1,6 +1,7 @@
 {
-  "name": "Basis.js Test Runner",
+  "name": "basisjs-test-runner",
   "version": "1.0.0-alpha",
+  "description": "Javascript unit test runner",
   "main": "src/app.js",
   "dependencies": {
     "basisjs": "1.2.0",
