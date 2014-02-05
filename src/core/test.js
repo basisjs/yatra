@@ -267,7 +267,7 @@ var TestCase = AbstractTest.subclass({
             } finally {
               if (async > 0)
               {
-                if (--async)
+                if (!--async)
                   testDone();
               }
             }
