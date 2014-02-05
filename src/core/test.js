@@ -8,7 +8,6 @@ require('basis.utils.benchmark');
 var utils = require('./utils.js');
 var envFactory = require('core.env');
 var astTools = require('core.ast');
-var arrayFrom = basis.array.from;
 
 var ERROR_TEST_FAULT = 'ERROR_TEST_FAULT';
 var ERROR_EMPTY = 'ERROR_EMPTY';
@@ -35,6 +34,10 @@ function createTestFactory(data){
   {
     if (basis.resource.isResource(data))
       test = test.fetch();
+  }
+  else
+  {
+    test = function(){};
   }
 
   // resolve test instance class
@@ -174,6 +177,8 @@ var TestCase = AbstractTest.subclass({
     {
       var ast = astTools.parse(this.data.testSource);
 
+      if (this.data.testSource.match('debugger')) debugger;
+
       if (breakpointAt == 'none')
       {
         astTools.traverseAst(ast, function(node){
@@ -198,11 +203,11 @@ var TestCase = AbstractTest.subclass({
           {
             var tokens = astTools.getNodeRangeTokens(node.body);
             tokens[0].value +=
-              'try {\n';
+              '\ntry {\n';
             tokens[1].value =
               '\n} catch(e) {' +
                 '__exception(e)' +
-              '}' + tokens[1].value;
+              '}\n' + tokens[1].value;
           }
         });
       }
@@ -254,10 +259,13 @@ var TestCase = AbstractTest.subclass({
       async: function(fn){
         async++;
         basis.nextTick(function(){
-          async--;
-          fn.call(this);
-          if (!async)
-            testDone();
+          if (async > 0)
+          {
+            async--;
+            fn.call(this);
+            if (!async)
+              testDone();
+          }
         }.bind(this));
       },
       is: function(expected, actual){
@@ -314,7 +322,9 @@ var TestCase = AbstractTest.subclass({
 
     var asyncDone = async
       ? basis.fn.runOnce(function(){
-          async--;
+          if (async > 0)
+            async--;
+
           if (!async)
             testDone();
         })
@@ -323,6 +333,7 @@ var TestCase = AbstractTest.subclass({
     var testDone = function(error){
       time = basis.utils.benchmark.time(startTime);
       timeoutTimer = clearTimeout(timeoutTimer);
+      async = 0;
 
       if (!error && report.testCount != report.successCount)
         error = ERROR_TEST_FAULT;
@@ -408,7 +419,9 @@ var TestSuite = AbstractTest.subclass({
       source: this.nestedTests_,
       ruleEvents: 'stateChanged',
       rule: function(test){
-        return String(test.state);
+        return test.state == basis.data.STATE.READY && test.state.data.data.pending
+          ? 'pending'
+          : String(test.state);
       }
     });
 
@@ -417,7 +430,8 @@ var TestSuite = AbstractTest.subclass({
       basis.data.Value.from(this.testByState_.getSubset('processing', true), 'itemsChanged', 'itemCount'),
       basis.data.Value.from(this.testByState_.getSubset('error', true), 'itemsChanged', 'itemCount'),
       basis.data.Value.from(this.testByState_.getSubset('ready', true), 'itemsChanged', 'itemCount'),
-      function(count, processing, error, ready){
+      basis.data.Value.from(this.testByState_.getSubset('pending', true), 'itemsChanged', 'itemCount'),
+      function(count, processing, error, ready, pending){
         if (!count)
           return [
             basis.data.STATE.READY,
@@ -430,10 +444,10 @@ var TestSuite = AbstractTest.subclass({
             })
           ];
 
-        if (processing + error + ready == 0)
+        if (processing + error + ready + pending == 0)
           return [basis.data.STATE.UNDEFINED];
 
-        if (processing || error + ready < count)
+        if (processing || error + ready + pending < count)
           return [
             basis.data.STATE.PROCESSING,
             (error + ready) / count
@@ -443,6 +457,7 @@ var TestSuite = AbstractTest.subclass({
           error ? basis.data.STATE.ERROR : basis.data.STATE.READY,
           new basis.data.Object({
             data: {
+              pending: pending == count,
               error: error ? ERROR_TEST_FAULT : null,
               testCount: count,
               successCount: ready

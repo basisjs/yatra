@@ -1,0 +1,235 @@
+<!doctype html>
+
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Basis.js Test Runner – Showcase</title>
+
+  <style>
+    HTML,
+    BODY
+    {
+      background: #F0F0F0;
+      padding: 0;
+      margin: 0;
+      height: 100%;
+    }
+    BODY
+    {
+      overflow-y: scroll;
+    }
+  </style>
+
+  <!-- <script src="build/test-runner.js"></script> -->
+  <script src="../bower_components/basisjs/src/basis.js" data-basis-config="
+    autoload: '../src/reporter/app',
+    path: {
+      core: '../src',
+      esprima: '../bower_components/esprima',
+      diff: '../bower_components/jsdiff'
+    },
+    extProto: false,
+    exports: true
+  "></script>
+</head>
+
+<body>
+  <div id="test-runner" style="border: 1px solid black; margin: 10px;">
+  </div>
+  <script>
+    basisjsTestRunner.insert(document.getElementById('test-runner'));
+    basisjsTestRunner.loadTests({
+      name: 'Showcase',
+      test: [
+        {
+          name: 'Test done',
+          test: function(){
+            this.is(true, true);
+          }
+        },
+        {
+          name: 'Comparison',
+          test: [
+            {
+              name: 'Non-strict comparation',
+              test: function(){
+                this.is(12.34, 12.34);
+                this.is({ a: 1, b: 2 }, { b: 2, a: 1 });
+                this.is([1, 2, 3], [1, 2, 3]);
+                this.is(/foo/, /foo/);
+                this.is(new Date, new Date);
+                this.is(new String, new String);
+                this.is(new Number, new Number);
+                this.is(new Boolean, new Boolean);
+                this.is(NaN, NaN);
+                this.is(
+                  function(){ return 123; },
+                  function(){ return 123; }
+                );
+              }
+            },
+            {
+              name: 'Failures',
+              test: function(){
+                this.is(true, false)
+                this.is({ a: 1, b: 2 }, { a: 1, c: 2 });
+                this.is([{ a: 1 }], [{ a: 1 }]);
+                this.is([1, 2], [2, 3]);
+                this.is(/foo/, /bar/);
+                this.is(/foo/g, /foo/);
+                this.is('This is expected string', 'This is actual string');
+                this.is(new Date(0), new Date(2000));
+                this.is(new String('foo'), new String('bar'));
+                this.is(new Number(1), new Number(2));
+                this.is(new Boolean(true), new Boolean(false));
+              }
+            }
+          ]
+        },
+        {
+          name: 'Exception',
+          test: function(){
+            var foo = 123;
+
+            // exception on that line
+            foo.exception();
+
+            this.is(123, foo);
+          }
+        },
+        {
+          name: 'Pending',
+          test: [
+            {
+              name: 'Empty tests are pending',
+              test: function(){}
+            },
+            {
+              name: 'Tests with no `test` property are pending'
+            },
+            {
+              name: 'Tests with no assertions are pending',
+              test: function(){
+                var nothing;
+              }
+            },
+            {
+              name: 'Tests marked as pending are pending and doesn\'t execute',
+              pending: true,
+              test: function(){
+                this.is(true, true);
+              }
+            },
+            {
+              name: 'Empty test suites are pending',
+              test: []
+            },
+            {
+              name: 'Empty test suites with only pending tests are OK',
+              test: [
+                {
+                  name: 'Test with empty test function',
+                  test: function(){}
+                },
+                {
+                  name: 'Test with no test'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          name: 'Async (tests may nest)',
+          test: [
+            {
+              name: 'Test with done callback',
+              test: function(done){
+                this.is(true, true);
+                done();
+              }
+            },
+            {
+              name: 'Test with done callback that never called fails by timeout',
+              test: function(done){
+                this.is(true, true);
+              }
+            },
+            {
+              name: 'this.async()',
+              test: function(){
+                var num = 0;
+
+                this.async(function(){
+                  this.is(2, ++num);
+                });
+
+                this.async(function(){
+                  this.is(3, ++num);
+                });
+
+                this.is(1, ++num);
+              }
+            },
+            {
+              name: 'nested this.async()',
+              test: function(){
+                this.async(function(){
+                  this.is(2, ++num);
+                  this.async(function(){
+                    this.is(4, ++num);
+                    this.async(function(){
+                      this.is(5, ++num);
+                    });
+                  });
+                });
+
+                this.async(function(){
+                  this.is(3, ++num);
+                });
+
+                this.is(1, ++num);
+              }
+            },
+            {
+              name: 'this.async() should not cause on exception',
+              test: function(){
+                var num = 0;
+
+                this.async(function(){
+                  this.is(1, ++num);
+                });
+
+                this.is(true, ++exception);
+              }
+            },
+            {
+              name: 'this.async() should not cause on exception',
+              test: function(){
+                this.async(function(){
+                  this.is(1, ++num);
+                });
+
+                this.async(function(){
+                  this.is(2, ++num);
+                });
+
+                this.is(true, ++num);
+              }
+            },
+            {
+              name: 'this.async() that infinitely call async fails by timeout',
+              test: function(){
+                this.async(function infinite(){
+                  this.async(infinite);
+                });
+              }
+            }
+          ]
+        }
+      ]
+    });
+    basisjsTestRunner.run();
+  </script>
+</body>
+</html>

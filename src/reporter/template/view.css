@@ -4,18 +4,17 @@
   min-height: 100%;
   overflow: hidden;
   min-width: 640px;
-  padding-top: 40px;
+
+  font-size: small;
+  font-family: Tahoma, serif;
 }
 
 #header
 {
   background: #B22;
   color: white;
-  position: fixed;
+  position: relative;
   z-index: 1;
-  top: 0;
-  left: 0;
-  right: 0;
   height: 40px;
   box-shadow: 0 0 2px rgba(0, 0, 0, .75);
 }

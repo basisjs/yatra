@@ -1,5 +1,8 @@
 .Basis-SyntaxHighlight
 {
+  margin: 0 1ex;
+  overflow: hidden;
+
   font-family: Consolas, Monaco, monospace;
   font-size: 12px;
   line-height: 1.5em;
@@ -10,6 +13,8 @@
   padding: 0 0 1px;
   overflow: visible;
   box-shadow: 0 0 3px rgba(0, 0, 0, .1) inset;
+
+  white-space: pre;   /* needs for line endings preserving */
 }
 .app-test-suite .Basis-SyntaxHighlight 
 {
@@ -17,16 +22,47 @@
   margin-left: 0;
 }
 
-.Basis-SyntaxHighlight .even,
-.Basis-SyntaxHighlight .odd
+.Basis-SyntaxHighlight .line
 {
-  background: none;
+  position: relative; /* for webkit, otherwise if user starts select from numbering
+                         selection begins from block begining */
+  zoom: 1;            /* IE6/7 */
 }
 
 .Basis-SyntaxHighlight .lineContent
 {
-  border-left: none;
+  padding-left: 1ex;
+  padding-right: 1ex;
+  display: block;
+  white-space: pre-wrap;      /* preserve formating but allow word breaking */
 }
+
+.Basis-SyntaxHighlight .token-string
+{
+  color: blue;
+}
+.Basis-SyntaxHighlight .token-comment 
+{
+  color: #008200;
+}
+.Basis-SyntaxHighlight .token-keyword
+{
+  color: #006699;
+  font-weight: bold;
+}
+.Basis-SyntaxHighlight .token-key
+{
+  color: #006699;
+}
+.Basis-SyntaxHighlight .token-value
+{
+  color: #AA8844;
+  font-weight: bold;
+}
+
+/**
+* custom style
+*/
 
 .Basis-SyntaxHighlight .error-line
 {

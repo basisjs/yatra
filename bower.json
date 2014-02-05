@@ -1,6 +1,6 @@
 {
-  "name": "basisjs-test-runner?",
-  "version": "0.1.0",
+  "name": "Basis.js Test Runner",
+  "version": "1.0.0-alpha",
   "main": "src/app.js",
   "dependencies": {
     "basisjs": "1.2.0",
@@ -8,8 +8,8 @@
     "jsdiff": "1.0.8"
   },
   "ignore": [
+    "bower_components",
     ".*",
-    "**/.*",
-    "lib"
+    "**/.*"
   ]
 }

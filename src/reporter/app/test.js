@@ -195,7 +195,7 @@ var TestCaseNode = TestNode.subclass({
 
   satellite: {
     source: {
-      events: 'update stateChanged',
+      events: 'stateChanged',
       existsIf: function(owner){
         return owner.state == basis.data.STATE.ERROR &&
                owner.state.data &&

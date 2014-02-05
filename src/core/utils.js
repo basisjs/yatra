@@ -1,5 +1,6 @@
 require('basis.utils.info');
 
+var arrayFrom = basis.array.from;
 var OBJECT_TOSTRING = Object.prototype.toString;
 var ERROR_WRONG_ANSWER = 'ERROR_WRONG_ANSWER';
 var ERROR_TYPE_MISSMATCH = 'ERROR_TYPE_MISSMATCH';
@@ -47,8 +48,11 @@ function value2string(value, linear){
 
       // NOTE: constructor check and instanceof doesn't work here,
       // because value is from sanbox
-      if (OBJECT_TOSTRING.call(value) === '[object Date]')
+      if (OBJECT_TOSTRING.call(value) === '[object Date]' ||
+          OBJECT_TOSTRING.call(value) === '[object RegExp]')
         return String(value);
+
+      if (value && value.constructor === Number) debugger;
 
       if (!linear)
       {
@@ -56,6 +60,13 @@ function value2string(value, linear){
         for (var key in value)
           if (value.hasOwnProperty(key))
             res.push(key + ': ' + value2string(value[key], true));
+
+        if (!res.length && value.valueOf() !== value)
+        {
+          var m = (value.constructor).toString().match(/function (Number|String|Boolean)/)
+          if (m)
+            return 'new Object(' + value2string(value.valueOf()) + ')';
+        }
 
         return '{ ' + res.join(', ') + ' }';
       }
@@ -68,53 +79,63 @@ function value2string(value, linear){
 }
 
 function compareValues(actual, expected){
+  if (actual === expected)
+    return;
+
   if (typeof actual != typeof expected)
     return ERROR_TYPE_MISSMATCH;
 
   if (actual != null && expected != null && actual.constructor !== expected.constructor)
     return ERROR_TYPE_MISSMATCH;
 
-  if (actual != expected)
-  {
-    switch (typeof actual){
-      case 'number':
-      case 'string':
-      case 'boolean':
-      case 'function':
-      case 'undefined':
-        if (actual !== expected)
+  if (actual == expected)
+    return;
+
+  switch (typeof actual){
+    case 'string':
+    case 'boolean':
+    case 'undefined':
+      return ERROR_WRONG_ANSWER;
+
+    case 'number':
+      // check for NaN
+      if (actual !== actual && expected !== expected)
+        return;
+
+      return ERROR_WRONG_ANSWER;
+
+    case 'function':
+      if (String(expected) == String(actual))
+        return;
+
+      return ERROR_WRONG_ANSWER;
+
+    default:
+      if ((!expected && actual) || (expected && !actual))
+        return ERROR_WRONG_ANSWER;
+
+      if (String(expected) != String(actual))
+        return ERROR_WRONG_ANSWER;
+
+      if (actual && 'length' in actual)
+      {
+        if (actual.length != expected.length)
           return ERROR_WRONG_ANSWER;
 
-      default:
-        if (expected === actual)
-          return;
-
-        if ((!expected && actual) || (expected && !actual))
-          return ERROR_WRONG_ANSWER;
-
-        if (String(expected) != String(actual))
-          return ERROR_WRONG_ANSWER;
-
-        if (actual && 'length' in actual)
-        {
-          if (actual.length != expected.length)
+        for (var i = 0; i < actual.length; i++)
+          if (actual[i] !== expected[i])
+            return ERROR_WRONG_ANSWER;
+      }
+      else
+      {
+        for (var i in actual)
+          if (!(i in expected) || actual[i] !== expected[i])
             return ERROR_WRONG_ANSWER;
 
-          for (var i = 0; i < actual.length; i++)
-            if (actual[i] !== expected[i])
-              return ERROR_WRONG_ANSWER;
-        }
-        else
-        {
-          for (var i in actual)
-            if (!(i in expected) || actual[i] !== expected[i])
-              return ERROR_WRONG_ANSWER;
-
-          for (var i in expected)
-            if (!(i in actual) || actual[i] !== expected[i])
-              return ERROR_WRONG_ANSWER;
-        }
-    }
+        for (var i in expected)
+          if (!(i in actual) || actual[i] !== expected[i])
+            return ERROR_WRONG_ANSWER;
+      }
   }
 }
 
@@ -131,7 +152,7 @@ function getFnInfo(test){
 
   return {
     args: args,
-    code: code.replace(new RegExp('(^|\\n)' + minOffset, 'g'), '$1')
+    code: code.replace(new RegExp('(^|\\n)' + minOffset, 'g'), '$1') || '// no source code'
   };
 }
 
