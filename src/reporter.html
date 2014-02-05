@@ -30,7 +30,9 @@
     }
   </style>
 
-  <script>var sss = new Date;</script>
+  <script>
+    /**@cut*/ var startTime = new Date;
+  </script>
   <script src="../bower_components/basisjs/src/basis.js" data-basis-config="
     autoload: 'reporter/app',
     path: {
@@ -38,7 +40,8 @@
       esprima: '../bower_components/esprima',
       diff: '../bower_components/jsdiff'
     },
-    extProto: false
+    extProto: false,
+    exports: true
   "></script>
 </head>
 
@@ -52,18 +55,30 @@
         return res;
       }, {});
 
-      var iframe = document.createElement('iframe');
-      iframe.src = params.page;
-      iframe.className = 'hide-frame';
-      iframe.onload = function(){
-        if (typeof this.contentWindow.loadTests == 'function')
-        {
-          var t = new Date;
-          this.contentWindow.loadTests(app.loadTests);
-          document.title = (new Date - t) + '/' + (new Date - sss);
-        }
+      if (!params.page)
+      {
+        document.write('Test suite is not specified. Add to page url `?page=path/to/test-suite.html`');
       }
-      basis.doc.body.add(iframe);
+      else
+      {
+        var iframe = document.createElement('iframe');
+        iframe.src = params.page;
+        iframe.className = 'hide-frame';
+        iframe.onload = function(){
+          if (typeof this.contentWindow.loadTests == 'function')
+          {
+            /**@cut*/ var t = new Date;
+            this.contentWindow.loadTests(app.loadTests);
+            /**@cut*/ document.title = (new Date - t) + '/' + (new Date - startTime);
+          }
+        }
+        basis.doc.body.add(iframe);
+
+        app.setup({
+          element: document.body,
+          baseURI: basis.path.baseURI
+        });
+      }
     })();
   </script>
 </body>

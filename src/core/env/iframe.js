@@ -28,7 +28,7 @@ var FrameEnv = basis.ui.Node.subclass({
         return node.html;
 
       // default env
-      return basis.asset(__dirname + 'iframe.html');
+      return basis.path.resolve((require('core.env').baseURI || ''), basis.asset(__dirname + 'iframe.html'));
     }
   },
   action: {
@@ -36,7 +36,7 @@ var FrameEnv = basis.ui.Node.subclass({
       var frameWindow = this.element.contentWindow;
       var initCode = '';
 
-      var code = resource('iframe_inject.code').fetch();
+      var code = require('./iframe_inject.code');
 
       if (typeof code == 'function')
         code = basis.utils.info.fn(code).body;

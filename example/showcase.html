@@ -21,7 +21,8 @@
     }
   </style>
 
-  <!-- <script src="build/test-runner.js"></script> -->
+  <!--<link rel="stylesheet" href="../build/style.css">
+  <script src="../build/basis.js"></script>-->
   <script src="../bower_components/basisjs/src/basis.js" data-basis-config="
     autoload: '../src/reporter/app',
     path: {
@@ -38,7 +39,10 @@
   <div id="test-runner" style="border: 1px solid black; margin: 10px;">
   </div>
   <script>
-    basisjsTestRunner.insert(document.getElementById('test-runner'));
+    basisjsTestRunner.setup({
+      element: document.getElementById('test-runner'),
+      baseURI: '../build/'
+    });
     basisjsTestRunner.loadTests({
       name: 'Showcase',
       test: [

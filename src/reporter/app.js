@@ -102,10 +102,27 @@ module.exports = {
 if (basis.config.exports)
 {
   global.basisjsTestRunner = basis.object.extend(module.exports, {
-    insert: function(element){
-      basis.nextTick(function(){
-        element.appendChild(view.element);
-      });
+    setup: function(config){
+      for (var key in config)
+      {
+        var value = config[key];
+        switch (key)
+        {
+          case 'element':
+            if (typeof value == 'string')
+              value = document.getElementById(value);
+
+            basis.nextTick(function(){
+              this.appendChild(view.element);
+            }.bind(value));
+
+            break;
+
+          case 'baseURI':
+            require('core.env').baseURI = value;
+            break;
+        }
+      }
     },
     run: function(){
       runner.run();
