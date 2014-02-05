@@ -99,6 +99,17 @@
           }
         },
         {
+          name: 'Exception inside function',
+          test: function(){
+            [1, 2, 3].forEach(function(){
+              // exception on that line
+              this.is(0, ++test);
+            });
+
+            this.is(true, true);
+          }
+        },
+        {
           name: 'Pending',
           test: [
             {
@@ -174,6 +185,8 @@
             {
               name: 'nested this.async()',
               test: function(){
+                var num = 0;
+
                 this.async(function(){
                   this.is(2, ++num);
                   this.async(function(){
@@ -204,7 +217,7 @@
               }
             },
             {
-              name: 'this.async() should not cause on exception',
+              name: 'first exception in this.async() should stops others',
               test: function(){
                 this.async(function(){
                   this.is(1, ++num);
@@ -213,8 +226,6 @@
                 this.async(function(){
                   this.is(2, ++num);
                 });
-
-                this.is(true, ++num);
               }
             },
             {

@@ -177,8 +177,6 @@ var TestCase = AbstractTest.subclass({
     {
       var ast = astTools.parse(this.data.testSource);
 
-      if (this.data.testSource.match('debugger')) debugger;
-
       if (breakpointAt == 'none')
       {
         astTools.traverseAst(ast, function(node){
@@ -206,7 +204,8 @@ var TestCase = AbstractTest.subclass({
               '\ntry {\n';
             tokens[1].value =
               '\n} catch(e) {' +
-                '__exception(e)' +
+                '__exception(e);' +
+                'throw e;' +
               '}\n' + tokens[1].value;
           }
         });
@@ -261,10 +260,17 @@ var TestCase = AbstractTest.subclass({
         basis.nextTick(function(){
           if (async > 0)
           {
-            async--;
-            fn.call(this);
-            if (!async)
-              testDone();
+            try {
+              fn.call(this);
+            } catch(e) {
+              __exception(e);
+            } finally {
+              if (async > 0)
+              {
+                if (--async)
+                  testDone();
+              }
+            }
           }
         }.bind(this));
       },
@@ -313,6 +319,9 @@ var TestCase = AbstractTest.subclass({
     };
 
     var __exception = function(e){
+      if (report.exception)
+        return;
+
       report.exception = e;
       report.testCount = 0;
       report.successCount = 0;
