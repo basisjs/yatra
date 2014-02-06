@@ -71,6 +71,28 @@
                   function(){ return 123; },
                   function(){ return 123; }
                 );
+                this.is(
+                  function(){
+                    function foo(){
+                      return location;
+                    };
+                    this.is(1, 1);
+                    return foo();
+                  },
+                  function(){
+                    function foo(){
+                      return location;
+                    };
+                    this.is(1, 1);
+                    return foo();
+                  }
+                );
+
+                var foo = function(){ return this.is(1, 1) };
+                this.is(function(){ return this.is(1, 1) }, foo);
+
+                // function bar(){ return this.is(1, 1); };
+                // this.is(function bar(){ return this.is(1, 1); }, bar);
               }
             },
             {
