@@ -308,7 +308,7 @@ var TestCase = AbstractTest.subclass({
           }
         }.bind(this));
       },
-      is: function(expected, actual){
+      is: function(expected, actual, deep){
         var error;
 
         if (arguments.length == 1)
@@ -327,7 +327,7 @@ var TestCase = AbstractTest.subclass({
         }
         else
         {
-          error = utils.compareValues(expected, actual);
+          error = utils.compareValues(expected, actual, deep);
         }
 
         if (error)
@@ -345,9 +345,9 @@ var TestCase = AbstractTest.subclass({
               node: isNode,
               error: error,
               expected: utils.makeStaticCopy(expected),
-              expectedStr: utils.value2string(expected),
+              expectedStr: utils.value2string(expected, false, deep),
               actual: utils.makeStaticCopy(actual),
-              actualStr: utils.value2string(actual)
+              actualStr: utils.value2string(actual, false, deep)
             });
           }
         }
@@ -469,6 +469,10 @@ var TestCase = AbstractTest.subclass({
           } finally {
             report.exception = false;
           }
+        };
+        assert.deep = function(expected, actual){
+          //debugger;
+          assert(expected, actual, true);
         };
 
         // prepare args

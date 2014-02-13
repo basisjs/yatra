@@ -24,7 +24,7 @@ function makeStaticCopy(value){
   return value;
 }
 
-function value2string(value, linear){
+function value2string(value, linear, deep){
   switch (typeof value)
   {
     case 'boolean':
@@ -47,7 +47,9 @@ function value2string(value, linear){
         return 'null';
 
       if (Array.isArray(value))
-        return '[' + value.map(value2string).join(', ') + ']';
+        return '[' + value.map(function(val){
+          return value2string(val, !deep, deep);
+        }).join(', ') + ']';
 
       // NOTE: constructor check and instanceof doesn't work here,
       // because value is from sanbox
@@ -62,7 +64,7 @@ function value2string(value, linear){
         var res = [];
         for (var key in value)
           if (value.hasOwnProperty(key))
-            res.push(key + ': ' + value2string(value[key], true));
+            res.push(key + ': ' + value2string(value[key], !deep, deep));
 
         if (!res.length && value.valueOf() !== value)
         {
@@ -86,7 +88,9 @@ function isTruthy(value){
     return ERROR_WRONG_ANSWER;
 }
 
-function compareValues(actual, expected){
+function compareValues(actual, expected, deep){
+  var error;
+
   if (actual === expected)
     return;
 
@@ -137,17 +141,47 @@ function compareValues(actual, expected){
           return ERROR_WRONG_ANSWER;
 
         for (var i = 0; i < actual.length; i++)
+        {
           if (actual[i] !== expected[i])
+          {
+            if (deep && !actual.__antirecursion__)
+            {
+              actual.__antirecursion__ = true;
+              error = compareValues(actual[i], expected[i], deep);
+              delete actual.__antirecursion__;
+
+              if (error)
+                return error;
+
+              continue;
+            }
+
             return ERROR_WRONG_ANSWER;
+          }
+        }
       }
       else
       {
         for (var i in actual)
-          if (!(i in expected) || actual[i] !== expected[i])
+          if (i in expected == false || actual[i] !== expected[i])
+          {
+            if (deep && i in expected && !actual.__antirecursion__)
+            {
+              actual.__antirecursion__ = true;
+              error = compareValues(actual[i], expected[i], deep);
+              delete actual.__antirecursion__;
+
+              if (error)
+                return error;
+
+              continue;
+            }
+
             return ERROR_WRONG_ANSWER;
+          }
 
         for (var i in expected)
-          if (!(i in actual) || actual[i] !== expected[i])
+          if (i in actual == false)
             return ERROR_WRONG_ANSWER;
       }
   }

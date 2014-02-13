@@ -57,5 +57,10 @@
         "checkParamNames": true,
         "requireParamTypes": true,
         "checkRedundantParams": true
-    }
+    },
+
+    "excludeFiles": [
+        "build",
+        "bower_components"
+    ]
 }
