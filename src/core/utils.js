@@ -81,6 +81,11 @@ function value2string(value, linear){
   }
 }
 
+function isTruthy(value){
+  if (!value)
+    return ERROR_WRONG_ANSWER;
+}
+
 function compareValues(actual, expected){
   if (actual === expected)
     return;
@@ -170,5 +175,6 @@ module.exports = {
   makeStaticCopy: makeStaticCopy,
   value2string: value2string,
   compareValues: compareValues,
+  isTruthy: isTruthy,
   getFnInfo: getFnInfo
 };

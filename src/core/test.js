@@ -184,6 +184,9 @@ var TestCase = AbstractTest.subclass({
       if (breakpointAt == 'none')
       {
         astTools.traverseAst(ast, function(node){
+          if (node.type == 'Program')
+            return;
+
           if (node.type == 'FunctionExpression')
           {
             var tokens = astTools.getNodeRangeTokens(node);
@@ -208,18 +211,29 @@ var TestCase = AbstractTest.subclass({
               '}\n' + tokens[1].value;
           }
 
-          if (node.type == 'CallExpression' &&
-              node.callee.type == 'MemberExpression' &&
-              node.callee.object.type == 'ThisExpression' &&
-              node.callee.computed == false &&
-              node.callee.property.type == 'Identifier' &&
-              node.callee.property.name == 'is')
+          if (node.type == 'CallExpression')
           {
-            var token = astTools.getNodeRangeTokens(node)[0];
-            token.value = '__isFor([' + node.range + '], ' + (node.loc.end.line - 1) + ') || ' + token.value;
+            if (node.parentNode.type == 'ExpressionStatement')
+            {
+              var token = astTools.getNodeRangeTokens(node)[0];
+              token.value = '__isFor([' + node.range + '], ' + (node.loc.end.line - 1) + ') || ' + token.value;
+
+              if (node.arguments.length == 1 &&
+                  node.arguments[0].type == 'BinaryExpression' &&
+                  node.arguments[0].operator.match(/^(===?)$/)) // |!==?|>=?|<=
+              {
+                var leftToken = astTools.getNodeRangeTokens(node.arguments[0].left);
+                var rightToken = astTools.getNodeRangeTokens(node.arguments[0].right);
+
+                leftToken[0].value = '__actual("' + node.arguments[0].operator + '",' + leftToken[0].value;
+                leftToken[1].value += ')';
+                rightToken[0].value = '__expected(' + rightToken[0].value;
+                rightToken[1].value += ')';
+              }
+            }
           }
 
-          if (node.parentNode && (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program'))
+          if (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program')
           {
             var firstToken = astTools.getNodeRangeTokens(node)[0];
             firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + ');' + firstToken.value;
@@ -229,7 +243,7 @@ var TestCase = AbstractTest.subclass({
 
       var wrapperSource = astTools.translateAst(ast, 0, ast.source.length);
       this.testWrappedSources[breakpointAt] =
-        'function(' + this.data.testArgs.concat('__isFor', '__enterLine', '__exception', '__wrapFunctionExpression').join(', ') + '){\n' +
+        'function(' + this.data.testArgs.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
           wrapperSource +
         '\n}';
       //console.log(wrapperSource);
@@ -253,6 +267,10 @@ var TestCase = AbstractTest.subclass({
     var timeoutTimer;
     var async = this.data.async ? 1 : 0;
     var isNode = null;
+
+    var implicitCompare;
+    var actual_;
+    var expected_;
 
     var report = {
       test: null,
@@ -291,7 +309,26 @@ var TestCase = AbstractTest.subclass({
         }.bind(this));
       },
       is: function(expected, actual){
-        var error = utils.compareValues(expected, actual);
+        var error;
+
+        if (arguments.length == 1)
+        {
+          error = utils.isTruthy(expected);
+          if (implicitCompare)
+          {
+            actual = actual_;
+            expected = expected_;
+          }
+          else
+          {
+            actual = expected;
+            expected = true;
+          }
+        }
+        else
+        {
+          error = utils.compareValues(expected, actual);
+        }
 
         if (error)
         {
@@ -314,12 +351,25 @@ var TestCase = AbstractTest.subclass({
             });
           }
         }
-        else
-          report.successCount++;
 
+        implicitCompare = false;
+        actual_ = undefined;
+        expected_ = undefined;
+
+        report.successCount += !error;
         report.testCount++;
       },
       report: report
+    };
+
+    var __actual = function(operator, value){
+      implicitCompare = operator;
+      actual_ = value;
+      return value;
+    };
+    var __expected = function(value){
+      expected_ = value;
+      return value;
     };
 
     var __isFor = function(range, line){
@@ -407,11 +457,26 @@ var TestCase = AbstractTest.subclass({
       function(testFn){
         startTime = basis.utils.benchmark.time();
 
+        var assert = env.is.bind(env);
+        assert.exception =
+        assert.throws = function(fn){
+          try {
+            report.exception = true;
+            fn();
+            assert(false);
+          } catch(e) {
+            assert(true);
+          } finally {
+            report.exception = false;
+          }
+        };
+
         // prepare args
         var args = basis.array.create(this.data.testArgs.length);
         if (args.length)
           args[0] = asyncDone;
-        args.push(__isFor, __enterLine, __exception, __wrapFunctionExpression);
+        args.push(assert, __isFor, __enterLine, __exception, __wrapFunctionExpression,
+          __actual, __expected);
 
         // run test
         try {
