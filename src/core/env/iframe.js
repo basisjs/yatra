@@ -18,10 +18,7 @@ var FrameEnv = basis.ui.Node.subclass({
     //console.log('env created');
   },
 
-  template:
-    '<iframe src="{src}"' +
-      ' event-load="ready"' +
-      ' style="width: 10px; height: 10px; top: -100px; position: absolute; border: none; opacity: 0.0001"/>',
+  template: resource('iframe.tmpl'),
   binding: {
     src: function(node){
       if (node.html && node.html != 'default')
