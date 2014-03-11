@@ -49,7 +49,7 @@
         {
           name: 'Test done',
           test: function(){
-            this.is(true, true);
+            assert(true, true);
           }
         },
         {
@@ -58,57 +58,57 @@
             {
               name: 'Non-strict comparation',
               test: function(){
-                this.is(12.34, 12.34);
-                this.is({ a: 1, b: 2 }, { b: 2, a: 1 });
-                this.is([1, 2, 3], [1, 2, 3]);
-                this.is(/foo/, /foo/);
-                this.is(new Date, new Date);
-                this.is(new String, new String);
-                this.is(new Number, new Number);
-                this.is(new Boolean, new Boolean);
-                this.is(NaN, NaN);
-                this.is(
+                assert(12.34, 12.34);
+                assert({ a: 1, b: 2 }, { b: 2, a: 1 });
+                assert([1, 2, 3], [1, 2, 3]);
+                assert(/foo/, /foo/);
+                assert(new Date, new Date);
+                assert(new String, new String);
+                assert(new Number, new Number);
+                assert(new Boolean, new Boolean);
+                assert(NaN, NaN);
+                assert(
                   function(){ return 123; },
                   function(){ return 123; }
                 );
-                this.is(
+                assert(
                   function(){
                     function foo(){
                       return location;
                     };
-                    this.is(1, 1);
+                    assert(1, 1);
                     return foo();
                   },
                   function(){
                     function foo(){
                       return location;
                     };
-                    this.is(1, 1);
+                    assert(1, 1);
                     return foo();
                   }
                 );
 
-                var foo = function(){ return this.is(1, 1) };
-                this.is(function(){ return this.is(1, 1) }, foo);
+                var foo = function(){ return assert(1, 1) };
+                assert(function(){ return assert(1, 1) }, foo);
 
-                // function bar(){ return this.is(1, 1); };
-                // this.is(function bar(){ return this.is(1, 1); }, bar);
+                // function bar(){ return assert(1, 1); };
+                // assert(function bar(){ return assert(1, 1); }, bar);
               }
             },
             {
               name: 'Failures',
               test: function(){
-                this.is(true, false)
-                this.is({ a: 1, b: 2 }, { a: 1, c: 2 });
-                this.is([{ a: 1 }], [{ a: 1 }]);
-                this.is([1, 2], [2, 3]);
-                this.is(/foo/, /bar/);
-                this.is(/foo/g, /foo/);
-                this.is('This is expected string', 'This is actual string');
-                this.is(new Date(0), new Date(2000));
-                this.is(new String('foo'), new String('bar'));
-                this.is(new Number(1), new Number(2));
-                this.is(new Boolean(true), new Boolean(false));
+                assert(true, false)
+                assert({ a: 1, b: 2 }, { a: 1, c: 2 });
+                assert([{ a: 1 }], [{ a: 1 }]);
+                assert([1, 2], [2, 3]);
+                assert(/foo/, /bar/);
+                assert(/foo/g, /foo/);
+                assert('This is expected string', 'This is actual string');
+                assert(new Date(0), new Date(2000));
+                assert(new String('foo'), new String('bar'));
+                assert(new Number(1), new Number(2));
+                assert(new Boolean(true), new Boolean(false));
               }
             }
           ]
@@ -121,7 +121,7 @@
             // exception on that line
             foo.exception();
 
-            this.is(123, foo);
+            assert(123, foo);
           }
         },
         {
@@ -129,10 +129,10 @@
           test: function(){
             [1, 2, 3].forEach(function(){
               // exception on that line
-              this.is(0, ++test);
+              assert(0, ++test);
             });
 
-            this.is(true, true);
+            assert(true, true);
           }
         },
         {
@@ -155,7 +155,7 @@
               name: 'Tests marked as pending are pending and doesn\'t execute',
               pending: true,
               test: function(){
-                this.is(true, true);
+                assert(true, true);
               }
             },
             {
@@ -182,14 +182,14 @@
             {
               name: 'Test with done callback',
               test: function(done){
-                this.is(true, true);
+                assert(true, true);
                 done();
               }
             },
             {
               name: 'Test with done callback that never called fails by timeout',
               test: function(done){
-                this.is(true, true);
+                assert(true, true);
               }
             },
             {
@@ -198,14 +198,14 @@
                 var num = 0;
 
                 this.async(function(){
-                  this.is(2, ++num);
+                  assert(2, ++num);
                 });
 
                 this.async(function(){
-                  this.is(3, ++num);
+                  assert(3, ++num);
                 });
 
-                this.is(1, ++num);
+                assert(1, ++num);
               }
             },
             {
@@ -214,20 +214,20 @@
                 var num = 0;
 
                 this.async(function(){
-                  this.is(2, ++num);
+                  assert(2, ++num);
                   this.async(function(){
-                    this.is(4, ++num);
+                    assert(4, ++num);
                     this.async(function(){
-                      this.is(5, ++num);
+                      assert(5, ++num);
                     });
                   });
                 });
 
                 this.async(function(){
-                  this.is(3, ++num);
+                  assert(3, ++num);
                 });
 
-                this.is(1, ++num);
+                assert(1, ++num);
               }
             },
             {
@@ -236,21 +236,21 @@
                 var num = 0;
 
                 this.async(function(){
-                  this.is(1, ++num);
+                  assert(1, ++num);
                 });
 
-                this.is(true, ++exception);
+                assert(true, ++exception);
               }
             },
             {
               name: 'first exception in this.async() should stops others',
               test: function(){
                 this.async(function(){
-                  this.is(1, ++num);
+                  assert(1, ++num);
                 });
 
                 this.async(function(){
-                  this.is(2, ++num);
+                  assert(2, ++num);
                 });
               }
             },
