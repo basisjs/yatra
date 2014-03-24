@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Test runner setup example (for non-basis.js-based apps)</title>
+</head>
+
+<body>
+  <script src="path/to/src/basis.js" basis-config></script>
+  <script>
+    if (this.top === this)
+      location.href = 'runner/reporter.html?page=../index.html'; // page parameter value should contain relative path
+                                                                 // from reporter.html to this page
+
+    function loadTests(loadTestsToReporter){
+      loadTestsToReporter({
+        name: 'Test suite',
+        test: [
+          {
+            name: 'Test #1',
+            test: function(){
+              // test code
+            }
+          },
+          {
+            name: 'Test #2',
+            test: function(){
+              // test code
+            }
+          }
+        ]
+      });
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Test runner setup example (for basis.js-based apps)</title>
+</head>
+
+<body>
+  <script src="path/to/src/basis.js" basis-config></script>
+  <script>
+    if (this.top === this)
+      location.href = 'runner/reporter.html?page=../index.html'; // page parameter value should contain relative path
+                                                                 // from reporter.html to this page
+
+    (function(){
+      var originalJsWrapper = basis.resource.extensions['.js'];
+      basis.resource.extensions['.js'] = function(content, url){
+        var exports = originalJsWrapper(content, url);
+        if (exports)
+          exports.filename_ = url;
+        return exports;
+      };
+
+      // page reload on spec files update
+      // run in next tick, because at code run basisjs-tools file sync
+      // script is not loaded yet
+      basis.ready(function(){
+        if (typeof basisjsToolsFileSync != 'undefined')
+          basisjsToolsFileSync.notifications.attach(function(type, filename){
+            if (type == 'update' &&
+                basis.resource.exists(filename) &&
+                !/^\.\./.test(basis.path.relative(filename)))
+              location.reload();
+          });
+      });
+    })();
+
+    function loadTests(loadTestsToReporter){
+      loadTestsToReporter(basis.require('./index.js'));  // path to test suite index file
+    }
+  </script>
+</body>
+
+</html>
