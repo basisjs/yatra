@@ -39,7 +39,7 @@
 
 [Пример использования](https://github.com/basisjs/basisjs/tree/master/test) можно посмотреть в репозитории `basis.js`, выглядит это так:
 
-![Как выглядит](docs/img/example.png)
+![Как выглядит](https://github.com/basisjs/test-runner/tree/master/docs/img/example.png)
 
 ## TODO
 
@@ -169,7 +169,7 @@ assert(actual === expected);
 
 Если возникает исключение, то выполнение теста прекращается. В этом случае можно увидеть на какой строке возникла проблема:
 
-![Исключение](docs/img/exception.png)
+![Исключение](https://github.com/basisjs/test-runner/tree/master/docs/img/exception.png)
 
 Иногда требуется проверить, что выполнение определенного кода должно приводит к исключению. В этом случае, такой код оборачивают в функцию и передают ее методу `assert.exception` или его синониму `assert.throws`.
 
@@ -225,4 +225,4 @@ module.exports = {
 
 Примеры различных ситуаций и варианты отображения, можно найти например в `example/showcase.html`.
 
-![Пример различных ситуаций](docs/img/showcase.png)
+![Пример различных ситуаций](https://github.com/basisjs/test-runner/tree/master/docs/img/showcase.png)
