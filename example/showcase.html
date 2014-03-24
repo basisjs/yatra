@@ -114,26 +114,62 @@
           ]
         },
         {
-          name: 'Exception',
+          name: 'Exception in TOC',
           test: function(){
-            var foo = 123;
-
-            // exception on that line
-            foo.exception();
-
-            assert(123, foo);
+            asd();
           }
         },
         {
-          name: 'Exception inside function',
-          test: function(){
-            [1, 2, 3].forEach(function(){
-              // exception on that line
-              assert(0, ++test);
-            });
+          name: 'Exceptions',
+          test: [
+            {
+              name: 'Regular exception',
+              test: function(){
+                var foo = 123;
 
-            assert(true, true);
-          }
+                // exception on that line
+                foo.exception();
+
+                assert(123, foo);
+              }
+            },
+            {
+              name: 'Exception inside function',
+              test: function(){
+                [1, 2, 3].forEach(function(){
+                  // exception on that line
+                  assert(0, ++test);
+                });
+
+                assert(true, true);
+              }
+            },
+            {
+              name: 'Assert exception',
+              test: function(){
+                var foo = 123;
+
+                assert.exception(function(){
+                  // exception on that line
+                  foo.exception();
+                });
+
+                assert(foo === 123);
+              }
+            },
+            {
+              name: 'Assert exception',
+              test: function(){
+                var foo = 123;
+
+                assert.exception(function(){
+                  // nothing to do, assert failed
+                });
+
+                assert(foo === 123);
+              }
+            }
+          ]
         },
         {
           name: 'Pending',
