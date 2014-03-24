@@ -12,7 +12,6 @@ $RECYCLE.BIN/
 .DS_Store
 
 # other
-build/
 temp/
 tmp/
 bower_components/
