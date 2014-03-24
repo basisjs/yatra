@@ -3,7 +3,7 @@ require('basis.ui');
 var runner = require('core.runner');
 var TestSuite = require('core.test').TestSuite;
 var Item = basis.ui.Node.subclass({
-  template: resource('template/toc-item.tmpl'),
+  template: resource('./template/toc-item.tmpl'),
   binding: {
     name: 'data:',
     progress: ['stateChanged', function(node){
@@ -59,7 +59,7 @@ var view = new basis.ui.Node({
     return node.root.getChildNodesDataset();
   }),
 
-  template: resource('template/toc.tmpl'),
+  template: resource('./template/toc.tmpl'),
   binding: {
     faultTests: 'satellite:',
     levelUp: 'satellite:'

@@ -2,7 +2,7 @@ var coreTest = require('core.test');
 var appTest = require('app.test');
 
 var view = new appTest.TestSuiteNode({
-  template: resource('template/view.tmpl'),
+  template: resource('./template/view.tmpl'),
   binding: {
     sourceCode: 'satellite:',
     type: ['rootChanged', function(node){

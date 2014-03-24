@@ -24,7 +24,7 @@ function htmlEscape(str){
 }
 
 var CodeView = basis.ui.Node.subclass({
-  template: resource('template/test-source.tmpl'),
+  template: resource('./template/test-source.tmpl'),
   binding: {
     sourceCode: 'codeElement'
   },
@@ -113,7 +113,7 @@ var CodeView = basis.ui.Node.subclass({
 //
 
 var TestNode = basis.ui.Node.subclass({
-  template: resource('template/test.tmpl'),
+  template: resource('./template/test.tmpl'),
   binding: {
     name: 'data:',
     hasOwnEnvironment: ['rootChanged', function(node){
@@ -176,7 +176,7 @@ var TestSuiteNode = TestNode.subclass({
     return node.root.getChildNodesDataset();
   }),
 
-  template: resource('template/test-suite.tmpl'),
+  template: resource('./template/test-suite.tmpl'),
 
   childClass: TestNode,
   childFactory: function(config){
@@ -188,7 +188,7 @@ var TestSuiteNode = TestNode.subclass({
 });
 
 var TestCaseNode = TestNode.subclass({
-  template: resource('template/test-case.tmpl'),
+  template: resource('./template/test-case.tmpl'),
   binding: {
     source: 'satellite:'
   },

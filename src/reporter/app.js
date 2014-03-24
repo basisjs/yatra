@@ -2,8 +2,8 @@ require('basis.app');
 require('basis.ui');
 
 var runner = require('core.runner');
-var toc = require('module/toc/index.js');
-var testDetails = require('module/test-tree/index.js');
+var toc = require('./module/toc/index.js');
+var testDetails = require('./module/test-tree/index.js');
 var rootTestSuite = new basis.data.Object({
   getChildNodesDataset: function(){
     // stub method
@@ -57,7 +57,7 @@ testDetails.selection.addHandler({
 }, toc);
 
 var view = new basis.ui.Node({
-  template: resource('template/view.tmpl'),
+  template: resource('./template/view.tmpl'),
   action: {
     reset: function(){
       toc.setDelegate(rootTestSuite);

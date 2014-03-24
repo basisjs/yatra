@@ -48,7 +48,7 @@
 <body>
   <script>
     (function(){
-      var app = basis.require('reporter/app.js');
+      var app = basis.require('./reporter/app.js');
       var params = location.search.replace(/^\?/, '').split('&').reduce(function(res, pair){
         var parts = pair.split('=');
         res[parts.shift()] = parts.join('=');

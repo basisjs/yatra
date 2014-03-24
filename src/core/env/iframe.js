@@ -18,7 +18,7 @@ var FrameEnv = basis.ui.Node.subclass({
     //console.log('env created');
   },
 
-  template: resource('iframe.tmpl'),
+  template: resource('./iframe.tmpl'),
   binding: {
     src: function(node){
       if (node.html && node.html != 'default')
