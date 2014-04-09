@@ -73,7 +73,7 @@ function value2string(value, linear, deep){
             return 'new Object(' + value2string(value.valueOf()) + ')';
         }
 
-        return '{ ' + res.join(', ') + ' }';
+        return '{ ' + (res.length ? res.join(', ') + ' ' : '') + '}';
       }
       else
         return '{object}';
