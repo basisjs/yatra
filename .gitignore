@@ -15,3 +15,4 @@ $RECYCLE.BIN/
 temp/
 tmp/
 bower_components/
+build/
