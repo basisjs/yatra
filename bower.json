@@ -4,7 +4,7 @@
   "description": "Javascript unit test runner",
   "main": "src/app.js",
   "dependencies": {
-    "basisjs": "1.2.0",
+    "basisjs": "1.2.2",
     "esprima": "1.0.4",
     "jsdiff": "1.0.8"
   },
