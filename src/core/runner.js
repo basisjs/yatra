@@ -1,36 +1,42 @@
-require('basis.data');
-require('basis.data.dataset');
-require('basis.data.index');
-require('basis.utils.benchmark');
-
+var STATE = require('basis.data').STATE;
+var Value = require('basis.data').Value;
+var DataObject = require('basis.data').Object;
+var Dataset = require('basis.data').Dataset;
+var Expression = require('basis.data.value').Expression;
+var Subset = require('basis.data.dataset').Filter;
+var Slice = require('basis.data.dataset').Slice;
+var count = require('basis.data.index').count;
+var sum = require('basis.data.index').sum;
+var getTime = require('basis.utils.benchmark').time;
 var TestCase = require('core.test').TestCase;
-var testsToRun = new basis.data.Dataset();
-var awaitProcessingTests = new basis.data.Dataset({
+
+var testsToRun = new Dataset();
+var awaitProcessingTests = new Dataset({
   listen: {
     item: {
       stateChanged: function(item){
-        if (item.state != basis.data.STATE.PROCESSING)
+        if (item.state != STATE.PROCESSING)
           this.remove(item);
       }
     }
   }
 });
-var faultTests = new basis.data.dataset.Subset({
+var faultTests = new Subset({
   source: testsToRun,
   ruleEvents: 'stateChanged',
   rule: function(test){
-    return test.state == basis.data.STATE.ERROR;
+    return test.state == STATE.ERROR;
   }
 });
 
-var processingQueue = new basis.data.dataset.Subset({
+var processingQueue = new Subset({
   ruleEvents: 'stateChanged',
   rule: function(test){
-    return test.state != basis.data.STATE.READY &&
-           test.state != basis.data.STATE.ERROR;
+    return test.state != STATE.READY &&
+           test.state != STATE.ERROR;
   }
 });
-var processingQueueTop = new basis.data.dataset.Slice({
+var processingQueueTop = new Slice({
   source: processingQueue,
   rule: 'basisObjectId',
   limit: 1,
@@ -48,26 +54,26 @@ var processingQueueTop = new basis.data.dataset.Slice({
 });
 
 var testStartTime;
-var time = new basis.data.Value({ value: 0 });
-var assertCount = basis.data.index.sum(testsToRun, 'stateChanged', function(test){
-  if (test.state.data instanceof basis.data.Object)
+var time = new Value({ value: 0 });
+var assertCount = sum(testsToRun, 'stateChanged', function(test){
+  if (test.state.data instanceof DataObject)
     return test.state.data.data.testCount;
   return 0;
 });
-var testCount = basis.data.Value.from(testsToRun, 'itemsChanged', 'itemCount');
-var testDone = basis.data.index.count(testsToRun, 'stateChanged', function(test){
-  return test.state == basis.data.STATE.ERROR || test.state == basis.data.STATE.READY;
+var testCount = Value.from(testsToRun, 'itemsChanged', 'itemCount');
+var testDone = count(testsToRun, 'stateChanged', function(test){
+  return test.state == STATE.ERROR || test.state == STATE.READY;
 });
-var testLeft = new basis.data.value.Expression(testCount, testDone, function(total, done){
+var testLeft = new Expression(testCount, testDone, function(total, done){
   return total - done;
 });
 
 testLeft.addHandler({
   change: function(sender, oldValue){
     if (this.value && !oldValue)
-      testStartTime = basis.utils.benchmark.time();
+      testStartTime = getTime();
 
-    time.set(basis.utils.benchmark.time(testStartTime));
+    time.set(getTime(testStartTime));
   }
 });
 
@@ -125,7 +131,7 @@ function stop(){
   {
     // save processing tests
     awaitProcessingTests.add(processingQueue.getItems().filter(function(test){
-      return test.state == basis.data.STATE.PROCESSING;
+      return test.state == STATE.PROCESSING;
     }));
   }
 

@@ -1,10 +1,10 @@
 {
   "name": "basisjs-test-runner",
-  "version": "1.0.0-alpha",
+  "version": "1.0.0-beta",
   "description": "Javascript unit test runner",
   "main": "src/app.js",
   "dependencies": {
-    "basisjs": "1.2.2",
+    "basisjs": "1.4.0",
     "esprima": "1.0.4",
     "jsdiff": "1.0.8"
   },

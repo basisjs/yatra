@@ -1,10 +1,10 @@
-require('basis.app');
-require('basis.ui');
-
+var Value = require('basis.data').Value;
+var DataObject = require('basis.data').Object;
+var Node = require('basis.ui').Node;
 var runner = require('core.runner');
 var toc = require('./module/toc/index.js');
 var testDetails = require('./module/test-tree/index.js');
-var rootTestSuite = new basis.data.Object({
+var rootTestSuite = new DataObject({
   getChildNodesDataset: function(){
     // stub method
   }
@@ -56,7 +56,7 @@ testDetails.selection.addHandler({
   }
 }, toc);
 
-var view = new basis.ui.Node({
+var view = new Node({
   template: resource('./template/view.tmpl'),
   action: {
     reset: function(){
@@ -72,7 +72,7 @@ var view = new basis.ui.Node({
     tests: testDetails,
 
     // values
-    name: basis.data.Value.from(rootTestSuite, 'update', 'data.name'),
+    name: Value.from(rootTestSuite, 'update', 'data.name'),
     time: runner.time,
     total: runner.count.total,
     assert: runner.count.assert,

@@ -1,53 +1,67 @@
-.app-test-tree
+.test
 {
   padding: 10px;
   display: none;
 }
 
-.app-test-tree_hasDelegate
+.hasDelegate
 {
   display: block;
 }
-.app-test-tree__header
+.header
 {
   padding-left: 8px;
   margin-bottom: 7px;
 }
-.app-test-tree__caption
+.caption
 {
   font-size: 200%;
 }
-.app-test-tree__buttons
+.buttons
 {
   float: right;
   padding: 8px 9px 0 0;
 }
-.app-test-tree__button
+.button
 {
   text-decoration: underline;
   cursor: pointer;
   color: #666;
 }
-.app-test-tree__button:hover
+.button:hover
 {
   color: black;
 }
-.app-test-tree__button-pickup
+.button-pickup
 {
   display: none;
 }
-.app-test-tree__button-pickup_suite
+.button-pickup_suite
 {
   display: inline;
 }
 
-.app-test-tree__content > .app-test
+.splitter
 {
-  border: 1px solid #E0E0E0;
-  background: white;
-  margin-bottom: 8px;
+  display: none;
 }
-.app-test-tree__content > .app-test:last-child
+.splitter_ready,
+.splitter_processing,
+.splitter_error
 {
-  margin-bottom: 0;
+  display: inline;
+}
+
+.state_state-ready
+{
+  color: #080;
+}
+.state_state-error
+{
+  color: #D00;
+}
+.state_pending,
+.state_state-processing
+{
+  color: #DA0;
 }

@@ -25,12 +25,11 @@
   <script src="../build/basis.js"></script>-->
   <script src="../bower_components/basisjs/src/basis.js" data-basis-config="
     autoload: '../src/reporter/app',
-    path: {
-      core: '../src',
-      esprima: '../bower_components/esprima',
-      diff: '../bower_components/jsdiff'
+    modules: {
+      core: '../src/',
+      esprima: '../bower_components/esprima/',
+      diff: '../bower_components/jsdiff/'
     },
-    extProto: false,
     exports: true
   "></script>
 </head>
@@ -297,6 +296,28 @@
                   this.async(infinite);
                 });
               }
+            }
+          ]
+        },
+        {
+          name: 'nested test',
+          test: [
+            {
+              name: 'level 2',
+              test: [
+                {
+                  name: 'level 3',
+                  test: [
+                    {
+                      name: 'level 4',
+                      test: function(){
+                        assert(true === true);
+                        assert(true === false);
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }

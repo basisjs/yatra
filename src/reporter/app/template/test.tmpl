@@ -1,16 +1,22 @@
 <b:style src="./test.css"/>
-<div class="app-test app-test-{hasOwnEnvironment}">
-  <div class="app-test-header">
-    <span class="app-test__select-button" event-click="select">
+<b:style src="./test-tree.css" ns="tree"/>
+<b:isolate/>
+<b:define name="state" type="enum" values="processing ready error"/>
+<b:define name="hasOwnEnvironment" type="bool"/>
+<b:define name="pending" type="bool"/>
+
+<div class="tree:test {hasOwnEnvironment}">
+  <div class="header">
+    <span class="select-button" event-click="select">
       pick up
     </span>
-    <span class="app-test-name">
+    <span>
       {name}
     </span>
-    <span class="app-test-splitter app-test-splitter_{state}">
+    <span class="splitter splitter_{state}">
       &#32;&mdash;&#32;
     </span>
-    <span class="app-test-state app-test-state_state-{state} app-test-state_{pending}">
+    <span class="state_state-{state} state_{pending}">
       {stateMessage}
     </span>
   </div>

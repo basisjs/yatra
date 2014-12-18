@@ -1,5 +1,5 @@
-require('basis.utils.info');
-require('basis.ui');
+var fnInfo = require('basis.utils.info').fn;
+var Node = require('basis.ui').Node;
 
 function runInContext(contextWindow, code){
   (contextWindow.execScript || function(code){
@@ -7,13 +7,13 @@ function runInContext(contextWindow, code){
   })(code);
 }
 
-var FrameEnv = basis.ui.Node.subclass({
+var FrameEnv = Node.subclass({
   applyEnvironment: null,
   initEnv: null,
   html: null,
 
   postInit: function(){
-    basis.ui.Node.prototype.postInit.call(this);
+    Node.prototype.postInit.call(this);
     basis.doc.body.add(this.element);
     //console.log('env created');
   },
@@ -33,17 +33,17 @@ var FrameEnv = basis.ui.Node.subclass({
       var frameWindow = this.element.contentWindow;
       var initCode = '';
 
-      // NOTE: to not use require here, because builder replace url for [number].code
+      // NOTE: don't use require here, because builder replace url for [number].code
       // and basis.require wrogly theats it as namespace
       var code = resource('./iframe_inject.code').fetch();
 
       if (typeof code == 'function')
-        code = basis.utils.info.fn(code).body;
+        code = fnInfo(code).body;
 
       runInContext(frameWindow, code);
 
       if (typeof this.initEnv == 'function')
-        initCode = basis.utils.info.fn(this.initEnv).body;
+        initCode = fnInfo(this.initEnv).body;
 
       this.applyEnvironment = frameWindow.__initTestEnvironment(initCode, function(){
         // env deprecates
@@ -66,7 +66,7 @@ var FrameEnv = basis.ui.Node.subclass({
   },
 
   destroy: function(){
-    basis.ui.Node.prototype.destroy.call(this);
+    Node.prototype.destroy.call(this);
     this.applyEnvironment = null;
     this.runArgs = null;
     //console.log('env destroyed');

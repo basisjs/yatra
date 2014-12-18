@@ -1,0 +1,10 @@
+.tree > .test
+{
+  border: 1px solid #E0E0E0;
+  background: white;
+  margin-bottom: 8px;
+}
+.tree > .test:last-child
+{
+  margin-bottom: 0;
+}

@@ -1,5 +1,7 @@
-require('basis.data');
-require('basis.ui');
+var Value = require('basis.data').Value;
+var DataObject = require('basis.data').Object;
+var STATE = require('basis.data').STATE;
+var Node = require('basis.ui').Node;
 
 
 //
@@ -23,7 +25,7 @@ function htmlEscape(str){
     .replace(/>/g, '&gt;');
 }
 
-var CodeView = basis.ui.Node.subclass({
+var CodeView = Node.subclass({
   template: resource('./template/test-source.tmpl'),
   binding: {
     sourceCode: 'codeElement'
@@ -31,7 +33,7 @@ var CodeView = basis.ui.Node.subclass({
 
   init: function(){
     this.codeElement = document.createElement('div');
-    basis.ui.Node.prototype.init.call(this);
+    Node.prototype.init.call(this);
     this.syncCode();
   },
   handler: {
@@ -112,7 +114,7 @@ var CodeView = basis.ui.Node.subclass({
 // Tree node classes
 //
 
-var TestNode = basis.ui.Node.subclass({
+var TestNode = Node.subclass({
   template: resource('./template/test.tmpl'),
   binding: {
     name: 'data:',
@@ -123,15 +125,15 @@ var TestNode = basis.ui.Node.subclass({
       return node.state.data && node.state.data.data && node.state.data.data.time;
     }],
     errorMessage: ['stateChanged', function(node){
-      return node.state == basis.data.STATE.ERROR && node.state.data
+      return node.state == STATE.ERROR && node.state.data
         ? node.state.data.data.error
         : '';
     }],
     pending: ['stateChanged', function(node){
-      return node.state.data instanceof basis.data.Object && !!node.state.data.data.pending;
+      return node.state.data instanceof DataObject && !!node.state.data.data.pending;
     }],
     stateData: ['stateChanged', function(node){
-      return node.state == basis.data.STATE.PROCESSING
+      return node.state == STATE.PROCESSING
              ? (100 * node.state.data || 0).toFixed(2)
              : (node.state.data && node.state.data.data.error) || '';
     }],
@@ -140,8 +142,8 @@ var TestNode = basis.ui.Node.subclass({
 
       switch (String(node.state))
       {
-        case basis.data.STATE.READY:
-          if (report instanceof basis.data.Object)
+        case STATE.READY:
+          if (report instanceof DataObject)
           {
             if (report.data.pending)
               return 'Pending';
@@ -149,8 +151,8 @@ var TestNode = basis.ui.Node.subclass({
 
           return 'OK';
 
-        case basis.data.STATE.ERROR:
-          if (report instanceof basis.data.Object == false)
+        case STATE.ERROR:
+          if (report instanceof DataObject == false)
             return 'Error';
 
           if (report.data.exception)
@@ -161,7 +163,7 @@ var TestNode = basis.ui.Node.subclass({
 
           return (report.data.testCount - report.data.successCount) + ' of ' + report.data.testCount + ' fault';
 
-        case basis.data.STATE.PROCESSING:
+        case STATE.PROCESSING:
           return 'running';
 
         default:
@@ -172,7 +174,7 @@ var TestNode = basis.ui.Node.subclass({
 });
 
 var TestSuiteNode = TestNode.subclass({
-  dataSource: basis.data.Value.factory('rootChanged', function(node){
+  dataSource: Value.factory('rootChanged', function(node){
     return node.root.getChildNodesDataset();
   }),
 
@@ -197,13 +199,13 @@ var TestCaseNode = TestNode.subclass({
     source: {
       events: 'stateChanged',
       existsIf: function(owner){
-        return owner.state == basis.data.STATE.ERROR &&
+        return owner.state == STATE.ERROR &&
                owner.state.data &&
                owner.state.data.data &&
                owner.state.data.data.testSource;
       },
       delegate: 'state.data',
-      instanceOf: CodeView
+      satelliteClass: CodeView
     }
   }
 });

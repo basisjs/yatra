@@ -1,6 +1,12 @@
 <b:style src="./toc-item.css"/>
+<b:isolate/>
+<b:define name="selected" type="bool"/>
+<b:define name="pending" type="bool"/>
+<b:define name="state" type="enum" values="processing ready error pending"/>
+<b:define name="progressState" from="state" type="enum" values="undefined processing"/>
+
 <div class="app-toc-item app-toc-item_{selected}" event-click="select" event-dblclick="pickup">
-  <span class="app-toc-item__progress app-toc-item__progress_{state}" style="width: {progress}%"/>
+  <span class="app-toc-item__progress app-toc-item__progress_{progressState}" style="width: {progress}%"/>
   <span class="app-toc-item__state app-toc-item__state-{state} app-toc-item__state-{pending}">
     {stateMessage}
   </span>

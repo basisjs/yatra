@@ -1,18 +1,15 @@
-.app-test
-{
-}
 
-.app-test-header
+.header
 {
   padding: 8px 0 8px 8px;
   cursor: pointer;
 }
-.app-test-header:hover
+.header:hover
 {
   background: #F0F0F0;
 }
 
-.app-test__select-button
+.select-button
 {
   visibility: hidden;
   float: right;
@@ -21,41 +18,41 @@
   color: #68A;
   text-decoration: underline;
 }
-.app-test__select-button:hover
+.select-button:hover
 {
   background: #E0E0E0;
 }
-.app-test-header:hover .app-test__select-button
+.header:hover .select-button
 {
   visibility: visible;
 }
 
-.app-test-splitter
+.splitter
 {
   display: none;
 }
-.app-test-splitter_ready,
-.app-test-splitter_processing,
-.app-test-splitter_error
+.splitter_ready,
+.splitter_processing,
+.splitter_error
 {
   display: inline;
 }
 
-.app-test-state_state-ready
+.state_state-ready
 {
   color: #080;
 }
-.app-test-state_state-error
+.state_state-error
 {
   color: #D00;
 }
-.app-test-state_pending,
-.app-test-state_state-processing
+.state_pending,
+.state_state-processing
 {
   color: #DA0;
 }
 
-.app-test-hasOwnEnvironment
+.hasOwnEnvironment
 {
   border: 1px solid green;
 }

@@ -1,17 +1,24 @@
 <b:style src="./view.css"/>
-<div class="app-test-tree app-test-tree_{hasDelegate}">
-  <div class="app-test-tree__header">
-    <div class="app-test-tree__buttons">
-      <span class="app-test-tree__button app-test-tree__button-pickup app-test-tree__button-pickup_{type}" event-click="select">pick up</span>
+<b:style src="app:template/test-tree.css" ns="tree"/>
+<b:isolate/>
+<b:define name="type" type="enum" values="suite"/>
+<b:define name="hasDelegate" type="bool"/>
+<b:define name="state" type="enum" values="processing ready error"/>
+<b:define name="pending" type="bool"/>
+
+<div class="test {hasDelegate}">
+  <div class="header">
+    <div class="buttons">
+      <span class="button button-pickup button-pickup_{type}" event-click="select">pick up</span>
     </div>
-    <span class="app-test-tree__caption">{name}</span>
-    <span class="app-test-splitter app-test-splitter_{state}">
+    <span class="caption">{name}</span>
+    <span class="splitter splitter_{state}">
       &#32;&mdash;&#32;
     </span>
-    <span class="app-test-state app-test-state_state-{state} app-test-state_{pending}">
+    <span class="state_state-{state} state_{pending}">
       {stateMessage}
     </span>
   </div>
-  <div{childNodesElement} class="app-test-tree__content"/>
+  <div{childNodesElement} class="tree:tree"/>
   <!--{sourceCode}-->
 </div>

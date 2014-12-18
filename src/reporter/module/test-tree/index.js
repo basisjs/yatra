@@ -1,3 +1,6 @@
+var STATE = require('basis.data').STATE;
+var Value = require('basis.data').Value;
+var DataObject = require('basis.data').Object;
 var coreTest = require('core.test');
 var appTest = require('app.test');
 
@@ -20,14 +23,14 @@ var view = new appTest.TestSuiteNode({
   selection: true,
   satellite: {
     sourceCode: {
-      instanceOf: appTest.CodeView,
+      satelliteClass: appTest.CodeView,
       events: 'rootChanged stateChanged',
       existsIf: function(owner){
         return owner.root instanceof coreTest.TestCase;
       },
       delegate: function(owner){
-        return owner.state == basis.data.STATE.ERROR &&
-               owner.state.data instanceof basis.data.Object
+        return owner.state == STATE.ERROR &&
+               owner.state.data instanceof DataObject
                   ? owner.state.data
                   : owner;
       }

@@ -1,9 +1,12 @@
-require('basis.data');
-require('basis.data.value');
-require('basis.data.index');
-require('basis.data.dataset');
-require('basis.dom.wrapper');
-require('basis.utils.benchmark');
+var STATE = require('basis.data').STATE;
+var Value = require('basis.data').Value;
+var DataObject = require('basis.data').Object;
+var Dataset = require('basis.data').Dataset;
+var Expression = require('basis.data.value').Expression;
+var Split = require('basis.data.dataset').Split;
+var Extract = require('basis.data.dataset').Extract;
+var DomWrapperNode = require('basis.dom.wrapper').Node;
+var getTime = require('basis.utils.benchmark').time;
 
 var utils = require('./utils.js');
 var envFactory = require('core.env');
@@ -84,14 +87,14 @@ var FILE_HANDLER = {
   }
 };
 
-var AbstractTest = basis.dom.wrapper.Node.subclass({
+var AbstractTest = DomWrapperNode.subclass({
   className: 'AbstractTest',
 
   name: '',
   envRunner: null,
 
   init: function(){
-    basis.dom.wrapper.Node.prototype.init.call(this);
+    DomWrapperNode.prototype.init.call(this);
 
     // if (this.data.filename_ && basis.devtools)
     // {
@@ -143,7 +146,7 @@ var AbstractTest = basis.dom.wrapper.Node.subclass({
   },
 
   destroy: function(){
-    basis.dom.wrapper.Node.prototype.destroy.call(this);
+    DomWrapperNode.prototype.destroy.call(this);
 
     if (this.envRunner)
     {
@@ -254,7 +257,7 @@ var TestCase = AbstractTest.subclass({
 
   reset: function(){
     AbstractTest.prototype.reset.call(this);
-    this.setState(basis.data.STATE.UNDEFINED);
+    this.setState(STATE.UNDEFINED);
   },
   run: function(){
     // var _warn = basis.dev.warn;
@@ -419,7 +422,7 @@ var TestCase = AbstractTest.subclass({
       : NOP;
 
     var testDone = function(error){
-      time = basis.utils.benchmark.time(startTime);
+      time = getTime(startTime);
       timeoutTimer = clearTimeout(timeoutTimer);
       async = 0;
 
@@ -436,16 +439,16 @@ var TestCase = AbstractTest.subclass({
 
       this.setState(
         error || errorMessages.length
-          ? basis.data.STATE.ERROR
-          : basis.data.STATE.READY,
-        new basis.data.Object({
+          ? STATE.ERROR
+          : STATE.READY,
+        new DataObject({
           data: report
         })
       );
     }.bind(this);
 
     // set processing state
-    this.setState(basis.data.STATE.PROCESSING);
+    this.setState(STATE.PROCESSING);
 
     if (this.data.pending)
       return testDone();
@@ -455,7 +458,7 @@ var TestCase = AbstractTest.subclass({
       this.getSourceCode(),
       this,
       function(testFn){
-        startTime = basis.utils.benchmark.time();
+        startTime = getTime();
 
         var assert = env.is.bind(env);
         assert.exception =
@@ -513,7 +516,16 @@ var TestSuite = AbstractTest.subclass({
   init: function(){
     AbstractTest.prototype.init.call(this);
 
-    this.nestedTests_ = new basis.data.Dataset({
+    // good solution, but requires for excludeSourceItems
+    // this.nestedTests_ = new Extract({
+    //   source: this.getChildNodesDataset(),
+    //   excludeSourceItems: true,
+    //   rule: function(item){
+    //     return item instanceof TestSuite ? item.nestedTests_ : item;
+    //   }
+    // });
+
+    this.nestedTests_ = new Dataset({
       items: this.childNodes.reduce(function(res, item){
         return res.concat(
           item instanceof TestSuite
@@ -522,27 +534,29 @@ var TestSuite = AbstractTest.subclass({
         );
       }, [])
     });
-    this.testByState_ = new basis.data.dataset.Split({
+
+    // replace for Vector
+    this.testByState_ = new Split({
       source: this.nestedTests_,
       ruleEvents: 'stateChanged',
       rule: function(test){
-        return test.state == basis.data.STATE.READY && test.state.data.data.pending
+        return test.state == STATE.READY && test.state.data.data.pending
           ? 'pending'
           : String(test.state);
       }
     });
 
-    this.state_ = new basis.data.value.Expression(
-      basis.data.Value.from(this.nestedTests_, 'itemsChanged', 'itemCount'),
-      basis.data.Value.from(this.testByState_.getSubset('processing', true), 'itemsChanged', 'itemCount'),
-      basis.data.Value.from(this.testByState_.getSubset('error', true), 'itemsChanged', 'itemCount'),
-      basis.data.Value.from(this.testByState_.getSubset('ready', true), 'itemsChanged', 'itemCount'),
-      basis.data.Value.from(this.testByState_.getSubset('pending', true), 'itemsChanged', 'itemCount'),
+    this.state_ = new Expression(
+      Value.from(this.nestedTests_, 'itemsChanged', 'itemCount'),
+      Value.from(this.testByState_.getSubset('processing', true), 'itemsChanged', 'itemCount'),
+      Value.from(this.testByState_.getSubset('error', true), 'itemsChanged', 'itemCount'),
+      Value.from(this.testByState_.getSubset('ready', true), 'itemsChanged', 'itemCount'),
+      Value.from(this.testByState_.getSubset('pending', true), 'itemsChanged', 'itemCount'),
       function(count, processing, error, ready, pending){
         if (!count)
           return [
-            basis.data.STATE.READY,
-            new basis.data.Object({
+            STATE.READY,
+            new DataObject({
               data: {
                 pending: true,
                 testCount: count,
@@ -552,17 +566,17 @@ var TestSuite = AbstractTest.subclass({
           ];
 
         if (processing + error + ready + pending == 0)
-          return [basis.data.STATE.UNDEFINED];
+          return [STATE.UNDEFINED];
 
         if (processing || error + ready + pending < count)
           return [
-            basis.data.STATE.PROCESSING,
+            STATE.PROCESSING,
             (error + ready) / count
           ];
 
         return [
-          error ? basis.data.STATE.ERROR : basis.data.STATE.READY,
-          new basis.data.Object({
+          error ? STATE.ERROR : STATE.READY,
+          new DataObject({
             data: {
               pending: pending == count,
               error: error ? ERROR_TEST_FAULT : null,
@@ -573,8 +587,7 @@ var TestSuite = AbstractTest.subclass({
         ];
       }
     );
-    // TODO: remove when basis.data.value.Expression#lock/unlock will be fixed
-    this.state_.changeWatcher = this.state_.handler.handler.context.value;
+
     this.state_.link(this, function(state){
       this.setState.apply(this, state);
     });
@@ -582,12 +595,9 @@ var TestSuite = AbstractTest.subclass({
 
   reset: function(){
     AbstractTest.prototype.reset.call(this);
-    this.state_.lock();
     this.childNodes.forEach(function(test){
       test.reset();
     });
-    this.state_.unlock();
-    this.state_.changeWatcher.update();  // TODO: remove when basis.data.value.Expression#lock/unlock will be fixed
   },
 
   destroy: function(){

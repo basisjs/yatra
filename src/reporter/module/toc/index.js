@@ -1,30 +1,33 @@
-require('basis.ui');
-
+var STATE = require('basis.data').STATE;
+var Value = require('basis.data').Value;
+var DataObject = require('basis.data').Object;
+var Node = require('basis.ui').Node;
 var runner = require('core.runner');
 var TestSuite = require('core.test').TestSuite;
-var Item = basis.ui.Node.subclass({
+
+var Item = Node.subclass({
   template: resource('./template/toc-item.tmpl'),
   binding: {
     name: 'data:',
     progress: ['stateChanged', function(node){
-      return 100 * (node.state == basis.data.STATE.PROCESSING ? node.state.data : 1);
+      return 100 * (node.state == STATE.PROCESSING ? node.state.data : 1);
     }],
     pending: ['stateChanged', function(node){
-      return node.state.data instanceof basis.data.Object && !!node.state.data.data.pending;
+      return node.state.data instanceof DataObject && !!node.state.data.data.pending;
     }],
     stateMessage: ['stateChanged', function(node){
       var report = node.state.data;
 
       switch (String(node.state))
       {
-        case basis.data.STATE.READY:
+        case STATE.READY:
           if (report.data && report.data.pending)
             return 'Pending';
 
           return 'OK';
 
-        case basis.data.STATE.ERROR:
-          if (report instanceof basis.data.Object == false)
+        case STATE.ERROR:
+          if (report instanceof DataObject == false)
             return 'Error';
 
           if (report.data.exception)
@@ -35,7 +38,7 @@ var Item = basis.ui.Node.subclass({
 
           return (report.data.testCount - report.data.successCount) + ' of ' + report.data.testCount + ' fault';
 
-        case basis.data.STATE.PROCESSING:
+        case STATE.PROCESSING:
           return 'running';
 
         default:
@@ -54,8 +57,8 @@ var Item = basis.ui.Node.subclass({
 //
 // main view
 //
-var view = new basis.ui.Node({
-  dataSource: basis.data.Value.factory('rootChanged', function(node){
+var view = new Node({
+  dataSource: Value.factory('rootChanged', function(node){
     return node.root.getChildNodesDataset();
   }),
 
@@ -83,7 +86,7 @@ var view = new basis.ui.Node({
 //
 view.setSatellite('faultTests', new Item({
   contextSelection: view.selection,  // make node selectable as regular view item
-  delegate: new basis.data.Object({  // hack: test details view resolve test
+  delegate: new DataObject({  // hack: test details view resolve test
     data: {                          // content as `root.getChildNodesDataset()`
       name: 'Summary'
     },

@@ -1,5 +1,4 @@
-require('basis.utils.info');
-
+var fnInfo = require('basis.utils.info').fn;
 var arrayFrom = basis.array.from;
 var OBJECT_TOSTRING = Object.prototype.toString;
 var ERROR_WRONG_ANSWER = 'ERROR_WRONG_ANSWER';
@@ -188,7 +187,7 @@ function compareValues(actual, expected, deep){
 }
 
 function getFnInfo(test){
-  var info = basis.utils.info.fn(test);
+  var info = fnInfo(test);
   var args = info.args ? info.args.split(/\s*,\s*/) : [];
   var code = info.body
     .replace(/([\r\n]|\s)*\"use strict\";/, '') // Firefox adds "use strict" at the begining of function body

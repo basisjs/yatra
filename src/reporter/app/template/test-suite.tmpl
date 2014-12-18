@@ -1,6 +1,8 @@
 <b:style src="./test-suite.css"/>
-<b:include src="./test.tmpl" class="app-test-suite">
+<b:isolate/>
+
+<b:include src="./test.tmpl" class="suite">
   <b:append>
-    <div{childNodesElement} class="app-test-suite__content"/>
+    <div{childNodesElement} class="content"/>
   </b:append>
 </b:include>
