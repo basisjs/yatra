@@ -47,6 +47,13 @@ function createTestFactory(data){
   if (!data.name)
     data.name = 'Untitled test';
 
+  data.beforeEach = typeof data.beforeEach == 'function'
+    ? utils.getFnInfo(data.beforeEach).code
+    : false;
+  data.afterEach = typeof data.afterEach == 'function'
+    ? utils.getFnInfo(data.afterEach).code
+    : false;
+
   // resolve test instance class
   var Class;
   var config = {
@@ -172,13 +179,23 @@ var TestCase = AbstractTest.subclass({
   childClass: null,
 
   getSourceCode: function(breakpointAt){
-    if (this.testWrappedSources === null)
+    var before = [];
+    var after = [];
+    var cursor = this;
+    while (cursor && cursor instanceof AbstractTest)
     {
-      this.testWrappedSources = {};
+      if (cursor.data.beforeEach)
+        before.unshift(cursor.data.beforeEach);
+      if (cursor.data.afterEach)
+        after.push(cursor.data.afterEach);
+      cursor = cursor.parentNode;
     }
 
     if (typeof breakpointAt != 'number')
       breakpointAt = 'none';
+
+    if (this.testWrappedSources === null)
+      this.testWrappedSources = {};
 
     if (!this.testWrappedSources[breakpointAt])
     {
@@ -247,7 +264,9 @@ var TestCase = AbstractTest.subclass({
       var wrapperSource = astTools.translateAst(ast, 0, ast.source.length);
       this.testWrappedSources[breakpointAt] =
         'function(' + this.data.testArgs.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
+          (before.length ? before.join('\n') + '\n// ----- before each end\n\n' : '') +
           wrapperSource +
+          (after.length ? '\n\n// ----- after each start\n' + after.join('\n') : '') +
         '\n}';
       //console.log(wrapperSource);
     }
