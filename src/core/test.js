@@ -67,12 +67,14 @@ function createTestFactory(data){
     config.data.async = !!fnInfo.args.length;
     config.data.testArgs = fnInfo.args;
     config.data.testSource = fnInfo.code;
+    config.data.type = 'case';
 
     Class = TestCase;
   }
   else
   {
     config.childNodes = !Array.isArray(test) ? [] : test;
+    config.data.type = 'suite';
 
     Class = TestSuite;
   }
@@ -169,6 +171,71 @@ var AbstractTest = DomWrapperNode.subclass({
   }
 });
 
+function wrapSource(source, breakpointAt){
+  var ast = astTools.parse(source);
+
+  if (breakpointAt == 'none')
+    astTools.traverseAst(ast, function(node){
+      if (node.type == 'Program')
+        return;
+
+      if (node.type == 'FunctionExpression')
+      {
+        var tokens = astTools.getNodeRangeTokens(node);
+        var orig = astTools.translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
+        tokens[0].value = '__wrapFunctionExpression(' + tokens[0].value;
+        tokens[1].value += ', ' + orig + ')';
+      }
+
+      if (node.type == 'FunctionDeclaration')
+      {
+        // var tokens = astTools.getNodeRangeTokens(node);
+        // var orig = astTools.translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
+        // tokens[1].value += node.id.name + '.originalFn_ = (' + orig + ');';
+
+        var tokens = astTools.getNodeRangeTokens(node.body);
+        tokens[0].value +=
+          '\ntry {\n';
+        tokens[1].value =
+          '\n} catch(e) {' +
+            '__exception(e);' +
+            'throw e;' +
+          '}\n' + tokens[1].value;
+      }
+
+      if (node.type == 'CallExpression')
+      {
+        if (node.parentNode.type == 'ExpressionStatement')
+        {
+          var token = astTools.getNodeRangeTokens(node)[0];
+          var singleArg = node.arguments.length == 1 ? node.arguments[0] : null;
+          token.value = '__isFor([' + node.range + '], ' + (node.loc.end.line - 1) + ') || ' + token.value;
+
+          if (singleArg &&
+              singleArg.type == 'BinaryExpression' &&
+              singleArg.operator.match(/^(===?)$/)) // |!==?|>=?|<=
+          {
+            var leftToken = astTools.getNodeRangeTokens(node.arguments[0].left);
+            var rightToken = astTools.getNodeRangeTokens(node.arguments[0].right);
+
+            leftToken[0].value = '__actual("' + node.arguments[0].operator + '",' + leftToken[0].value;
+            leftToken[1].value += ')';
+            rightToken[0].value = '__expected(' + rightToken[0].value;
+            rightToken[1].value += ')';
+          }
+        }
+      }
+
+      if (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program')
+      {
+        var firstToken = astTools.getNodeRangeTokens(node)[0];
+        firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + ');' + firstToken.value;
+      }
+    });
+
+  return astTools.translateAst(ast, 0, ast.source.length);
+}
+
 var TestCase = AbstractTest.subclass({
   className: 'TestCase',
 
@@ -178,18 +245,52 @@ var TestCase = AbstractTest.subclass({
 
   childClass: null,
 
-  getSourceCode: function(breakpointAt){
+  getSourceCode: function(wrapped, breakpointAt){
+    var source = this.data.testSource;
+    var cursor = this;
     var before = [];
     var after = [];
-    var cursor = this;
+    var beforeLines = 0;
+    var beforeCount = 0;
+    var afterLines = 0;
+    var afterCount = 0;
+
     while (cursor && cursor instanceof AbstractTest)
     {
       if (cursor.data.beforeEach)
         before.unshift(cursor.data.beforeEach);
       if (cursor.data.afterEach)
         after.push(cursor.data.afterEach);
+
       cursor = cursor.parentNode;
     }
+
+    if (before.length)
+    {
+      beforeCount = before.length;
+      before = before.join('\n') +
+        '\n// ----- before each end\n\n';
+      beforeLines = before.match(/\n/g).length;
+      source = before + source;
+    }
+
+    if (after.length)
+    {
+      afterCount = after.length;
+      after = '\n\n// ----- after each start\n' +
+        after.join('\n');
+      afterLines = after.match(/\n/g).length;
+      source += after;
+    }
+
+    if (!wrapped)
+      return {
+        beforeLines: beforeLines,
+        beforeCount: beforeCount,
+        source: source,
+        afterLines: afterLines,
+        afterCount: afterCount
+      };
 
     if (typeof breakpointAt != 'number')
       breakpointAt = 'none';
@@ -198,78 +299,10 @@ var TestCase = AbstractTest.subclass({
       this.testWrappedSources = {};
 
     if (!this.testWrappedSources[breakpointAt])
-    {
-      var ast = astTools.parse(this.data.testSource);
-
-      if (breakpointAt == 'none')
-      {
-        astTools.traverseAst(ast, function(node){
-          if (node.type == 'Program')
-            return;
-
-          if (node.type == 'FunctionExpression')
-          {
-            var tokens = astTools.getNodeRangeTokens(node);
-            var orig = astTools.translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
-            tokens[0].value = '__wrapFunctionExpression(' + tokens[0].value;
-            tokens[1].value += ', ' + orig + ')';
-          }
-
-          if (node.type == 'FunctionDeclaration')
-          {
-            // var tokens = astTools.getNodeRangeTokens(node);
-            // var orig = astTools.translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
-            // tokens[1].value += node.id.name + '.originalFn_ = (' + orig + ');';
-
-            var tokens = astTools.getNodeRangeTokens(node.body);
-            tokens[0].value +=
-              '\ntry {\n';
-            tokens[1].value =
-              '\n} catch(e) {' +
-                '__exception(e);' +
-                'throw e;' +
-              '}\n' + tokens[1].value;
-          }
-
-          if (node.type == 'CallExpression')
-          {
-            if (node.parentNode.type == 'ExpressionStatement')
-            {
-              var token = astTools.getNodeRangeTokens(node)[0];
-              token.value = '__isFor([' + node.range + '], ' + (node.loc.end.line - 1) + ') || ' + token.value;
-
-              if (node.arguments.length == 1 &&
-                  node.arguments[0].type == 'BinaryExpression' &&
-                  node.arguments[0].operator.match(/^(===?)$/)) // |!==?|>=?|<=
-              {
-                var leftToken = astTools.getNodeRangeTokens(node.arguments[0].left);
-                var rightToken = astTools.getNodeRangeTokens(node.arguments[0].right);
-
-                leftToken[0].value = '__actual("' + node.arguments[0].operator + '",' + leftToken[0].value;
-                leftToken[1].value += ')';
-                rightToken[0].value = '__expected(' + rightToken[0].value;
-                rightToken[1].value += ')';
-              }
-            }
-          }
-
-          if (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program')
-          {
-            var firstToken = astTools.getNodeRangeTokens(node)[0];
-            firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + ');' + firstToken.value;
-          }
-        });
-      }
-
-      var wrapperSource = astTools.translateAst(ast, 0, ast.source.length);
       this.testWrappedSources[breakpointAt] =
         'function(' + this.data.testArgs.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
-          (before.length ? before.join('\n') + '\n// ----- before each end\n\n' : '') +
-          wrapperSource +
-          (after.length ? '\n\n// ----- after each start\n' + after.join('\n') : '') +
+          wrapSource(source, breakpointAt) +
         '\n}';
-      //console.log(wrapperSource);
-    }
 
     return this.testWrappedSources[breakpointAt];
   },
@@ -289,6 +322,7 @@ var TestCase = AbstractTest.subclass({
     var timeoutTimer;
     var async = this.data.async ? 1 : 0;
     var isNode = null;
+    var sourceCode = this.getSourceCode();
 
     var implicitCompare;
     var actual_;
@@ -296,7 +330,11 @@ var TestCase = AbstractTest.subclass({
 
     var report = {
       test: null,
-      testSource: this.data.testSource,
+      beforeLines: sourceCode.beforeLines,
+      beforeCount: sourceCode.beforeCount,
+      testSource: sourceCode.source,
+      afterLines: sourceCode.afterLines,
+      afterCount: sourceCode.afterCount,
       time: time,
       lastLine: 0,
 
@@ -457,9 +495,7 @@ var TestCase = AbstractTest.subclass({
       });
 
       this.setState(
-        error || errorMessages.length
-          ? STATE.ERROR
-          : STATE.READY,
+        error || errorMessages.length ? STATE.ERROR : STATE.READY,
         new DataObject({
           data: report
         })
@@ -474,7 +510,7 @@ var TestCase = AbstractTest.subclass({
 
     // prepare env and run test
     this.getEnvRunner(true).run(
-      this.getSourceCode(),
+      this.getSourceCode(sourceCode),
       this,
       function(testFn){
         startTime = getTime();

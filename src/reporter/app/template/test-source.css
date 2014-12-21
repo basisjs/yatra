@@ -7,14 +7,20 @@
   font-size: 12px;
   line-height: 1.5em;
   background: #FAFAFA;
-  border: 1px solid  #E0E0E0;
   margin: 0 -1px -1px -1px;
-  padding: 2px 8px 2px 2px;
-  padding: 0 0 1px;
   overflow: visible;
-  box-shadow: 0 0 3px rgba(0, 0, 0, .1) inset;
 
   white-space: pre;   /* needs for line endings preserving */
+}
+.Basis-SyntaxHighlight .content
+{
+  padding: 0 0 1px;
+  border: 1px solid #E0E0E0;
+  box-shadow: 0 0 3px rgba(0, 0, 0, .1) inset;
+}
+.Basis-SyntaxHighlight .part ~ .part
+{
+  margin-top: -1px;
 }
 .app-test-suite .Basis-SyntaxHighlight 
 {
@@ -31,8 +37,8 @@
 
 .Basis-SyntaxHighlight .lineContent
 {
-  padding-left: 1ex;
-  padding-right: 1ex;
+  padding-left: 6px;
+  padding-right: 6px;
   display: block;
   white-space: pre-wrap;      /* preserve formating but allow word breaking */
 }
@@ -163,4 +169,36 @@
 .Basis-SyntaxHighlight .disabled-line SPAN
 {
   color: #CCC;
+}
+
+.part-header
+{
+  background: white;
+  padding: 3px 7px;
+  font-size: 11px;
+  color: #888;
+  border-left: 1px solid #E0E0E0;
+  border-right: 1px solid #E0E0E0;
+}
+.part-header__after
+{
+  border-bottom: 1px solid #E0E0E0;
+}
+.part-header__hasParent
+{
+  padding-left: 8px;
+  border-left: none;
+}
+.before-count__1,
+.after-count__1
+{
+  display: none;
+}
+.part-header .caption
+{
+  cursor: pointer;
+}
+.part-header .caption:hover
+{
+  text-decoration: underline; 
 }

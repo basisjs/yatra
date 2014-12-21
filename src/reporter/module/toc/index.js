@@ -13,7 +13,8 @@ var Item = Node.subclass({
       return 100 * (node.state == STATE.PROCESSING ? node.state.data : 1);
     }],
     pending: ['stateChanged', function(node){
-      return node.state.data instanceof DataObject && !!node.state.data.data.pending;
+      return node.state.data instanceof DataObject &&
+             Boolean(node.state.data.data.pending);
     }],
     stateMessage: ['stateChanged', function(node){
       var report = node.state.data;

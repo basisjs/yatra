@@ -1,5 +1,27 @@
 <b:style src="./test-source.css"/>
+<b:define name="beforeCount" type="enum" values="1"/>
+<b:define name="afterCount" type="enum" values="1"/>
 
 <pre{code} class="Basis-SyntaxHighlight">
-  {sourceCode}
+  <div b:show="{beforeCount}" class="part part_{beforeCollapsed}">
+    <div b:show="{beforeCollapsed}" class="part-header part-header__{hasParent}">
+      <span class="caption" event-click="toggleBefore">Before each</span>
+      <span class="before-count__{beforeCount}"> x {beforeCount}</span>
+    </div>
+    <div b:hide="{beforeCollapsed}" class="content">
+      <!--{beforeCode}-->
+    </div>
+  </div>
+  <div class="part content">
+    <!--{sourceCode}-->
+  </div>
+  <div b:show="{afterCount}" class="part part_{afterCollapsed}">
+    <div b:show="{afterCollapsed}" class="part-header part-header__after part-header__{hasParent}">
+      <span class="caption" event-click="toggleAfter">After each</span>
+      <span class="after-count__{afterCount}"> x {afterCount}</span>
+    </div>
+    <div b:hide="{afterCollapsed}" class="content">
+      <!--{afterCode}-->
+    </div>
+  </div>
 </pre>

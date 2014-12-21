@@ -119,7 +119,7 @@
         .trimRight()
         .replace(/\r\n|\n\r|\r/g, '\n');
 
-      if (!options.keepFormat)
+      if (!options.keepFormating)
         text = text.replace(/^(?:\s*[\n]+)+?([ \t]*)/, '$1');
 
       // fix empty strings
@@ -129,7 +129,7 @@
                 })
                .replace(/\n[ \t]+\n/g, '\n\n');
 
-      if (!options.keepFormat)
+      if (!options.keepFormating)
       {
         // normalize text offset
         var minOffset = 1000;
