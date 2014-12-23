@@ -124,10 +124,10 @@
 
       // fix empty strings
       text = text
-               .replace(/\n[ \t]+/g, function(m){
-                  return m.replace(/\t/g, '  ');
-                })
-               .replace(/\n[ \t]+\n/g, '\n\n');
+        .replace(/\n[ \t]+/g, function(m){
+          return m.replace(/\t/g, '  ');
+        })
+        .replace(/\n[ \t]+\n/g, '\n\n');
 
       if (!options.keepFormating)
       {
@@ -160,7 +160,11 @@
     if (!options)
       options = {};
 
-    var html = parse(normalize(text || '').replace(/</g, '&lt;'));
+    var html = parse(
+      normalize(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+    );
 
     var lines = html.join('').split('\n');
     var numberWidth = String(lines.length).length;
