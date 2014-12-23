@@ -517,7 +517,7 @@ var TestCase = AbstractTest.subclass({
 
         var assert = env.is.bind(env);
         assert.exception =
-        assert.throws = function(fn){
+        assert['throws'] = function(fn){
           try {
             report.exception = true;
             fn();

@@ -1,9 +1,10 @@
 <b:style src="./test-source.css"/>
 <b:define name="beforeCount" type="enum" values="1"/>
 <b:define name="afterCount" type="enum" values="1"/>
+<b:define name="hasParent" type="bool"/>
 
 <pre{code} class="Basis-SyntaxHighlight">
-  <div b:show="{beforeCount}" class="part part_{beforeCollapsed}">
+  <div b:show="{beforeCount}" class="part">
     <div b:show="{beforeCollapsed}" class="part-header part-header__{hasParent}">
       <span class="caption" event-click="toggleBefore">Before each</span>
       <span class="before-count__{beforeCount}"> x {beforeCount}</span>
@@ -15,7 +16,7 @@
   <div class="part content">
     <!--{sourceCode}-->
   </div>
-  <div b:show="{afterCount}" class="part part_{afterCollapsed}">
+  <div b:show="{afterCount}" class="part">
     <div b:show="{afterCollapsed}" class="part-header part-header__after part-header__{hasParent}">
       <span class="caption" event-click="toggleAfter">After each</span>
       <span class="after-count__{afterCount}"> x {afterCount}</span>
