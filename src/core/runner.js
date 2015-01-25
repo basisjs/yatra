@@ -9,6 +9,7 @@ var count = require('basis.data.index').count;
 var sum = require('basis.data.index').sum;
 var getTime = require('basis.utils.benchmark').time;
 var TestCase = require('core.test').TestCase;
+var flush = 0;
 
 var testsToRun = new Dataset();
 var awaitProcessingTests = new Dataset({
@@ -44,7 +45,7 @@ var processingQueueTop = new Slice({
     itemsChanged: function(sender, delta){
       if (delta.inserted)
         delta.inserted.forEach(function(item){
-          basis.nextTick(function(){
+          (flush++ % 8 ? basis.asap : basis.nextTick)(function(){
             if (processingQueueTop.has(item))
               item.run();
           });
@@ -74,6 +75,9 @@ testLeft.addHandler({
       testStartTime = getTime();
 
     time.set(getTime(testStartTime));
+
+    if (!this.value)
+      basis.dev.log('Test run done in', getTime(testStartTime));
   }
 });
 
@@ -102,9 +106,12 @@ function loadTests(data){
   testsToRun.set(extractTests(data));
 }
 
-function run(data){
+function run(){
   // stop previous run
   stop();
+
+  // start
+  basis.dev.log('Start test running', testsToRun);
   testStartTime = getTime();
 
   // if eny test in progress, re-run by timeout
@@ -117,9 +124,6 @@ function run(data){
     var env = item.getEnvRunner();
     if (env)
       env.destroy();
-
-    // reset test state
-    item.root.reset();
   });
 
   // add test to processing queue
@@ -148,7 +152,8 @@ module.exports = {
     assert: assertCount,
     total: testCount,
     left: testLeft,
-    done: testDone
+    done: testDone,
+    fault: count(faultTests)
   },
 
   loadTests: loadTests,

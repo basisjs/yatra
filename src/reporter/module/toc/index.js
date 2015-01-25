@@ -7,10 +7,15 @@ var TestSuite = require('core.test').TestSuite;
 
 var Item = Node.subclass({
   template: resource('./template/toc-item.tmpl'),
+  startTime: 0,
+  progressTimer_: null,
   binding: {
     name: 'data:',
     progress: ['stateChanged', function(node){
-      return 100 * (node.state == STATE.PROCESSING ? node.state.data : 1);
+      return node.state == STATE.PROCESSING ? 100 * node.state.data : 100;
+    }],
+    showProgress: ['stateChanged', function(node){
+      return (Date.now() - node.startTime) > 500;
     }],
     pending: ['stateChanged', function(node){
       return node.state.data instanceof DataObject &&
@@ -52,6 +57,14 @@ var Item = Node.subclass({
       if (this.parentNode && this.root instanceof TestSuite)
         this.parentNode.setDelegate(this.root);
     }
+  },
+  emit_stateChanged: function(oldState){
+    if (this.state == STATE.PROCESSING && oldState != STATE.PROCESSING)
+      this.startTime = Date.now();
+    if (this.state != STATE.PROCESSING)
+      this.startTime = 0;
+
+    Node.prototype.emit_stateChanged.call(this, oldState);
   }
 });
 
@@ -87,7 +100,7 @@ var view = new Node({
 //
 view.setSatellite('faultTests', new Item({
   contextSelection: view.selection,  // make node selectable as regular view item
-  delegate: new DataObject({  // hack: test details view resolve test
+  delegate: new DataObject({         // hack: test details view resolve test
     data: {                          // content as `root.getChildNodesDataset()`
       name: 'Summary'
     },

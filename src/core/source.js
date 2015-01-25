@@ -1,3 +1,4 @@
+var getFnInfo = require('./source/info.js');
 var sourceUtils = require('./source/utils.js');
 
 var WORKER_COUNT = global.navigator.hardwareConcurrency || 4;
@@ -70,7 +71,7 @@ function regFunction(fn){
 function getFunctionInfo(fn){
   if (!fn.info_)
   {
-    var fnInfo = utils.getFnInfo(fn);
+    var fnInfo = getFnInfo(fn.toString());
     fn.info_ = {
       args: fnInfo.args,
       body: fnInfo.body

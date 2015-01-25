@@ -73,7 +73,9 @@ var view = new Node({
 
     // values
     name: Value.from(rootTestSuite, 'update', 'data.name'),
-    time: runner.time,
+    time: runner.time.as(function(val){
+      return (val / 1000).toFixed(1);
+    }),
     total: runner.count.total,
     assert: runner.count.assert,
     left: runner.count.left,
@@ -82,7 +84,7 @@ var view = new Node({
 });
 
 module.exports = {
-  loadTests: function(data, reference){
+  loadTests: function(data, autorun){
     if (Array.isArray(data))
       data = { test: data };
 
@@ -95,6 +97,11 @@ module.exports = {
 
     toc.setDelegate(testByFilename || rootTestSuite);
     rootTestSuite.setDelegate(rootTest);
+
+    if (autorun)
+      basis.nextTick(function(){
+        runner.run();
+      });
   }
 };
 
