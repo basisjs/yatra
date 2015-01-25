@@ -38,7 +38,7 @@ toc.addHandler({
     );
   },
   childNodesModified: function(){
-    runner.loadTests(this.childNodes.slice(0));
+    runner.loadTests(basis.array(this.childNodes));
   }
 });
 toc.selection.addHandler({
@@ -77,7 +77,7 @@ var view = new Node({
     total: runner.count.total,
     assert: runner.count.assert,
     left: runner.count.left,
-    done: runner.count.done,
+    done: runner.count.done
   }
 });
 

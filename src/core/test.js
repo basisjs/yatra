@@ -10,7 +10,7 @@ var getTime = require('basis.utils.benchmark').time;
 
 var utils = require('./utils.js');
 var envFactory = require('core.env');
-var astTools = require('core.ast');
+var sourceUtils = require('core.source');
 
 var ERROR_TEST_FAULT = 'ERROR_TEST_FAULT';
 var ERROR_EMPTY = 'ERROR_EMPTY';
@@ -18,7 +18,6 @@ var ERROR_TEST_CRASH = 'ERROR_TEST_CRASH';
 var ERROR_TIMEOUT = 'ERROR_TIMEOUT';
 
 var NOP = function(){};
-var testMap = {};
 
 function createTestFactory(data){
   // warn about deprecated properties
@@ -47,34 +46,36 @@ function createTestFactory(data){
   if (!data.name)
     data.name = 'Untitled test';
 
-  data.beforeEach = typeof data.beforeEach == 'function'
-    ? utils.getFnInfo(data.beforeEach).code
-    : false;
-  data.afterEach = typeof data.afterEach == 'function'
-    ? utils.getFnInfo(data.afterEach).code
-    : false;
-
   // resolve test instance class
   var Class;
   var config = {
     data: data
   };
 
+  config.beforeEach = basis.array(this.beforeEach);
+  if (typeof data.beforeEach == 'function')
+    config.beforeEach.push(sourceUtils.regFunction(data.beforeEach));
+
+  config.afterEach = basis.array(this.afterEach);
+  if (typeof data.afterEach == 'function')
+    config.afterEach.unshift(sourceUtils.regFunction(data.afterEach));
+
   if (typeof test == 'function')
   {
-    var fnInfo = utils.getFnInfo(test);
-
-    config.data.async = !!fnInfo.args.length;
-    config.data.testArgs = fnInfo.args;
-    config.data.testSource = fnInfo.code;
     config.data.type = 'case';
+    config.data.async = test.length > 0;
+    config.data.test = sourceUtils.regFunction(test);
+
+    // var fnInfo = utils.getFnInfo(test);
+    //   config.args = fnInfo.args;
+    //   config.source = fnInfo.code;
 
     Class = TestCase;
   }
   else
   {
-    config.childNodes = !Array.isArray(test) ? [] : test;
     config.data.type = 'suite';
+    config.childNodes = !Array.isArray(test) ? [] : test;
 
     Class = TestSuite;
   }
@@ -83,34 +84,11 @@ function createTestFactory(data){
   return new Class(config);
 }
 
-var FILE_HANDLER = {
-  update: function(file, delta){
-    if ('content' in delta)
-    {
-      var exports = basis.resource.extensions['.js'](file.data.content, file.data.filename + '.' + Math.random());
-      var config = Array.isArray(exports) ? { test: exports } : exports;
-      var newNode = createTestFactory(config);
-      this.parentNode.replaceChild(newNode, this);
-      this.destroy();
-    }
-  }
-};
-
 var AbstractTest = DomWrapperNode.subclass({
   className: 'AbstractTest',
 
   name: '',
   envRunner: null,
-
-  init: function(){
-    DomWrapperNode.prototype.init.call(this);
-
-    // if (this.data.filename_ && basis.devtools)
-    // {
-    //   this.file = basis.devtools.getFile(this.data.filename_, true);
-    //   this.file.addHandler(FILE_HANDLER, this);
-    // }
-  },
 
   hasOwnEnvironment: function(){
     return Boolean(this.data.init || this.data.html || !this.parentNode);
@@ -162,79 +140,8 @@ var AbstractTest = DomWrapperNode.subclass({
       this.envRunner.destroy();
       this.envRunner = null;
     }
-
-    if (this.file)
-    {
-      this.file.removeHandler(FILE_HANDLER, this);
-      this.file = null;
-    }
   }
 });
-
-function wrapSource(source, breakpointAt){
-  var ast = astTools.parse(source);
-
-  if (breakpointAt == 'none')
-    astTools.traverseAst(ast, function(node){
-      if (node.type == 'Program')
-        return;
-
-      if (node.type == 'FunctionExpression')
-      {
-        var tokens = astTools.getNodeRangeTokens(node);
-        var orig = astTools.translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
-        tokens[0].value = '__wrapFunctionExpression(' + tokens[0].value;
-        tokens[1].value += ', ' + orig + ')';
-      }
-
-      if (node.type == 'FunctionDeclaration')
-      {
-        // var tokens = astTools.getNodeRangeTokens(node);
-        // var orig = astTools.translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
-        // tokens[1].value += node.id.name + '.originalFn_ = (' + orig + ');';
-
-        var tokens = astTools.getNodeRangeTokens(node.body);
-        tokens[0].value +=
-          '\ntry {\n';
-        tokens[1].value =
-          '\n} catch(e) {' +
-            '__exception(e);' +
-            'throw e;' +
-          '}\n' + tokens[1].value;
-      }
-
-      if (node.type == 'CallExpression')
-      {
-        if (node.parentNode.type == 'ExpressionStatement')
-        {
-          var token = astTools.getNodeRangeTokens(node)[0];
-          var singleArg = node.arguments.length == 1 ? node.arguments[0] : null;
-          token.value = '__isFor([' + node.range + '], ' + (node.loc.end.line - 1) + ') || ' + token.value;
-
-          if (singleArg &&
-              singleArg.type == 'BinaryExpression' &&
-              singleArg.operator.match(/^(===?)$/)) // |!==?|>=?|<=
-          {
-            var leftToken = astTools.getNodeRangeTokens(node.arguments[0].left);
-            var rightToken = astTools.getNodeRangeTokens(node.arguments[0].right);
-
-            leftToken[0].value = '__actual("' + node.arguments[0].operator + '",' + leftToken[0].value;
-            leftToken[1].value += ')';
-            rightToken[0].value = '__expected(' + rightToken[0].value;
-            rightToken[1].value += ')';
-          }
-        }
-      }
-
-      if (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program')
-      {
-        var firstToken = astTools.getNodeRangeTokens(node)[0];
-        firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + ');' + firstToken.value;
-      }
-    });
-
-  return astTools.translateAst(ast, 0, ast.source.length);
-}
 
 var TestCase = AbstractTest.subclass({
   className: 'TestCase',
@@ -242,28 +149,36 @@ var TestCase = AbstractTest.subclass({
   name: '',
   testSource: null,
   testWrappedSources: null,
+  beforeEach: null,
+  afterEach: null,
 
   childClass: null,
 
-  getSourceCode: function(wrapped, breakpointAt){
-    var source = this.data.testSource;
-    var cursor = this;
-    var before = [];
-    var after = [];
+  emit_update: function(delta){
+    AbstractTest.prototype.init.call(this, delta);
+    if ('test' in delta)
+    {
+      this.testSource = null;
+      this.testWrappedSources = null;
+      this.beforeAfterInfo = null;
+    }
+  },
+  getSourceCode: function(){
+    if (this.testSource != null)
+      return this.testSource;
+
+    var before = this.beforeEach.map(function(fn){
+      return sourceUtils.getFunctionInfo(fn).body;
+    });
+    var after = this.afterEach.map(function(fn){
+      return sourceUtils.getFunctionInfo(fn).body;
+    });
     var beforeLines = 0;
     var beforeCount = 0;
     var afterLines = 0;
     var afterCount = 0;
-
-    while (cursor && cursor instanceof AbstractTest)
-    {
-      if (cursor.data.beforeEach)
-        before.unshift(cursor.data.beforeEach);
-      if (cursor.data.afterEach)
-        after.push(cursor.data.afterEach);
-
-      cursor = cursor.parentNode;
-    }
+    var fnInfo = sourceUtils.getFunctionInfo(this.data.test);
+    var source = fnInfo.body;
 
     if (before.length)
     {
@@ -283,14 +198,18 @@ var TestCase = AbstractTest.subclass({
       source += after;
     }
 
-    if (!wrapped)
-      return {
-        beforeLines: beforeLines,
-        beforeCount: beforeCount,
-        source: source,
-        afterLines: afterLines,
-        afterCount: afterCount
-      };
+    this.testSource = source;
+    this.beforeAfterInfo = {
+      beforeLines: beforeLines,
+      beforeCount: beforeCount,
+      afterLines: afterLines,
+      afterCount: afterCount
+    };
+
+    return source;
+  },
+  getWrappedSourceCode: function(breakpointAt){
+    var source = this.getSourceCode();
 
     if (typeof breakpointAt != 'number')
       breakpointAt = 'none';
@@ -300,11 +219,17 @@ var TestCase = AbstractTest.subclass({
 
     if (!this.testWrappedSources[breakpointAt])
       this.testWrappedSources[breakpointAt] =
-        'function(' + this.data.testArgs.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
-          wrapSource(source, breakpointAt) +
+        'function(' + sourceUtils.getFunctionInfo(this.data.test).args.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
+          sourceUtils.getWrappedSource(source, breakpointAt) +
         '\n}';
 
     return this.testWrappedSources[breakpointAt];
+  },
+  getBeforeAfterInfo: function(){
+    if (!this.beforeAfterInfo)
+      this.getSourceCode();
+
+    return this.beforeAfterInfo;
   },
 
   reset: function(){
@@ -323,6 +248,7 @@ var TestCase = AbstractTest.subclass({
     var async = this.data.async ? 1 : 0;
     var isNode = null;
     var sourceCode = this.getSourceCode();
+    var beforeAfterInfo = this.getBeforeAfterInfo();
 
     var implicitCompare;
     var actual_;
@@ -330,11 +256,11 @@ var TestCase = AbstractTest.subclass({
 
     var report = {
       test: null,
-      beforeLines: sourceCode.beforeLines,
-      beforeCount: sourceCode.beforeCount,
-      testSource: sourceCode.source,
-      afterLines: sourceCode.afterLines,
-      afterCount: sourceCode.afterCount,
+      beforeLines: beforeAfterInfo.beforeLines,
+      beforeCount: beforeAfterInfo.beforeCount,
+      testSource: sourceCode,
+      afterLines: beforeAfterInfo.afterLines,
+      afterCount: beforeAfterInfo.afterCount,
       time: time,
       lastLine: 0,
 
@@ -432,16 +358,16 @@ var TestCase = AbstractTest.subclass({
       return value;
     };
 
-    var __isFor = function(range, line){
-      report.lastLine = line
+    var __isFor = function(start, end, line){
+      report.lastLine = line;
       isNode = {
-        range: range,
+        range: [start, end],
         line: line
       };
     };
 
     var __enterLine = function(line){
-      report.lastLine = line
+      report.lastLine = line;
     };
 
     var __wrapFunctionExpression = function(fn, orig){
@@ -455,7 +381,7 @@ var TestCase = AbstractTest.subclass({
       };
       wrappedFn.originalFn_ = orig;
       return wrappedFn;
-    }
+    };
 
     var __exception = function(e){
       if (report.exception)
@@ -510,7 +436,7 @@ var TestCase = AbstractTest.subclass({
 
     // prepare env and run test
     this.getEnvRunner(true).run(
-      this.getSourceCode(sourceCode),
+      this.getWrappedSourceCode(),
       this,
       function(testFn){
         startTime = getTime();
@@ -534,11 +460,17 @@ var TestCase = AbstractTest.subclass({
         };
 
         // prepare args
-        var args = basis.array.create(this.data.testArgs.length);
+        var args = new Array(sourceUtils.getFunctionInfo(this.data.test).args.length);
         if (args.length)
           args[0] = asyncDone;
-        args.push(assert, __isFor, __enterLine, __exception, __wrapFunctionExpression,
-          __actual, __expected);
+        args.push(assert,
+          __isFor,
+          __enterLine,
+          __exception,
+          __wrapFunctionExpression,
+          __actual,
+          __expected
+        );
 
         // run test
         try {
@@ -656,7 +588,7 @@ var TestSuite = AbstractTest.subclass({
   },
 
   destroy: function(){
-    this.testByState_.destroy()
+    this.testByState_.destroy();
     this.testByState_ = null;
     this.nestedTests_.destroy();
     this.nestedTests_ = null;
@@ -673,6 +605,5 @@ module.exports = {
   TestCase: TestCase,
   TestSuite: TestSuite,
 
-  map: testMap,
   create: createTestFactory
 };

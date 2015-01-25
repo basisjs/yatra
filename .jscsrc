@@ -18,28 +18,26 @@
     "disallowSpacesInsideArrayBrackets": true,
     "disallowSpacesInsideParentheses": true,
 
-    "disallowQuotedKeysInObjects": "allButReserved",
     "disallowSpaceAfterObjectKeys": true,
 
     "requireCommaBeforeLineBreak": true,
 
-    "requireRightStickedOperators": ["!"],
-    "disallowRightStickedOperators": ["?", "+", "/", "*", ":", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<=", ","],
-
-    "requireLeftStickedOperators": [","],   
-    "disallowLeftStickedOperators": ["?", "+", "/", "*", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
-
-    "disallowSpaceAfterPrefixUnaryOperators": ["++", "--", "+", "-"],
+    "disallowSpaceAfterBinaryOperators": ["!"],
+    "disallowSpaceAfterPrefixUnaryOperators": ["++", "--", "+", "-", "!"],
     "disallowSpaceBeforePostfixUnaryOperators": ["++", "--"],
 
+    "requireSpacesInConditionalExpression": true,
     "requireSpaceBeforeBinaryOperators": ["+", "-", "/", "*", "=", "==", "===", "!=", "!=="],
     "requireSpaceAfterBinaryOperators": ["+", "-", "/", "*", "=", "==", "===", "!=", "!=="],
 
+    "requireOperatorBeforeLineBreak": ["/", "*", "&&", "||", "&", "|", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
+
     "disallowImplicitTypeConversion": ["string", "binary"],
-    "requireCamelCaseOrUpperCaseIdentifiers": true,
+    "basisIdentifiersStyle": true,
 
     "disallowMultipleLineStrings": true,
     "validateQuoteMarks": "'",
+    "requireSemicolon": true,
 
     "disallowMixedSpacesAndTabs": true,
     "disallowTrailingWhitespace": true,
@@ -47,7 +45,7 @@
     "requireLineFeedAtFileEnd": true,
 
     "disallowKeywords": ["with", "eval"],
-    "requireKeywordsOnNewLine": ["if", "else", "while", "for", "do", "return", "swicth", "case", "try", "break"],
+    "requireKeywordsOnNewLine": ["else", "while", "for", "do", "return", "switch", "case", "try", "break"],
     "disallowKeywordsOnNewLine": ["catch"],
     "requireCapitalizedConstructors": true,
 
@@ -59,8 +57,7 @@
         "checkRedundantParams": true
     },
 
-    "excludeFiles": [
-        "build",
-        "bower_components"
+    "additionalRules": [
+        "scripts/jscs/*.js"
     ]
 }

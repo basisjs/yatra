@@ -1,8 +1,8 @@
-var fnInfo = require('basis.utils.info').fn;
 var arrayFrom = basis.array.from;
 var OBJECT_TOSTRING = Object.prototype.toString;
 var ERROR_WRONG_ANSWER = 'ERROR_WRONG_ANSWER';
 var ERROR_TYPE_MISSMATCH = 'ERROR_TYPE_MISSMATCH';
+var getFunctionInfo = require('./source/info.js');
 
 function sliceOwnOnly(obj){
   var result = {};
@@ -67,7 +67,7 @@ function value2string(value, linear, deep){
 
         if (!res.length && value.valueOf() !== value)
         {
-          var m = (value.constructor).toString().match(/function (Number|String|Boolean)/)
+          var m = (value.constructor).toString().match(/function (Number|String|Boolean)/);
           if (m)
             return 'new Object(' + value2string(value.valueOf()) + ')';
         }
@@ -186,28 +186,13 @@ function compareValues(actual, expected, deep){
   }
 }
 
-function getFnInfo(test){
-  var info = fnInfo(test);
-  var args = info.args ? info.args.split(/\s*,\s*/) : [];
-  var code = info.body
-    .replace(/([\r\n]|\s)*\"use strict\";/, '') // Firefox adds "use strict" at the begining of function body
-    .replace(/\r/g, '')
-    .replace(/^(\s*\n)+|(\n\s*)*$/g, '');
-  var minOffset = code.split(/\n+/).map(function(line){
-    return line.match(/^(\s*)/)[0];
-  }).sort()[0];
-
-  return {
-    args: args,
-    code: code.replace(new RegExp('(^|\\n)' + minOffset, 'g'), '$1') || '// no source code'
-  };
-}
-
 module.exports = {
   sliceOwnOnly: sliceOwnOnly,
   makeStaticCopy: makeStaticCopy,
   value2string: value2string,
   compareValues: compareValues,
   isTruthy: isTruthy,
-  getFnInfo: getFnInfo
+  getFnInfo: function(fn){
+    return getFunctionInfo(fn.toString());
+  }
 };

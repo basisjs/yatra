@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Basis Test Suite</title>
+  <title>Basis Test Runner</title>
 
   <style>
     HTML,
@@ -66,11 +66,17 @@
         iframe.onload = function(){
           if (typeof this.contentWindow.loadTests == 'function')
           {
-            /**@cut*/ var t = new Date;
+            /** @cut */ var benchmark = basis.require('basis.utils.benchmark');
+            /** @cut */ var t = benchmark.time();
+
             this.contentWindow.loadTests(app.loadTests);
-            /**@cut*/ document.title = (new Date - t) + '/' + (new Date - startTime);
+
+            /** @cut */ basis.dev.info('Timing:\n' +
+            /** @cut */   'app ready: ' + (new Date - startTime) + '\n' +
+            /** @cut */   'test load: ' + benchmark.time(t)
+            /** @cut */ );
           }
-        }
+        };
         basis.doc.body.add(iframe);
 
         app.setup({

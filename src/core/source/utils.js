@@ -1,4 +1,13 @@
-var esprima = require('esprima');
+// import esprima as regular basis.js module and as worker environment
+var esprima;
+if (typeof importScripts == 'function')
+  importScripts('../../../bower_components/esprima/esprima.js');
+else
+  esprima = require('esprima');
+
+//
+// ast tools
+//
 
 var TRAVERSE_ABORT = 1;
 var TRAVERSE_STOP_DEEP = 2;
@@ -177,14 +186,101 @@ function translateNode(node){
   return translateAst(node.root, node.range[0], node.range[1]);
 }
 
-module.exports = {
-  TRAVERSE_ABORT: TRAVERSE_ABORT,
-  TRAVERSE_STOP_DEEP: TRAVERSE_STOP_DEEP,
 
-  parse: parse,
-  traverseAst: traverseAst,
-  translateAst: translateAst,
-  translateNode: translateNode,
-  getRangeTokens: getRangeTokens,
-  getNodeRangeTokens: getNodeRangeTokens
-};
+//
+// source tools
+//
+
+function wrapSource(source, breakpointAt){
+  var ast = parse(source);
+
+  if (breakpointAt == 'none')
+  {
+    traverseAst(ast, function(node){
+      if (node.type == 'Program')
+        return;
+
+      if (node.type == 'FunctionExpression')
+      {
+        var tokens = getNodeRangeTokens(node);
+        var orig = translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
+        tokens[0].value = '__wrapFunctionExpression(' + tokens[0].value;
+        tokens[1].value += ', ' + orig + ')';
+      }
+
+      if (node.type == 'FunctionDeclaration')
+      {
+        // var tokens = getNodeRangeTokens(node);
+        // var orig = translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
+        // tokens[1].value += node.id.name + '.originalFn_ = (' + orig + ');';
+
+        var tokens = getNodeRangeTokens(node.body);
+        tokens[0].value +=
+          '\ntry {\n';
+        tokens[1].value =
+          '\n} catch(e) {' +
+            '__exception(e);' +
+            'throw e;' +
+          '}\n' + tokens[1].value;
+      }
+
+      if (node.type == 'CallExpression')
+      {
+        if (node.parentNode.type == 'ExpressionStatement')
+        {
+          var token = getNodeRangeTokens(node)[0];
+          var singleArg = node.arguments.length == 1 ? node.arguments[0] : null;
+          var isForCode = '__isFor(' + node.range + ',' + (node.loc.end.line - 1) + ')';
+          var newValue = token.value.replace(/^__enterLine\(\d+\)/, isForCode);
+
+          token.value = newValue != token.value ? newValue : isForCode + ' || ' + token.value;
+
+          if (singleArg &&
+              singleArg.type == 'BinaryExpression' &&
+              singleArg.operator.match(/^(===?)$/)) // |!==?|>=?|<=
+          {
+            var arg0 = node.arguments[0];
+            var leftToken = getNodeRangeTokens(arg0.left);
+            var rightToken = getNodeRangeTokens(arg0.right);
+
+            leftToken[0].value = '__actual("' + arg0.operator + '",' + leftToken[0].value;
+            leftToken[1].value += ')';
+            rightToken[0].value = '__expected(' + rightToken[0].value;
+            rightToken[1].value += ')';
+          }
+        }
+      }
+
+      if (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program')
+      {
+        var firstToken = getNodeRangeTokens(node)[0];
+        firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + '); ' + firstToken.value;
+      }
+    });
+  }
+
+  return translateAst(ast, 0, ast.source.length);
+}
+
+
+//
+// export
+//
+
+// for worker environment
+if (typeof module != 'undefined')
+{
+  module.exports = {
+    TRAVERSE_ABORT: TRAVERSE_ABORT,
+    TRAVERSE_STOP_DEEP: TRAVERSE_STOP_DEEP,
+
+    parse: parse,
+    traverseAst: traverseAst,
+    translateAst: translateAst,
+    translateNode: translateNode,
+    getRangeTokens: getRangeTokens,
+    getNodeRangeTokens: getNodeRangeTokens,
+
+    wrapSource: wrapSource
+  };
+}

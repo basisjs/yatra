@@ -105,6 +105,7 @@ function loadTests(data){
 function run(data){
   // stop previous run
   stop();
+  testStartTime = getTime();
 
   // if eny test in progress, re-run by timeout
   if (awaitProcessingTests.itemCount)
