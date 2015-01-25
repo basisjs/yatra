@@ -32,10 +32,7 @@ var FrameEnv = Node.subclass({
     ready: function(){
       var frameWindow = this.element.contentWindow;
       var initCode = '';
-
-      // NOTE: don't use require here, because builder replace url for [number].code
-      // and basis.require wrogly theats it as namespace
-      var code = resource('./iframe_inject.code').fetch();
+      var code = require('./iframe_inject.code');
 
       if (typeof code == 'function')
         code = fnInfo(code).body;

@@ -9,6 +9,10 @@ var count = require('basis.data.index').count;
 var sum = require('basis.data.index').sum;
 var getTime = require('basis.utils.benchmark').time;
 var TestCase = require('core.test').TestCase;
+
+var notifier = new basis.Token();
+var elapsedTime = new Value({ value: 0 });
+var startTime;
 var flush = 0;
 
 var testsToRun = new Dataset();
@@ -22,8 +26,26 @@ var awaitProcessingTests = new Dataset({
     }
   }
 });
-var faultTests = new Subset({
+var doneTests = new Subset({
   source: testsToRun,
+  ruleEvents: 'stateChanged',
+  rule: function(test){
+    return test.state == STATE.ERROR || test.state == STATE.READY;
+  },
+  handler: {
+    itemsChanged: function(sender, delta){
+      if (delta.inserted)
+        delta.inserted.forEach(function(test){
+          notifier.set({
+            action: 'report',
+            fault: test.state == STATE.ERROR
+          });
+        });
+    }
+  }
+});
+var faultTests = new Subset({
+  source: doneTests,
   ruleEvents: 'stateChanged',
   rule: function(test){
     return test.state == STATE.ERROR;
@@ -45,7 +67,7 @@ var processingQueueTop = new Slice({
     itemsChanged: function(sender, delta){
       if (delta.inserted)
         delta.inserted.forEach(function(item){
-          (flush++ % 8 ? basis.asap : basis.nextTick)(function(){
+          (flush++ % 4 ? basis.asap : basis.nextTick)(function(){
             if (processingQueueTop.has(item))
               item.run();
           });
@@ -54,30 +76,28 @@ var processingQueueTop = new Slice({
   }
 });
 
-var testStartTime;
-var time = new Value({ value: 0 });
 var assertCount = sum(testsToRun, 'stateChanged', function(test){
   if (test.state.data instanceof DataObject)
     return test.state.data.data.testCount;
   return 0;
 });
-var testCount = Value.from(testsToRun, 'itemsChanged', 'itemCount');
-var testDone = count(testsToRun, 'stateChanged', function(test){
-  return test.state == STATE.ERROR || test.state == STATE.READY;
-});
-var testLeft = new Expression(testCount, testDone, function(total, done){
+var testCount = count(testsToRun);
+var testDoneCount = count(doneTests);
+var testFaultCount = count(faultTests);
+var testLeft = new Expression(testCount, testDoneCount, function(total, done){
   return total - done;
 });
 
 testLeft.addHandler({
   change: function(sender, oldValue){
-    if (this.value && !oldValue)
-      testStartTime = getTime();
+    if (startTime)
+      elapsedTime.set(getTime(startTime));
 
-    time.set(getTime(testStartTime));
-
-    if (!this.value)
-      basis.dev.log('Test run done in', getTime(testStartTime));
+    if (!this.value && oldValue)
+      notifier.set({
+        action: 'finish',
+        time: elapsedTime.value
+      });
   }
 });
 
@@ -111,8 +131,11 @@ function run(){
   stop();
 
   // start
-  basis.dev.log('Start test running', testsToRun);
-  testStartTime = getTime();
+  startTime = getTime();
+  notifier.set({
+    action: 'start',
+    testCount: testCount.value
+  });
 
   // if eny test in progress, re-run by timeout
   if (awaitProcessingTests.itemCount)
@@ -145,18 +168,20 @@ function stop(){
 }
 
 module.exports = {
-  time: time,
+  time: elapsedTime,
+  doneTests: doneTests,
   faultTests: faultTests,
 
   count: {
     assert: assertCount,
     total: testCount,
     left: testLeft,
-    done: testDone,
-    fault: count(faultTests)
+    done: testDoneCount,
+    fault: testFaultCount
   },
 
   loadTests: loadTests,
   run: run,
-  stop: stop
+  stop: stop,
+  attach: notifier.attach.bind(notifier)
 };

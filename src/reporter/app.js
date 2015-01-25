@@ -99,9 +99,9 @@ module.exports = {
     rootTestSuite.setDelegate(rootTest);
 
     if (autorun)
-      basis.nextTick(function(){
+      setTimeout(function(){
         runner.run();
-      });
+      }, 100);
   }
 };
 

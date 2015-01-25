@@ -1,68 +1,81 @@
+var pageUrl = 'http://localhost:8123/test/runner_dev/src/reporter.html?autorun=true&page=/test/index.html';
 var initTime = Date.now();
 var page = require('webpage').create();
 var secondNum = 1;
-
-function getCounts(){
-  return page.evaluate(function(){
-    var obj = basis.require('core.runner').count;
-    var res = {};
-    for (var key in obj)
-      res[key] = obj[key].value;
-    return res;
-  });
-};
+var countTotal = 0;
+var countDone = 0;
+var countFault = 0;
 
 function progress(){
-  var counts = getCounts();
-  if (counts.left)
+  if (countDone < countTotal)
   {
     setTimeout(progress, 1000);
 
-    if (counts.done)
+    if (countDone)
     {
-      var done = (100 * counts.done / counts.total).toFixed(2);
+      var done = (100 * countDone / countTotal).toFixed(2);
       console.log(
         (done.length == 4 ? ' ' + done : done) + '%, ' +
-        parseInt(counts.done / ++secondNum, 10) + ' tests/sec'
+        parseInt(countDone / ++secondNum, 10) + ' tests/sec'
       );
     }
   }
 }
 
 page.viewportSize = { width: 900, height: 600 };
-page.onConsoleMessage = function(msg){
-  if (/^Start test run/.test(msg))
-  {
-    console.log(msg);
-    console.log(getCounts().total + ' tests');
-    progress();
-  }
-  if (/^Test run done/.test(msg))
-  {
-    var counts = getCounts();
-    console.log('DONE!');
-    console.log('Time:', Date.now() - initTime + 'ms');
-    if (counts.fault)
-    {
-      console.log(counts.fault + ' of ' + counts.total + ' failed :(');
-      console.log('(see phantom-error-report.png for details)');
-      page.render('phantom-error-report.png');
+
+page.onCallback = function(data){
+  if (data)
+    switch (data.action){
+      case 'start':
+        countTotal = data.testCount;
+        console.log('Start test running (' + countTotal + ' tests)');
+        progress();
+        break;
+
+      case 'finish':
+        console.log('Test running done in ' + data.time + 'ms (full: ' + (Date.now() - initTime) + 'ms)\n');
+
+        if (countFault)
+        {
+          console.log(countFault + ' of ' + countTotal + ' failed :\'(');
+          console.log('(see phantom-error-report.png for details)');
+          page.render('phantom-error-report.png');
+        }
+        else
+        {
+          console.log('Great! No errors!');
+        }
+
+        phantom.exit();
+        break;
+
+      case 'report':
+        countDone++;
+        if (data.fault)
+          countFault++;
+        break;
+
+      default:
+        console.warn('Unknown action from client:', data.action);
     }
-    else
-    {
-      console.log('Great! No errors!');
-    }
-    phantom.exit();
-  }
 };
+
+console.log('Opening test page: ' + pageUrl);
 page.open(
-  'http://localhost:8123/test/runner_dev/src/reporter.html?autorun=true&page=/test/index.html',
+  pageUrl,
   function(status){
-    console.log('Status: ' + status);
     if (status != 'success')
     {
       console.log('Page not loaded:', status);
       phantom.exit();
     }
+
+    console.log('Page loaded in ' + (Date.now() - initTime) + 'ms\n');
+    page.evaluate(function(){
+      var runner = basis.require('core.runner');
+      if (typeof window.callPhantom === 'function')
+        runner.attach(window.callPhantom, window);
+    });
   }
 );
