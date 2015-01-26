@@ -25,7 +25,7 @@ var FrameEnv = Node.subclass({
         return node.html;
 
       // default env
-      return basis.path.resolve((require('core.env').baseURI || ''), basis.asset(__dirname + 'iframe.html'));
+      return asset('./iframe.html');
     }
   },
   action: {
