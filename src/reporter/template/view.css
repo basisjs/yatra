@@ -19,46 +19,103 @@
   left: 0;
   height: 40px;
   width: 100%;
-  background: #B22;
+  background: #789;
   color: white;
   box-shadow: 0 0 2px rgba(0, 0, 0, .75);
+  white-space: nowrap;
+  transition: background-color .5s;
+}
+#header.header_running
+{
+  background: #DA0;
+  transition: background-color .1s;
+}
+#header.header_fault
+{
+  background: #B22;
+}
+#header.header_ok
+{
+  background: #080;
 }
 #header .header-caption
 {
-  font-size: 20px;
-  padding: 8px 10px 12px;
+  font-size: 18px;
+  padding: 10px 10px 12px;
   line-height: 1;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   float: left;
+  width: 40%;
+  max-width: 340px;
 }
-#header .header-buttons
+
+#header .header__buttons
 {
   float: right;
-  padding: 5px;
+  height: 40px;
+  position: relative;
+  z-index: 1;
 }
 #header .header-button
 {
-  border: 1px solid black;
-  border-color: rgba(0, 0, 0, .33);
-  border-radius: 3px;
-  background-clip: padding-box;
-  height: 28px;
+  height: 100%;
   font-size: 16px;
-  padding: 0 1em;
-}
-#header .header-test-suite-location
-{
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, .75);
   background: black;
-  background: rgba(0, 0, 0, .66);
+  color: white;
+  min-width: 12ex;
+  cursor: pointer;
+  outline: none;
+}
+
+#header .header__stat
+{
+  height: 100%;
+  background: rgba(0, 0, 0, .3);
   overflow: hidden;
-  float: left;
-  padding: 5px 8px 4px;
-  line-height: 1;
-  font-size: 13px;
-  margin: 9px 10px 0;
+  display: inline-block;
+  border-right: 1px solid rgba(0, 0, 0, .05);
+  margin-left: -1px;
+}
+#header .stat
+{
+  display: inline-block;
+  height: 100%;
+  min-width: 13ex;
+  text-align: center;
+  border-left: 1px solid rgba(0, 0, 0, .05);
+}
+#header .stat + .stat
+{
+  border-left: 1px solid rgba(255, 255, 255, .2);
+}
+#header .stat__label
+{
+  font-size: 11px;
+  text-shadow: none;
+  opacity: .5;
+  display: block;
+}
+#header .stat__value
+{
+  font-size: 18px;
+  position: relative;
+}
+#header .stat__unit
+{
+  font-size: 11px;
+  text-shadow: none;
+  opacity: .8;
+  position: absolute;
+  bottom: 2px;
+  margin-left: 4px;
 }
 
 #sidebar
 {
+  clear: both;
   float: left;
   width: 40%;
   max-width: 340px;

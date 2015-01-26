@@ -1,0 +1,12 @@
+{
+  "en-US": {
+    "button": {
+      "caption": {
+        "running": "Running...",
+        "fault": "Start!",
+        "ok": "Start!",
+        "stopped": "Start!"
+      }
+    }
+  }
+}

@@ -1,11 +1,36 @@
 <b:style src="./view.css"/>
+<b:isolate/>
+<b:define name="runnerState" type="enum" values="running fault ok"/>
+
 <div id="layout">
-  <div id="header">
-    <span class="header-caption">Basis.js test runner</span>
-    <div class="header-buttons">
-      <button class="header-button" event-click="run">run</button>
+  <div id="header" class="header_{runnerState}">
+    <div class="header__buttons">
+      <button class="header-button" event-click="run">
+        {l10n:button.caption.{runnerState}}
+      </button>
     </div>
-    <div b:show="{name}" class="header-test-suite-location">{name} {done} / {total} ({assert}) (time: {time} ms)</div>
+    <span class="header-caption">
+      <span b:hide="{name}">Untitled test suite</span>
+      <span b:show="{name}">{name}</span>
+    </span>    
+    <div b:show="{name}" class="header__stat">
+      <span class="stat">
+        <span class="stat__label">Test total</span>
+        <span class="stat__value">{total}</span>
+      </span>
+      <span class="stat">
+        <span class="stat__label">Done tests</span>
+        <span class="stat__value">{done}</span>
+      </span>
+      <span class="stat">
+        <span class="stat__label">Done assert</span>
+        <span class="stat__value">{assert}</span>
+      </span>
+      <span class="stat">
+        <span class="stat__label">Time</span>
+        <span class="stat__value">{time} <span class="stat__unit">s</span></span>
+      </span>
+    </div>
   </div>
   <div id="sidebar">
     <!--{toc}-->

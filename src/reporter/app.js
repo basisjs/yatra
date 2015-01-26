@@ -1,4 +1,5 @@
 var Value = require('basis.data').Value;
+var Expression = require('basis.data.value').Expression;
 var DataObject = require('basis.data').Object;
 var Node = require('basis.ui').Node;
 var runner = require('core.runner');
@@ -70,6 +71,20 @@ var view = new Node({
     // subview
     toc: toc,
     tests: testDetails,
+
+    runnerState: new Expression(
+      runner.state,
+      runner.count.total,
+      runner.count.fault,
+      runner.count.left,
+      function(state, total, fault, left){
+        if (fault)
+          return 'fault';
+        if (state != 'running' && total && !left)
+          return 'ok';
+        return state;
+      }
+    ),
 
     // values
     name: Value.from(rootTestSuite, 'update', 'data.name'),

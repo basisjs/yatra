@@ -10,6 +10,7 @@ var sum = require('basis.data.index').sum;
 var getTime = require('basis.utils.benchmark').time;
 var TestCase = require('core.test').TestCase;
 
+var runnerState = new basis.Token('stopped');
 var notifier = new basis.Token();
 var elapsedTime = new Value({ value: 0 });
 var startTime;
@@ -94,10 +95,13 @@ testLeft.addHandler({
       elapsedTime.set(getTime(startTime));
 
     if (!this.value && oldValue)
+    {
+      runnerState.set('stopped');
       notifier.set({
         action: 'finish',
         time: elapsedTime.value
       });
+    }
   }
 });
 
@@ -132,6 +136,7 @@ function run(){
 
   // start
   startTime = getTime();
+  runnerState.set('running');
   notifier.set({
     action: 'start',
     testCount: testCount.value
@@ -168,6 +173,7 @@ function stop(){
 }
 
 module.exports = {
+  state: runnerState,
   time: elapsedTime,
   doneTests: doneTests,
   faultTests: faultTests,

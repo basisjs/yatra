@@ -42,7 +42,6 @@
 .app-toc-item_selected,
 .app-toc-item_selected:hover
 {
-  background: #FFF0D0;
   background: #F0F0F0;
   cursor: default;
   padding-right: 25px;

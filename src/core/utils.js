@@ -61,9 +61,14 @@ function value2string(value, linear, deep){
       if (!linear)
       {
         var res = [];
-        for (var key in value)
+        var keys = Object.keys(value).sort();
+
+        for (var i = 0, key; i < keys.length; i++)
+        {
+          key = keys[i];
           if (value.hasOwnProperty(key))
             res.push(key + ': ' + value2string(value[key], !deep, deep));
+        }
 
         if (!res.length && value.valueOf() !== value)
         {
