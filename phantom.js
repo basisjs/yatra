@@ -73,9 +73,12 @@ page.open(
 
     console.log('Page loaded in ' + (Date.now() - initTime) + 'ms\n');
     page.evaluate(function(){
-      var runner = basis.require('core.runner');
-      if (typeof window.callPhantom === 'function')
-        runner.attach(window.callPhantom, window);
+      (function(){
+        if (typeof window.callPhantom === 'function')
+          basis.require('core.runner').subscribe(function(event){
+            window.callPhantom(event)
+          });
+      })();
     });
   }
 );

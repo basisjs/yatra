@@ -189,5 +189,16 @@ module.exports = {
   loadTests: loadTests,
   run: run,
   stop: stop,
-  attach: notifier.attach.bind(notifier)
+  subscribe: function(fn, context){
+    return notifier.attach(fn, context);
+  },
+  unsubscribe: function(fn, context){
+    return notifier.detach(fn, context);
+  },
+  on: function(eventName, fn, context){
+    notifier.attach(function(event){
+      if (event.action == eventName)
+        fn.call(context, basis.object.slice(event));
+    });
+  }
 };
