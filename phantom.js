@@ -1,4 +1,4 @@
-var pageUrl = 'http://localhost:8123/test/runner_dev/src/reporter.html?autorun=true&page=/test/index.html';
+var pageUrl = 'http://localhost:8123/test/runner_dev/src/reporter.html?page=/test/index.html';
 var initTime = Date.now();
 var page = require('webpage').create();
 var secondNum = 1;
@@ -52,8 +52,26 @@ page.onCallback = function(data){
 
       case 'report':
         countDone++;
-        if (data.fault)
+        if (!data.success)
+        {
           countFault++;
+
+          // console.warn(data.path.join(' '));
+          // if (data.exception)
+          //   console.warn('  ' + data.name + ' ' + data.exception + '\n');
+          // else
+          // {
+          //   var sourceLines = data.source.split('\n');
+          //   console.warn(data.errors.map(function(error){
+          //     return (
+          //       '  ' + data.name + ':' + error.line + '\n' +
+          //       '    ' + sourceLines[error.line] + '\n' +
+          //       '    Expected: ' + error.expected + '\n' +
+          //       '    Actual: ' + error.actual
+          //     );
+          //   }).join('\n') + '\n');
+          // }
+        }
         break;
 
       default:
@@ -74,10 +92,16 @@ page.open(
     console.log('Page loaded in ' + (Date.now() - initTime) + 'ms\n');
     page.evaluate(function(){
       (function(){
+        var runner = basis.require('core.runner');
         if (typeof window.callPhantom === 'function')
-          basis.require('core.runner').subscribe(function(event){
+        {
+          runner.subscribe(function(event){
             window.callPhantom(event)
           });
+        }
+        setTimeout(function(){
+          runner.run()
+        }, 10);
       })();
     });
   }

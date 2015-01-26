@@ -37,9 +37,41 @@ var doneTests = new Subset({
     itemsChanged: function(sender, delta){
       if (delta.inserted)
         delta.inserted.forEach(function(test){
+          var errors = [];
+          var path = [];
+          var cursor = test;
+          var data = test.state.data instanceof DataObject
+            ? test.state.data.data
+            : {};
+
+          if (data.error)
+          {
+            for (var line in data.errorLines)
+              errors.push.apply(errors, data.errorLines[line].map(function(error){
+                return {
+                  line: line,
+                  type: error.error,
+                  expected: error.expectedStr,
+                  actual: error.actualStr
+                };
+              }));
+          }
+
+          while (cursor = cursor.parentNode)
+            path.unshift(cursor.data.name);
+
           notifier.set({
             action: 'report',
-            fault: test.state == STATE.ERROR
+            name: test.data.name,
+            path: path,
+            source: data.testSource,
+            success: test.state != STATE.ERROR,
+            skipped: data.pending,
+            time: data.time,
+            exception: data.exception
+              ? 'Exception on line ' + data.lastLine + ': ' + data.exception
+              : null,
+            errors: errors.length ? errors : null
           });
         });
     }
