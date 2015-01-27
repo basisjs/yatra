@@ -44,18 +44,18 @@ toc.addHandler({
 });
 toc.selection.addHandler({
   itemsChanged: function(selection){
-    this.setDelegate(selection.pick());
+    testDetails.setDelegate(selection.pick());
   }
-}, testDetails);
+});
 
 // content section setup
 testDetails.selection.addHandler({
   itemsChanged: function(selection){
     var selected = selection.pick();
     if (selected)
-      this.setDelegate(selected.root);
+      toc.setDelegate(selected.root);
   }
-}, toc);
+});
 
 var view = new Node({
   template: resource('./template/view.tmpl'),

@@ -9,6 +9,7 @@ var Node = require('basis.ui').Node;
 //
 
 var document = global.document;
+var checkDebugger = require('./check-debugger.js');
 var highlight = require('app.highlight');
 var TestCase = require('core.test').TestCase;
 var strDiff = require('diff');
@@ -43,7 +44,7 @@ var CodeView = Node.subclass({
       getter: function(node){
         return node.getBeforeAfterInfo().afterCount;
       }
-    },    
+    },
     afterCollapsed: 'afterCollapsed',
     hasParent: {
       events: 'ownerChanged',
@@ -60,6 +61,14 @@ var CodeView = Node.subclass({
     },
     toggleAfter: function(){
       this.afterCollapsed.set(!this.afterCollapsed.value);
+    },
+    debug: function(event){
+      var target = event.actionTarget;
+      var debug = Number(target.getAttribute('data-debug'));
+      var test = this.root instanceof TestCase ? this.root : this.data.test;
+
+      checkDebugger();
+      test.run(debug);
     }
   },
 
@@ -157,7 +166,7 @@ var CodeView = Node.subclass({
               }
 
               return (
-                '<div class="error-line-details-item">' +
+                '<div class="error-line-details-item" event-click="debug" data-debug="' + lineError.debug + '">' +
                   '<span class="num">' + (lineError.num + 1) + '</span>' +
                   '<span class="caption">Expected:</span>' +
                   '<span class="expected">' + expected + '</span>' +
@@ -271,6 +280,7 @@ var TestSuiteNode = TestNode.subclass({
 
   template: resource('./template/test-suite.tmpl'),
 
+  sorting: 'root.basisObjectId',
   childClass: TestNode,
   childFactory: function(config){
     if (config.delegate.data.type == 'case')

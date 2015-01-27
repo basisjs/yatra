@@ -104,6 +104,24 @@
   margin: 0;
   margin-top: 1px;
   overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+.Basis-SyntaxHighlight .error-line-details-item:hover
+{
+  background: #F8F8F8;
+  box-shadow: 0 0 0px 1px white inset;
+}
+.Basis-SyntaxHighlight .error-line-details-item:hover:after
+{
+  content: 'pause before this assert';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  padding: 2px 6px;
+  background: black;
+  background: rgba(0,0,0,.65);
+  color: white;
 }
 .Basis-SyntaxHighlight .error-line-details-item:first-child
 {

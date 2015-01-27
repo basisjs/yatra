@@ -192,7 +192,17 @@ function translateNode(node){
 //
 
 function wrapSource(source, breakpointAt){
+  function wrapToBlock(node){
+    if (node.parentNode.type != 'BlockStatement' && node.parentNode.type != 'Program')
+    {
+      var tokens = getNodeRangeTokens(node);
+      tokens[0].value = '{\n' + tokens[0].value;
+      tokens[1].value = tokens[1].value + '\n}';
+    }
+  }
+
   var ast = parse(source);
+
 
   if (breakpointAt == 'none')
   {
@@ -230,10 +240,12 @@ function wrapSource(source, breakpointAt){
         {
           var token = getNodeRangeTokens(node)[0];
           var singleArg = node.arguments.length == 1 ? node.arguments[0] : null;
-          var isForCode = '__isFor(' + node.range + ',' + (node.loc.end.line - 1) + ')';
-          var newValue = token.value.replace(/^__enterLine\(\d+\)/, isForCode);
+          var isForCode = 'if(__isFor(' + node.range + ',' + (node.loc.end.line - 1) + '))debugger;\n';
+          var newValue = token.value.replace(/^__enterLine\(\d+\); /, isForCode);
 
-          token.value = newValue != token.value ? newValue : isForCode + ' || ' + token.value;
+          token.value = newValue != token.value ? newValue : isForCode + token.value;
+
+          wrapToBlock(node.parentNode);
 
           if (singleArg &&
               singleArg.type == 'BinaryExpression' &&

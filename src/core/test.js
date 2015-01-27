@@ -218,10 +218,18 @@ var TestCase = AbstractTest.subclass({
       this.testWrappedSources = {};
 
     if (!this.testWrappedSources[breakpointAt])
+    {
+      var sourceMap = '';
+        // '\n//# sourceMappingURL=data:application/json;base64,' +
+        // require('basis.utils.base64').encode('{"version":3,"sources":["' + basis.path.origin + '/foo.js' + '"],"sourcesContent":[' + JSON.stringify(source) + '],' +
+        // '"mappings":"AAAA' + basis.string.repeat(';AACA', source.split('\n').length) +
+        // '"}', true) + '\n';
+
       this.testWrappedSources[breakpointAt] =
         'function(' + sourceUtils.getFunctionInfo(this.data.test).args.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
           sourceUtils.getWrappedSource(source, breakpointAt) +
-        '\n}';
+        '\n}' + sourceMap;
+    }
 
     return this.testWrappedSources[breakpointAt];
   },
@@ -236,7 +244,7 @@ var TestCase = AbstractTest.subclass({
     AbstractTest.prototype.reset.call(this);
     this.setState(STATE.UNDEFINED);
   },
-  run: function(){
+  run: function(breakAssert){
     // var _warn = basis.dev.warn;
     // var _error = basis.dev.error;
     var warnMessages = [];
@@ -247,6 +255,7 @@ var TestCase = AbstractTest.subclass({
     var timeoutTimer;
     var async = this.data.async ? 1 : 0;
     var isNode = null;
+    var isForNum = 0;
     var sourceCode = this.getSourceCode();
     var beforeAfterInfo = this.getBeforeAfterInfo();
 
@@ -328,6 +337,7 @@ var TestCase = AbstractTest.subclass({
 
             errors.push({
               num: report.testCount,
+              debug: isForNum,
               node: isNode,
               error: error,
               expected: utils.makeStaticCopy(expected),
@@ -364,6 +374,7 @@ var TestCase = AbstractTest.subclass({
         range: [start, end],
         line: line
       };
+      return ++isForNum === breakAssert;
     };
 
     var __enterLine = function(line){

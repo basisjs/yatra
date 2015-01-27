@@ -60,12 +60,14 @@
 .loc-link
 {
   cursor: pointer;
-  border-bottom: 1px solid black;
-  border-color: rgba(0, 0, 0, .2);
+  /*border-bottom: 1px solid black;
+  border-color: rgba(0, 0, 0, .2);*/
+  background: linear-gradient(to bottom, rgba(128, 128, 128, .25) 1px, transparent 1px) repeat-x 0 1.2em;
 }
 .loc-link:hover
 {
   color: #A00;
-  border-color: #A00;
-  border-color: rgba(160, 0, 0, .2);
+  /*border-color: #A00;
+  border-color: rgba(160, 0, 0, .2);*/
+  background-image: linear-gradient(to bottom, rgba(160, 0, 0, .25) 1px, transparent 1px);
 }

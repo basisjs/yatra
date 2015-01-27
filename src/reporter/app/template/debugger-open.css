@@ -1,0 +1,17 @@
+.notify
+{
+  position: fixed;
+  top: 45px;
+  right: 5px;
+  padding: 8px;
+  background: rgba(0,0,0,.75);
+  color: white;
+  font-family: Tahoma, serif;
+  opacity: 0;
+  transition: opacity .25s;
+  z-index: 100;
+}
+.notify_show
+{
+  opacity: 1;
+}
