@@ -2,7 +2,6 @@
 .header
 {
   padding: 8px 0 8px 8px;
-  cursor: pointer;
 }
 .header:hover
 {
@@ -13,14 +12,15 @@
 {
   visibility: hidden;
   float: right;
-  padding: 2px 4px;
-  margin: -2px 4px -2px 4px;
+  padding: 8px 8px;
+  margin: -8px 0px -8px 4px;
   color: #68A;
   text-decoration: underline;
+  cursor: pointer;
 }
 .select-button:hover
 {
-  background: #E0E0E0;
+  color: #A00;
 }
 .header:hover .select-button
 {
@@ -63,7 +63,7 @@
   border-bottom: 1px solid black;
   border-color: rgba(0, 0, 0, .2);
 }
-.header:hover .loc-link
+.loc-link:hover
 {
   color: #A00;
   border-color: #A00;

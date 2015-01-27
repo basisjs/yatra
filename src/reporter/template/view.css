@@ -60,12 +60,15 @@
 #header .header-button
 {
   height: 100%;
+  margin: 0;
+  padding: 0;
+  min-width: 14ex;
   font-size: 16px;
   border: none;
-  border-left: 1px solid rgba(255, 255, 255, .75);
+  border-left: 1px solid rgba(0, 0, 0, .5);
   background: black;
+  background: rgba(0,0,0,.75);
   color: white;
-  min-width: 12ex;
   cursor: pointer;
   outline: none;
 }

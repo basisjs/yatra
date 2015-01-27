@@ -3,9 +3,9 @@
     "button": {
       "caption": {
         "running": "Running...",
-        "fault": "Start!",
-        "ok": "Start!",
-        "stopped": "Start!"
+        "fault": "Run!",
+        "ok": "Run!",
+        "stopped": "Run!"
       }
     }
   }

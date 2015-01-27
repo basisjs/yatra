@@ -71,34 +71,44 @@
 
 .Basis-SyntaxHighlight .error-line
 {
-  background: #f7dede;
-  border: solid #f8a6a6;
-  border-width: 1px;
-  margin: -1px -4px 0 -4px;
-  padding: 0 7px 0 0px;
+  padding: 0;
 }
-.Basis-SyntaxHighlight .error-line + .error-line
+.Basis-SyntaxHighlight .error-line .lineContent
 {
-  margin-top: -1px;
-}
-.Basis-SyntaxHighlight .error-line:last-child
-{
-  margin-bottom: -7px;
+  border: 1px solid #E98;
+  border-top: 1px solid #D77;
+  border-bottom: 1px solid #D77;
+  border-left: 3px solid #D77;
+  background: #FEE;
+  margin: -1px -4px 0;
+  padding: 0px 6px 0px 7px;
 }
 .Basis-SyntaxHighlight .error-line-details
 {
-  /*display: none;*/
-  padding: 0 0px 2px 7px;
-  margin: 0 -4px;
+  padding: 0;
+  margin: -1px -4px 0 8px;
   white-space: normal;
   color: #999;
+  border: 1px solid #E98;
+  border-top: none;
+  font-size: 11px;
+}
+.Basis-SyntaxHighlight .error-line:last-child .error-line-details
+{
+  margin-bottom: 0;
 }
 .Basis-SyntaxHighlight .error-line-details-item
 {
-  background: rgba(255, 255, 255, .9);
-  padding: 0px 4px 2px;
-  margin: 1px 0;
+  background: white;
+  padding: 3px 4px 3px 8px;
+  margin: 0;
+  margin-top: 1px;
   overflow: hidden;
+}
+.Basis-SyntaxHighlight .error-line-details-item:first-child
+{
+  border-top: 1px solid #FEE;
+  margin-top: 0;
 }
 .Basis-SyntaxHighlight .error-line-details-item .num
 {
@@ -130,13 +140,14 @@
 {
   display: block;
   overflow: hidden;
-  padding: 0px 2px 0px 1em;
+  padding: 0 2px 0px 1em;
   white-space: pre-wrap;
   color: black;
 }
 .Basis-SyntaxHighlight .error-line-details-item .expected
 {
   color: #090;
+  padding-bottom: 1px;
 }
 .Basis-SyntaxHighlight .error-line-details-item .actual
 {
@@ -146,14 +157,14 @@
 {
   background: #CA7070;
   color: white;
-  padding: 0 1px;
+  padding: 2px 1px;
   margin: 0 1px;
 }
 .Basis-SyntaxHighlight .error-line-details-item .diff-removed
 {
   background: #68A068;
   color: white;
-  padding: 0 1px;
+  padding: 2px 1px;
   margin: 0 1px;
 }
 

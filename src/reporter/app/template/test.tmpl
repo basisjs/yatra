@@ -6,13 +6,13 @@
 <b:define name="pending" type="bool"/>
 
 <div class="tree:test {hasOwnEnvironment}">
-  <div{header} class="header" event-click="openLoc">
+  <div{header} class="header">
     <span class="select-button" event-click="select">
       pick up
     </span>
     <span>
       <span b:hide="{loc}">{name}</span>
-      <span b:show="{loc}" class="loc-link" title="Location: {loc}">{name}</span>
+      <span b:show="{loc}" class="loc-link" event-click="openLoc" title="Location: {loc}">{name}</span>
     </span>
     <span class="splitter splitter_{state}">
       &#32;&mdash;&#32;
