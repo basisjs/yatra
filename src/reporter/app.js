@@ -98,8 +98,16 @@ var view = new Node({
   }
 });
 
+var notifyLoader;
 module.exports = {
-  loadTests: function(data, autorun){
+  notifySupported: new basis.Token(false),
+  notifyLoader: function(topic, data){
+    if (notifyLoader)
+      notifyLoader.call(null, topic, data);
+    else
+      basis.dev.warn('Notify callback for loader is not defined');
+  },
+  loadTests: function(data, autorun, notifyLoaderFunction){
     if (Array.isArray(data))
       data = { test: data };
 
@@ -112,6 +120,9 @@ module.exports = {
 
     toc.setDelegate(testByFilename || rootTestSuite);
     rootTestSuite.setDelegate(rootTest);
+
+    if (typeof notifyLoaderFunction == 'function')
+      notifyLoader = notifyLoaderFunction;
 
     if (autorun)
       setTimeout(function(){

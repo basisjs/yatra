@@ -69,8 +69,8 @@
             /** @cut */ var benchmark = basis.require('basis.utils.benchmark');
             /** @cut */ var t = benchmark.time();
 
-            this.contentWindow.loadTests(function(data){
-              app.loadTests(data, params.autorun);
+            this.contentWindow.loadTests(function(data, feedback){
+              app.loadTests(data, params.autorun, feedback);
             });
 
             /** @cut */ basis.dev.info('Timing:\n' +

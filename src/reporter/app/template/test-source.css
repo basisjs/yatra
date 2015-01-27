@@ -14,9 +14,8 @@
 }
 .Basis-SyntaxHighlight .content
 {
-  padding: 0 0 1px;
+  padding: 5px 3px;
   border: 1px solid #E0E0E0;
-  box-shadow: 0 0 3px rgba(0, 0, 0, .1) inset;
 }
 .Basis-SyntaxHighlight .part ~ .part
 {
@@ -75,7 +74,7 @@
   background: #f7dede;
   border: solid #f8a6a6;
   border-width: 1px;
-  margin: -1px -1px 0 -1px;
+  margin: -1px -4px 0 -4px;
   padding: 0 7px 0 0px;
 }
 .Basis-SyntaxHighlight .error-line + .error-line
@@ -84,7 +83,7 @@
 }
 .Basis-SyntaxHighlight .error-line:last-child
 {
-  margin-bottom: -2px;
+  margin-bottom: -7px;
 }
 .Basis-SyntaxHighlight .error-line-details
 {
@@ -145,14 +144,14 @@
 }
 .Basis-SyntaxHighlight .error-line-details-item .diff-added
 {
-  background: #B44;
+  background: #CA7070;
   color: white;
   padding: 0 1px;
   margin: 0 1px;
 }
 .Basis-SyntaxHighlight .error-line-details-item .diff-removed
 {
-  background: #5A5;
+  background: #68A068;
   color: white;
   padding: 0 1px;
   margin: 0 1px;
@@ -171,6 +170,11 @@
   color: #CCC;
 }
 
+.part-before,
+.part-after
+{
+  background: #E8E8E8;
+}
 .part-header
 {
   background: white;
@@ -179,6 +183,7 @@
   color: #888;
   border-left: 1px solid #E0E0E0;
   border-right: 1px solid #E0E0E0;
+  cursor: pointer;
 }
 .part-header__after
 {
@@ -196,9 +201,14 @@
 }
 .part-header .caption
 {
-  cursor: pointer;
+  /*border-bottom: 1px solid #888;
+  border-color: rgba(128, 128, 128, .2);*/
+  background: linear-gradient(to bottom, rgba(128, 128, 128, .2) 1px, transparent 1px) repeat-x 0 1.1em;
 }
-.part-header .caption:hover
+.part-header:hover .caption
 {
-  text-decoration: underline; 
+  color: #A00;
+  /*border-color: #A00;
+  border-color: rgba(160, 0, 0, .2);*/
+  background-image: linear-gradient(to bottom, rgba(160, 0, 0, .2) 1px, transparent 1px);
 }

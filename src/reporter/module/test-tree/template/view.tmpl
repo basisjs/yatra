@@ -18,6 +18,9 @@
     <span class="state_state-{state} state_{pending}">
       {stateMessage}
     </span>
+    <div b:show="{loc}" class="location">
+      <span class="loc-link" event-click="openLoc" title="Open location">{loc}</span>
+    </div>
   </div>
   <div{childNodesElement} class="tree:tree"/>
   <!--{sourceCode}-->

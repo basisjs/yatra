@@ -56,3 +56,16 @@
 {
   border: 1px solid green;
 }
+
+.loc-link
+{
+  cursor: pointer;
+  border-bottom: 1px solid black;
+  border-color: rgba(0, 0, 0, .2);
+}
+.header:hover .loc-link
+{
+  color: #A00;
+  border-color: #A00;
+  border-color: rgba(160, 0, 0, .2);
+}

@@ -65,3 +65,21 @@
 {
   color: #DA0;
 }
+
+.location
+{
+  text-align: right;
+}
+.loc-link
+{
+  color: #888;
+  border-bottom: 1px solid #888;
+  border-color: rgba(128, 128, 128, .2);
+  cursor: pointer;
+}
+.loc-link:hover
+{
+  color: #A00;
+  border-color: #A00;
+  border-color: rgba(160, 0, 0, .2);
+}

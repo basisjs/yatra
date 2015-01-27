@@ -29,11 +29,21 @@ var CodeView = Node.subclass({
   template: resource('./template/test-source.tmpl'),
   binding: {
     beforeCode: 'beforeElement',
-    beforeCount: 'data:beforeCount',
+    beforeCount: {
+      events: 'rootChanged update',
+      getter: function(node){
+        return node.getBeforeAfterInfo().beforeCount;
+      }
+    },
     beforeCollapsed: 'beforeCollapsed',
     sourceCode: 'mainElement',
     afterCode: 'afterElement',
-    afterCount: 'data:afterCount',
+    afterCount: {
+      events: 'rootChanged update',
+      getter: function(node){
+        return node.getBeforeAfterInfo().afterCount;
+      }
+    },    
     afterCollapsed: 'afterCollapsed',
     hasParent: {
       events: 'ownerChanged',
@@ -75,8 +85,21 @@ var CodeView = Node.subclass({
     Node.prototype.emit_update.call(this, delta);
     this.syncCode();
   },
+  getSourceCode: function(){
+    return this.root instanceof TestCase == false
+      ? this.data.testSource
+      : this.root.getSourceCode();
+  },
+  getBeforeAfterInfo: function(){
+    return this.root instanceof TestCase == false
+      ? this.data
+      : this.root.getBeforeAfterInfo();
+  },
   syncCode: function(){
-    this.mainElement.innerHTML = highlight(this.data.testSource, {
+    var sourceCode = this.getSourceCode();
+    var beforeAfterInfo = this.getBeforeAfterInfo();
+
+    this.mainElement.innerHTML = highlight(sourceCode, {
       keepFormating: true,
       noLineNumber: true
     });
@@ -87,9 +110,9 @@ var CodeView = Node.subclass({
     {
       var startLine = this.data.lastLine;
 
-      if (this.data.beforeLines && startLine < this.data.beforeLines)
+      if (beforeAfterInfo.beforeLines && startLine < beforeAfterInfo.beforeLines)
         this.beforeCollapsed.set(false);
-      if (this.data.afterLines && startLine >= (lines.length - this.data.afterLines))
+      if (beforeAfterInfo.afterLines && startLine >= (lines.length - beforeAfterInfo.afterLines))
         this.afterCollapsed.set(false);
 
       lines[startLine++].className += ' exception-line';
@@ -147,18 +170,18 @@ var CodeView = Node.subclass({
       }
     }
 
-    if (this.data.afterLines)
+    if (beforeAfterInfo.afterLines)
     {
       this.afterElement.innerHTML = '';
-      lines.slice(lines.length - this.data.afterLines).forEach(function(line){
+      lines.slice(lines.length - beforeAfterInfo.afterLines).forEach(function(line){
         this.afterElement.appendChild(line);
       }, this);
     }
 
-    if (this.data.beforeLines)
+    if (beforeAfterInfo.beforeLines)
     {
       this.beforeElement.innerHTML = '';
-      lines.slice(0, this.data.beforeLines).forEach(function(line){
+      lines.slice(0, beforeAfterInfo.beforeLines).forEach(function(line){
         this.beforeElement.appendChild(line);
       }, this);
     }
@@ -174,6 +197,9 @@ var TestNode = Node.subclass({
   template: resource('./template/test.tmpl'),
   binding: {
     name: 'data:',
+    loc: ['update', function(node){
+      return node.data.loc || '';
+    }],
     hasOwnEnvironment: ['rootChanged', function(node){
       return node.root.hasOwnEnvironment();
     }],
@@ -229,6 +255,12 @@ var TestNode = Node.subclass({
           return '';
       }
     }]
+  },
+  action: {
+    openLoc: function(){
+      if (this.data.loc)
+        require('app').notifyLoader('loc', this.data.loc);
+    }
   }
 });
 
