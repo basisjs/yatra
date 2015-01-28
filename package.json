@@ -1,0 +1,30 @@
+{
+  "name": "test-runner",
+  "title": "Test runner",
+  "description": "User friendly unit-test runner",
+  "version": "1.0.0-beta",
+  "main": "src/reporter.html",
+  "homepage": "https://github.com/basisjs/test-runner",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/basisjs/test-runner.git"
+  },
+  "keywords": [
+    "test",
+    "runner",
+    "javascript",
+    "testing",
+    "user-friendly"
+  ],
+  "bugs": {
+    "url": "https://github.com/basisjs/test-runner/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/basisjs/test-runner/blob/master/LICENSE"
+    }
+  ],
+  "dependencies": {},
+  "devDependencies": {}
+}
