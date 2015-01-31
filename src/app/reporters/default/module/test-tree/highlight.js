@@ -1,8 +1,4 @@
 
- /**
-  * @namespace basis.utils.highlight
-  */
-
   var lead = basis.number.lead;
   var repeat = basis.string.repeat;
 

@@ -7,6 +7,12 @@
         "ok": "Run!",
         "stopped": "Run!"
       }
+    },
+    "informer": {
+      "total": "Test total",
+      "doneTests": "Done tests",
+      "doneAsserts": "Done asserts",
+      "time": "Time"
     }
   }
 }

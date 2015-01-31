@@ -10,8 +10,8 @@ var Node = require('basis.ui').Node;
 
 var document = global.document;
 var checkDebugger = require('./check-debugger.js');
-var highlight = require('app.highlight');
-var TestCase = require('core.test').TestCase;
+var highlight = require('./highlight.js');
+var TestCase = require('runner.test').TestCase;
 var strDiff = require('diff');
 
 

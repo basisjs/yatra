@@ -9,8 +9,8 @@ var DomWrapperNode = require('basis.dom.wrapper').Node;
 var getTime = require('basis.utils.benchmark').time;
 
 var utils = require('./utils.js');
-var envFactory = require('core.env');
-var sourceUtils = require('core.source');
+var envFactory = require('./env.js');
+var sourceUtils = require('./source.js');
 
 var ERROR_TEST_FAULT = 'ERROR_TEST_FAULT';
 var ERROR_EMPTY = 'ERROR_EMPTY';

@@ -7,6 +7,9 @@ var versionRx = /("version"\s*:\s*")[^"]+"/i;
 var TMP_FOLDER = 'release.tmp';
 var RES_FOLDER = pathUtils.join(TMP_FOLDER, 'res');
 var DEBUG = false;
+var buildCmd = DEBUG
+    ? ['build', '-o', TMP_FOLDER]
+    : ['build', '-p', '-o', TMP_FOLDER];
 
 function replaceInFile(filename, rx, value){
   fs.writeFileSync(
@@ -75,38 +78,46 @@ run('git', ['clone', '--depth', '1', 'https://github.com/basisjs/test-runner-bui
   console.log('# Delete res folder');
   rm(RES_FOLDER);
 
-  console.log('# Build application');
-  run('basis', DEBUG
-    ? ['build', '-o', TMP_FOLDER]
-    : ['build', '-p', '-o', TMP_FOLDER],
-    function(){
-    console.log('# Set version in package.json & bower.json');
-    replaceInFile(TMP_FOLDER + '/package.json', versionRx, '$1' + version + '"');
-    replaceInFile(TMP_FOLDER + '/bower.json', versionRx, '$1' + version + '"');
+  console.log('# Build runner.js');
+  run('basis', buildCmd.concat('-f', 'src/runner.html', '--same-filenames'), function(){
+    rm(TMP_FOLDER + '/runner.html');
 
-    process.chdir(TMP_FOLDER);
-    console.log('# Commit changes');
-    run('git', ['add', '.'], function(){
-      run('git', ['commit', '-am', 'v' + version], function(){
+    console.log('# Build lib.js');
+    run('basis', buildCmd.concat('-f', 'src/lib.html', '--same-filenames'), function(){
+      rm(TMP_FOLDER + '/lib.html');
 
-        console.log('# Add tag v' + version);
-        run('git', ['tag', '-a', 'v' + version, '-m', 'version ' + version], function(){
-          if (DEBUG)
-          {
-            console.log('The last thing left is `git push`. Skip it as debug.');
-            return;
-          }
+      console.log('# Build app');
+      run('basis', buildCmd.concat('--same-filenames'),
+        function(){
+        console.log('# Set version in package.json & bower.json');
+        replaceInFile(TMP_FOLDER + '/package.json', versionRx, '$1' + version + '"');
+        replaceInFile(TMP_FOLDER + '/bower.json', versionRx, '$1' + version + '"');
 
-          // publish
-          console.log('# Push changes to repo');
-          run('git', ['push'], function(){
-            console.log('# Push tags to repo');
-            run('git', ['push', '--tags'], function(){
-              console.log('# Clean up');
-              process.chdir('..');
-              rm(TMP_FOLDER);
+        process.chdir(TMP_FOLDER);
+        console.log('# Commit changes');
+        run('git', ['add', '.'], function(){
+          run('git', ['commit', '-am', 'v' + version], function(){
 
-              console.log('\nDONE!');
+            console.log('# Add tag v' + version);
+            run('git', ['tag', '-a', 'v' + version, '-m', 'version ' + version], function(){
+              if (DEBUG)
+              {
+                console.log('The last thing left is `git push`. Skip it as debug.');
+                return;
+              }
+
+              // publish
+              console.log('# Push changes to repo');
+              run('git', ['push'], function(){
+                console.log('# Push tags to repo');
+                run('git', ['push', '--tags'], function(){
+                  console.log('# Clean up');
+                  process.chdir('..');
+                  rm(TMP_FOLDER);
+
+                  console.log('\nDONE!');
+                });
+              });
             });
           });
         });

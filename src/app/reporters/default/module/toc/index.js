@@ -2,8 +2,8 @@ var STATE = require('basis.data').STATE;
 var Value = require('basis.data').Value;
 var DataObject = require('basis.data').Object;
 var Node = require('basis.ui').Node;
-var runner = require('core.runner');
-var TestSuite = require('core.test').TestSuite;
+var runner = require('runner');
+var TestSuite = require('runner.test').TestSuite;
 
 var Item = Node.subclass({
   template: resource('./template/toc-item.tmpl'),

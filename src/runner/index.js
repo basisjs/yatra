@@ -8,7 +8,7 @@ var Slice = require('basis.data.dataset').Slice;
 var count = require('basis.data.index').count;
 var sum = require('basis.data.index').sum;
 var getTime = require('basis.utils.benchmark').time;
-var TestCase = require('core.test').TestCase;
+var TestCase = require('./test.js').TestCase;
 
 var runnerState = new basis.Token('stopped');
 var notifier = new basis.Token();
@@ -159,7 +159,7 @@ function loadTests(data){
   stop();
 
   // load tests
-  testsToRun.set(extractTests(data));
+  testsToRun.set(extractTests(basis.array(data)));
 }
 
 function run(){
@@ -204,6 +204,17 @@ function stop(){
   processingQueue.setSource();
 }
 
+
+//
+// reg runner settings
+//
+basis.config.runner = {
+  baseURI: ''
+};
+
+//
+// exports
+//
 module.exports = {
   state: runnerState,
   time: elapsedTime,
@@ -234,3 +245,4 @@ module.exports = {
     });
   }
 };
+

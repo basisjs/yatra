@@ -34,59 +34,23 @@
     /**@cut*/ var startTime = new Date;
   </script>
   <script src="../bower_components/basisjs/src/basis.js" data-basis-config="
-    autoload: 'reporter/app',
     modules: {
-      core: './',
       esprima: '../bower_components/esprima/',
-      diff: '../bower_components/jsdiff/'
+      diff: '../bower_components/jsdiff/',
+      runner: {
+        path: './runner',
+        filename: './index.js'
+      },
+      app: {
+        autoload: true,
+        path: './app',
+        filename: './index.js'
+      }
     },
-    exports: true
+    noConflict: true
   "></script>
 </head>
 
 <body>
-  <script>
-    (function(){
-      var app = basis.require('./reporter/app.js');
-      var params = location.search.replace(/^\?/, '').split('&').reduce(function(res, pair){
-        var parts = pair.split('=');
-        res[parts.shift()] = parts.join('=');
-        return res;
-      }, {});
-
-      if (!params.page)
-      {
-        document.write('Test suite is not specified. Add to page url `?page=path/to/test-suite.html`');
-      }
-      else
-      {
-        var iframe = document.createElement('iframe');
-        iframe.src = params.page;
-        iframe.className = 'hide-frame';
-        iframe.onload = function(){
-          if (typeof this.contentWindow.loadTests == 'function')
-          {
-            /** @cut */ var benchmark = basis.require('basis.utils.benchmark');
-            /** @cut */ var t = benchmark.time();
-
-            this.contentWindow.loadTests(function(data, feedback){
-              app.loadTests(data, params.autorun, feedback);
-            });
-
-            /** @cut */ basis.dev.info('Timing:\n' +
-            /** @cut */   'app ready: ' + (new Date - startTime) + '\n' +
-            /** @cut */   'test load: ' + benchmark.time(t)
-            /** @cut */ );
-          }
-        };
-        basis.doc.body.add(iframe);
-
-        app.setup({
-          element: document.body,
-          baseURI: basis.path.baseURI
-        });
-      }
-    })();
-  </script>
 </body>
 </html>

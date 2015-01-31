@@ -2,8 +2,8 @@
 <b:isolate/>
 <b:define name="runnerState" type="enum" values="running fault ok"/>
 
-<div id="layout">
-  <div id="header" class="header_{runnerState}">
+<div class="layout">
+  <div class="header" class="header_{runnerState}">
     <div class="header__buttons">
       <button class="header-button" event-click="run">
         {l10n:button.caption.{runnerState}}
@@ -15,27 +15,27 @@
     </span>    
     <div b:show="{name}" class="header__stat">
       <span class="stat">
-        <span class="stat__label">Test total</span>
+        <span class="stat__label">{l10n:informer.total}</span>
         <span class="stat__value">{total}</span>
       </span>
       <span class="stat">
-        <span class="stat__label">Done tests</span>
+        <span class="stat__label">{l10n:informer.doneTests}</span>
         <span class="stat__value">{done}</span>
       </span>
       <span class="stat">
-        <span class="stat__label">Done asserts</span>
+        <span class="stat__label">{l10n:informer.doneAsserts}</span>
         <span class="stat__value">{assert}</span>
       </span>
       <span class="stat">
-        <span class="stat__label">Time</span>
+        <span class="stat__label">{l10n:informer.time}</span>
         <span class="stat__value">{time} <span class="stat__unit">s</span></span>
       </span>
     </div>
   </div>
-  <div id="sidebar">
+  <div class="sidebar">
     <!--{toc}-->
   </div>
-  <div id="content">
+  <div class="content">
     <!--{tests}-->
   </div>
 </div>

@@ -9,11 +9,13 @@ var view = new Node({
   }
 });
 
-basis.doc.body.ready(function(body){
-  body.appendChild(view.element);
+var addToBody = basis.fn.runOnce(function(){
+  basis.doc.body.add(view.element);
 });
 
 module.exports = function(){
+  addToBody();
+
   if (timer)
     timer = clearTimeout(timer);
 

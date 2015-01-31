@@ -1,7 +1,7 @@
 var STATE = require('basis.data').STATE;
 var DataObject = require('basis.data').Object;
-var coreTest = require('core.test');
-var appTest = require('app.test');
+var coreTest = require('runner.test');
+var appTest = require('./test.js');
 
 var view = new appTest.TestSuiteNode({
   template: resource('./template/view.tmpl'),
