@@ -14,10 +14,10 @@ function importScripts(){
   }
 
   for (var i = 0; i < arguments.length; i++)
-    importScript(arguments[i])
+    importScript(arguments[i]);
 }
 
-function __initTestEnvironment(initCode, deprecateTestEnvironment){
+function __initTestEnvironment(deprecateTestEnvironment){
   // basis.js default behaviour
   if (typeof basisjsToolsFileSync != 'undefined')
     basisjsToolsFileSync.notifications.attach(function(type, filename){
@@ -36,7 +36,11 @@ function __initTestEnvironment(initCode, deprecateTestEnvironment){
     deprecateTestEnvironment = function(){};
 
   // main part
-  return eval(initCode + ';(function(__code){\n' +
-  '  return eval("(" + __code + ")");' +
-  '})');
+  return function createScope(initCode){
+    return new Function('initCode',
+      'return eval(initCode + \';(function(__code){\\n\' +' +
+      '\'  return eval("(" + __code + ")");\' +' +
+      '\'})\')'
+    )(initCode);
+  };
 }

@@ -194,7 +194,7 @@ function run(){
   // reset test state
   testsToRun.forEach(function(item){
     // destroy environment
-    var env = item.getEnvRunner();
+    var env = item.getEnv();
     if (env)
       env.destroy();
   });

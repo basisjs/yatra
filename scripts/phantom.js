@@ -39,8 +39,8 @@ page.onCallback = function(data){
         if (countFault)
         {
           console.log(countFault + ' of ' + countTotal + ' failed :\'(');
-          console.log('(see phantom-error-report.png for details)');
-          page.render('phantom-error-report.png');
+          //console.log('(see phantom-error-report.png for details)');
+          //page.render('phantom-error-report.png');
         }
         else
         {

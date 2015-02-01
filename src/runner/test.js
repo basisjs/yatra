@@ -89,7 +89,8 @@ var AbstractTest = DomWrapperNode.subclass({
   className: 'AbstractTest',
 
   name: '',
-  envRunner: null,
+  env: null,
+  scope: null,
 
   hasOwnEnvironment: function(){
     return Boolean(this.data.init || this.data.html || !this.parentNode);
@@ -102,44 +103,64 @@ var AbstractTest = DomWrapperNode.subclass({
 
     return cursor.data.html;
   },
-  getEnvRunner: function(autocreate){
-    if (this.envRunner)
-      return this.envRunner;
+  getEnv: function(autocreate){
+    if (this.env)
+      return this.env;
+  },
+  getScope: function(autocreate){
+    if (this.scope)
+      return this.scope;
 
-    var envRunner;
-
-    if (!this.data.init)
-      envRunner = this.parentNode && this.parentNode.getEnvRunner(autocreate);
-
-    if ((this.data.init || this.data.html || !envRunner) && autocreate)
+    if (!this.data.html && !this.data.init)
     {
-      envRunner = envFactory.create(this.data.init, this.getHtml());
-      envRunner.addHandler({
+      // try to get scope from ancestors
+      var cursor = this;
+      var scope;
+      while (cursor = cursor.parentNode)
+      {
+        var scope = cursor.getScope(autocreate);
+        if (scope)
+        {
+          this.scope = scope;
+          this.env = scope.env;
+          return scope;
+        }
+      }
+    }
+
+    if (autocreate)
+    {
+      this.env = envFactory.get(this.getHtml(), this.data.init && !this.data.sandbox);
+      this.scope = this.env.createScope(this.data.init);
+
+      this.env.addHandler({
         destroy: function(){
-          this.envRunner = null;
+          this.env = null;
+          this.scope = null;
           this.reset();
         }
       }, this);
-      this.envRunner = envRunner;
     }
 
-    return envRunner;
+    return this.scope;
   },
   reset: function(){
-    if (this.envRunner)
+    if (this.env)
     {
-      this.envRunner.destroy();
-      this.envRunner = null;
+      this.env.destroy();
+      this.env = null;
+      this.scope = null;
     }
   },
 
   destroy: function(){
     DomWrapperNode.prototype.destroy.call(this);
 
-    if (this.envRunner)
+    if (this.env)
     {
-      this.envRunner.destroy();
-      this.envRunner = null;
+      this.env.destroy();
+      this.env = null;
+      this.scope = null;
     }
   }
 });
@@ -447,7 +468,7 @@ var TestCase = AbstractTest.subclass({
       return testDone();
 
     // prepare env and run test
-    this.getEnvRunner(true).run(
+    this.getScope(true).run(
       this.getWrappedSourceCode(),
       this,
       function(testFn){

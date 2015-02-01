@@ -1,5 +1,5 @@
 var fnInfo = require('basis.utils.info').fn;
-var Node = require('basis.dom.wrapper').Node;
+var Emitter = require('basis.event').Emitter;
 
 function runInContext(contextWindow, code){
   (contextWindow.execScript || function(code){
@@ -17,46 +17,14 @@ iframeProto.setAttribute('style', [
   'opacity: 0.0001'
 ].join(';'));
 
-var FrameEnv = Node.subclass({
-  applyEnvironment: null,
-  initEnv: null,
-  html: null,
+var Scope = Emitter.subclass({
+  env: null,
+  initCode: '',
+  runInScope: null,
+  runArgs: null,
 
-  init: function(){
-    Node.prototype.init.call(this);
-
-    this.element = iframeProto.cloneNode(true);
-    this.element.src = this.getSrc();
-    this.element.onload = this.ready_.bind(this);
-    basis.doc.body.add(this.element);
-  },
-
-  getSrc: function(){
-    if (this.html && this.html != 'default')
-      return this.html;
-
-    // default env
-    var baseURI = basis.config.runnerBaseURI || '';
-    return basis.path.resolve(baseURI, asset('./iframe.html'));
-  },
-
-  ready_: function(){
-    var frameWindow = this.element.contentWindow;
-    var initCode = '';
-    var code = require('./iframe_inject.code');
-
-    if (typeof code == 'function')
-      code = fnInfo(code).body;
-
-    runInContext(frameWindow, code);
-
-    if (typeof this.initEnv == 'function')
-      initCode = fnInfo(this.initEnv).body;
-
-    this.applyEnvironment = frameWindow.__initTestEnvironment(initCode, function(){
-      // env deprecates
-      this.destroy();
-    }.bind(this));
+  attachJsScope: function(createScope){
+    this.runInScope = createScope(this.initCode);
 
     if (this.runArgs)
     {
@@ -66,21 +34,77 @@ var FrameEnv = Node.subclass({
   },
 
   run: function(code, context, runTest){
-    if (this.applyEnvironment)
-      runTest.call(context, this.applyEnvironment(code));
+    if (this.runInScope)
+      runTest.call(context, this.runInScope(code));
     else
       this.runArgs = arguments;
   },
 
   destroy: function(){
-    Node.prototype.destroy.call(this);
+    this.env = null;
+    this.runArgs = null;
+    this.runInScope = null;
+  }
+});
+
+var FrameEnv = Emitter.subclass({
+  html: null,
+
+  init: function(){
+    Emitter.prototype.init.call(this);
+
+    this.scopes = [];
+    this.element = iframeProto.cloneNode(true);
+    this.element.onload = this.ready_.bind(this);
+    this.element.src = this.html && this.html != 'default'
+      ? this.html
+      : basis.path.resolve(basis.config.runnerBaseURI || '', asset('./iframe.html'));
+
+    basis.doc.body.add(this.element);
+  },
+
+  ready_: function(){
+    var frameWindow = this.element.contentWindow;
+    var initCode = '';
+    var code = require('./iframe_inject.code');
+
+    runInContext(frameWindow, code);
+    this.createScope_ = frameWindow.__initTestEnvironment(function(){
+      // env deprecates
+      this.destroy();
+    }.bind(this));
+
+    this.scopes.forEach(function(scope){
+      scope.attachJsScope(this.createScope_);
+    }, this);
+  },
+
+  createScope: function(initCode){
+    var scope = new Scope({
+      env: this,
+      initCode: initCode ? fnInfo(initCode).body : ''
+    });
+
+    if (this.createScope_)
+      scope.attachJsScope(this.createScope_);
+
+    this.scopes.push(scope);
+
+    return scope;
+  },
+
+  destroy: function(){
+    Emitter.prototype.destroy.call(this);
 
     if (this.element.parentNode)
       this.element.parentNode.removeChild(this.element);
     this.element = null;
 
-    this.applyEnvironment = null;
-    this.runArgs = null;
+    this.createScope_ = null;
+    this.scopes.forEach(function(scope){
+      scope.destroy();
+    });
+    this.scopes = null;
   }
 });
 
