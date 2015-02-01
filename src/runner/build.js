@@ -1,7 +1,7 @@
 // This module uses for runner build.
 
 // Export runner to global scrope
-global.runner = require('runner');
+global.yatra = require('runner');
 
 // Try resolve base path to runner static files.
 runner.setup({

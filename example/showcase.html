@@ -21,28 +21,32 @@
     }
   </style>
 
-  <!--<link rel="stylesheet" href="../build/style.css">
-  <script src="../build/basis.js"></script>-->
   <script src="../bower_components/basisjs/src/basis.js" data-basis-config="
-    autoload: '../src/reporter/app',
+    noConflict: true,
+    exports: true,
     modules: {
-      core: '../src/',
       esprima: '../bower_components/esprima/',
-      diff: '../bower_components/jsdiff/'
-    },
-    exports: true
+      diff: '../bower_components/jsdiff/',
+      runner: {
+        path: '../src/runner',
+        filename: './index.js'
+      },
+      app: {
+        autoload: true,
+        path: '../src/app',
+        filename: './index.js'
+      }
+    }
   "></script>
 </head>
 
 <body>
-  <div id="test-runner" style="border: 1px solid black; margin: 10px;">
-  </div>
+  <div id="test-runner"></div>
   <script>
-    basisjsTestRunner.setup({
-      element: document.getElementById('test-runner'),
-      baseURI: '../build/'
+    yatra.setup({
+      element: document.getElementById('test-runner')
     });
-    basisjsTestRunner.loadTests({
+    yatra.loadTests({
       name: 'Showcase',
       test: [
         {
@@ -87,8 +91,8 @@
                   }
                 );
 
-                var foo = function(){ return assert(1, 1) };
-                assert(function(){ return assert(1, 1) }, foo);
+                var foo = function(){ return assert(1, 1); };
+                assert(function(){ return assert(1, 1); }, foo);
 
                 // function bar(){ return assert(1, 1); };
                 // assert(function bar(){ return assert(1, 1); }, bar);
@@ -97,7 +101,7 @@
             {
               name: 'Failures',
               test: function(){
-                assert(true, false)
+                assert(true, false);
                 assert({ a: 1, b: 2 }, { a: 1, c: 2 });
                 assert([{ a: 1 }], [{ a: 1 }]);
                 assert([1, 2], [2, 3]);
@@ -323,7 +327,7 @@
         }
       ]
     });
-    basisjsTestRunner.run();
+    yatra.run();
   </script>
 </body>
 </html>
