@@ -118,7 +118,7 @@ var api = {
 if (basis.config.exports)
 {
   // Library mode: export api to global scope
-  global.basisjsTestRunner = api;
+  global.yatra = api;
 
   // Try resolve base path to runner static files.
   runner.setup({

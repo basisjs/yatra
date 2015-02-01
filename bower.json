@@ -1,5 +1,5 @@
 {
-  "name": "test-runner",
+  "name": "yatra",
   "version": "1.0.0-beta",
   "description": "User friendly unit-test runner",
   "main": "src/reporter.html",
