@@ -17,7 +17,7 @@ var wrappedSourceMap = {};
 /** @cut */ var receiveCount = 0;
 
 function createWorkers(){
-  var baseURI = (basis.config.runner || {}).baseURI || '';
+  var baseURI = basis.config.runnerBaseURI || '';
   var workerScriptUrl = basis.path.resolve(baseURI, asset('./source/worker.js'));
   for (var i = 0; i < WORKER_COUNT; i++)
   {

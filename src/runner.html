@@ -1,11 +1,14 @@
 <script src="../bower_components/basisjs/src/basis.js" data-basis-config="
+  noConflict: true,
   modules: {
     esprima: '../bower_components/esprima/',
-    diff: '../bower_components/jsdiff/',
     runner: {
-      autoload: true,
       path: 'runner',
       filename: './index.js'
+    },
+    build: {
+      autoload: true,
+      filename: './runner/build.js'
     }
   }
 "></script>

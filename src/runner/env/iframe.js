@@ -36,7 +36,7 @@ var FrameEnv = Node.subclass({
       return this.html;
 
     // default env
-    var baseURI = (basis.config.runner || {}).baseURI || '';
+    var baseURI = basis.config.runnerBaseURI || '';
     return basis.path.resolve(baseURI, asset('./iframe.html'));
   },
 

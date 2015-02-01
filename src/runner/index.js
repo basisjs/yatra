@@ -164,6 +164,13 @@ function loadTests(data){
   // stop current run
   stop();
 
+  // if data is string use basis.require to fetch data
+  if (typeof data == 'string')
+    // use IIFE to avoid build warning
+    data = (function(require, url){
+      return require(url);
+    })(basis.require, data);
+
   // load tests
   testsToRun.set(extractTests(basis.array(data)));
 }
@@ -214,9 +221,7 @@ function stop(){
 //
 // reg runner settings
 //
-basis.config.runner = {
-  baseURI: ''
-};
+basis.config.runnerBaseURI = '';
 
 //
 // exports
@@ -249,6 +254,14 @@ module.exports = {
       if (event.action == eventName)
         fn.call(context, basis.object.slice(event));
     });
+  },
+
+  setup: function(config){
+    if (!config)
+      return;
+
+    if ('baseURI' in config)
+      basis.config.runnerBaseURI = config.baseURI;
   }
 };
 

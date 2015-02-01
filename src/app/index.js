@@ -100,7 +100,9 @@ var api = {
           break;
 
         case 'baseURI':
-          basis.config.runner.baseURI = value;
+          runner.setup({
+            baseURI: value
+          });
           break;
 
         case 'absURI':
@@ -115,12 +117,17 @@ var api = {
 
 if (basis.config.exports)
 {
-  // lib mode
+  // Library mode: export api to global scope
   global.basisjsTestRunner = api;
+
+  // Try resolve base path to runner static files.
+  runner.setup({
+    baseURI: basis.path.dirname(basis.array(document.scripts).pop().src || '')
+  });
 }
 else
 {
-  // app mode
+  // App mode
   var params = location.search.replace(/^\?/, '').split('&').reduce(function(res, pair){
     var parts = pair.split('=');
     res[parts.shift()] = parts.join('=');
