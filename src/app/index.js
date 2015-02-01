@@ -127,6 +127,8 @@ if (basis.config.exports)
 }
 else
 {
+  module.exports = api;
+
   // App mode
   var params = location.search.replace(/^\?/, '').split('&').reduce(function(res, pair){
     var parts = pair.split('=');

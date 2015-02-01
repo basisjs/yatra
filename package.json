@@ -26,5 +26,7 @@
     }
   ],
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "basisjs-tools": "basisjs/basisjs-tools"
+  }
 }
