@@ -74,7 +74,7 @@ rm(TMP_FOLDER);
 
 // main task
 console.log('# Clone release repo to temp folder');
-run('git', ['clone', '--depth', '1', 'https://github.com/basisjs/test-runner-build.git', TMP_FOLDER], function(){
+run('git', ['clone', '--depth', '1', 'https://github.com/basisjs/yatra-build.git', TMP_FOLDER], function(){
   console.log('# Delete res folder');
   rm(RES_FOLDER);
 
