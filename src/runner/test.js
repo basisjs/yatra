@@ -26,6 +26,7 @@ function createTestFactory(data){
 
   // get test itself
   var test = data.test || data.testcase;
+  var host = this && this instanceof TestSuite ? this : {};
 
   // make a copy of data for safe changes
   data = basis.object.slice(data);
@@ -52,11 +53,11 @@ function createTestFactory(data){
     data: data
   };
 
-  config.beforeEach = basis.array(this.beforeEach);
+  config.beforeEach = basis.array(host.beforeEach);
   if (typeof data.beforeEach == 'function')
     config.beforeEach.push(sourceUtils.regFunction(data.beforeEach));
 
-  config.afterEach = basis.array(this.afterEach);
+  config.afterEach = basis.array(host.afterEach);
   if (typeof data.afterEach == 'function')
     config.afterEach.unshift(sourceUtils.regFunction(data.afterEach));
 

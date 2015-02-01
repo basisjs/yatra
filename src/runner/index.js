@@ -9,6 +9,8 @@ var count = require('basis.data.index').count;
 var sum = require('basis.data.index').sum;
 var getTime = require('basis.utils.benchmark').time;
 var TestCase = require('./test.js').TestCase;
+var TestSuite = require('./test.js').TestSuite;
+var createTest = require('./test.js').create;
 
 var runnerState = new basis.Token('stopped');
 var notifier = new basis.Token();
@@ -142,12 +144,16 @@ function extractTests(data){
 
   for (var i = 0, item; item = data[i]; i++)
   {
+    if (item instanceof TestCase === false &&
+        item instanceof TestSuite === false)
+      item = createTest(item);
+
     var test = item.root;
 
     if (test instanceof TestCase)
       result.push(test);
 
-    if (test.firstChild)
+    if (test instanceof TestSuite)
       result.push.apply(result, extractTests(test.childNodes));
   }
 

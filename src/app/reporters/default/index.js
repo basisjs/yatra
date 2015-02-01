@@ -62,7 +62,9 @@ toc.addHandler({
     );
   },
   childNodesModified: function(){
-    runner.loadTests(basis.array(this.childNodes));
+    runner.loadTests(this.childNodes.map(function(node){
+      return node.root;
+    }));
   }
 });
 
