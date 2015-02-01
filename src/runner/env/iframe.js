@@ -1,4 +1,4 @@
-var fnInfo = require('basis.utils.info').fn;
+var fnInfo = require('runner.source.info');
 var Emitter = require('basis.event').Emitter;
 
 function runInContext(contextWindow, code){
@@ -82,7 +82,7 @@ var FrameEnv = Emitter.subclass({
   createScope: function(initCode){
     var scope = new Scope({
       env: this,
-      initCode: initCode ? fnInfo(initCode).body : ''
+      initCode: initCode ? fnInfo(String(initCode)).body : ''
     });
 
     if (this.createScope_)
