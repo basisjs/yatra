@@ -1,14 +1,26 @@
-<script src="../bower_components/basisjs/src/basis.js" data-basis-config="
-  noConflict: true,
-  modules: {
-    esprima: '../bower_components/esprima/',
-    runner: {
-      path: 'runner',
-      filename: './index.js'
-    },
-    build: {
-      autoload: true,
-      filename: './runner/build.js'
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Yatra – Runner</title>
+</head>
+
+<body>
+  <script src="../bower_components/basisjs/src/basis.js" data-basis-config="
+    noConflict: true,
+    modules: {
+      esprima: '../bower_components/esprima/',
+      runner: {
+        path: 'runner',
+        filename: './index.js'
+      },
+      build: {
+        autoload: true,
+        filename: './runner/build.js'
+      }
     }
-  }
-"></script>
+  "></script>
+</body>
+
+</html>

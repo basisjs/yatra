@@ -142,26 +142,36 @@ else
   }
   else
   {
-    var iframe = document.createElement('iframe');
-    iframe.src = params.page;
-    iframe.className = 'hide-frame';
-    iframe.onload = function(){
-      if (typeof this.contentWindow.loadTests == 'function')
-      {
-        /** @cut */ var benchmark = require('basis.utils.benchmark');
-        /** @cut */ var testLoadTime = benchmark.time();
+    var testLoader = new Node({
+      template: resource('./template/test-loader.tmpl'),
+      binding: {
+        src: function(){
+          return params.page;
+        }
+      },
+      action: {
+        ready: function(e){
+          var contentWindow = e.sender.contentWindow;
 
-        this.contentWindow.loadTests(function(data, feedback){
-          loadTests(data, params.autorun, feedback);
-        });
+          if (typeof contentWindow.loadTests == 'function')
+          {
+            /** @cut */ var benchmark = require('basis.utils.benchmark');
+            /** @cut */ var testLoadTime = benchmark.time();
 
-        /** @cut */ basis.dev.info('Timing:\n' +
-        /** @cut */   'app ready: ' + (new Date - startTime) + '\n' +
-        /** @cut */   'test load: ' + benchmark.time(testLoadTime)
-        /** @cut */ );
+            contentWindow.loadTests(function(data, feedback){
+              loadTests(data, params.autorun, feedback);
+            });
+
+            /** @cut */ basis.dev.info('Timing:\n' +
+            /** @cut */ '  App ready: ' + (new Date - startTime) + 'ms\n' +
+            /** @cut */ '  Test load: ' + benchmark.time(testLoadTime) + 'ms' //+ '\n' + (Date.now() - performance.timing.domLoading)
+            /** @cut */ );
+          }
+        }
       }
-    };
-    basis.doc.body.add(iframe);
+    });
+
+    basis.doc.body.add(testLoader.element);
   }
   basis.doc.body.add(reporter.element);
 }

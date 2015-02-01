@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html>
 
 <head>
@@ -19,21 +18,16 @@
     {
       overflow-y: scroll;
     }
-
-    .hide-frame
-    {
-      position: absolute;
-      top: -100px;
-      left: -100px;
-      height: 10px;
-      width: 10px;
-    }
   </style>
 
   <script>
     /**@cut*/ var startTime = new Date;
   </script>
+</head>
+
+<body>
   <script src="../bower_components/basisjs/src/basis.js" data-basis-config="
+    noConflict: true,
     modules: {
       esprima: '../bower_components/esprima/',
       diff: '../bower_components/jsdiff/',
@@ -46,11 +40,7 @@
         path: './app',
         filename: './index.js'
       }
-    },
-    noConflict: true
+    }
   "></script>
-</head>
-
-<body>
 </body>
 </html>

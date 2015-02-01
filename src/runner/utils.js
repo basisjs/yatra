@@ -51,7 +51,7 @@ function value2string(value, linear, deep){
         }).join(', ') + ']';
 
       // NOTE: constructor check and instanceof doesn't work here,
-      // because value is from sanbox
+      // because value comes from sandbox
       if (OBJECT_TOSTRING.call(value) === '[object Date]' ||
           OBJECT_TOSTRING.call(value) === '[object RegExp]')
         return String(value);

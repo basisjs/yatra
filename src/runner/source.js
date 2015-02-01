@@ -26,7 +26,7 @@ function createWorkers(){
     worker.onmessage = function(event){
       event.data.forEach(function(data){
         /** @cut */ if (++receiveCount === sentCount)
-        /** @cut */   console.log('workers time:', new Date - workerTime);
+        /** @cut */   basis.dev.info('Workers done in ' + (Date.now() - workerTime) + 'ms');
 
         wrappedSourceMap[data.body] = data.wrapped;
         sourceMap[data.source].info_ = {

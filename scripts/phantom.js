@@ -1,4 +1,4 @@
-var pageUrl = 'http://localhost:8123/test/runner_dev/src/reporter.html?page=/test/index.html';
+var pageUrl = 'http://localhost:8123/test/runner_dev/src/runner.html';
 var initTime = Date.now();
 var page = require('webpage').create();
 var secondNum = 1;
@@ -92,15 +92,15 @@ page.open(
     console.log('Page loaded in ' + (Date.now() - initTime) + 'ms\n');
     page.evaluate(function(){
       (function(){
-        var runner = basis.require('core.runner');
         if (typeof window.callPhantom === 'function')
         {
-          runner.subscribe(function(event){
-            window.callPhantom(event)
+          yatra.subscribe(function(event){
+            window.callPhantom(event);
           });
         }
+        yatra.loadTests('/test/index.js');
         setTimeout(function(){
-          runner.run()
+          yatra.run();
         }, 10);
       })();
     });
