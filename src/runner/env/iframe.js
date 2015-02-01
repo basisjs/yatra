@@ -1,5 +1,5 @@
 var fnInfo = require('basis.utils.info').fn;
-var Node = require('basis.ui').Node;
+var Node = require('basis.dom.wrapper').Node;
 
 function runInContext(contextWindow, code){
   (contextWindow.execScript || function(code){
@@ -7,52 +7,61 @@ function runInContext(contextWindow, code){
   })(code);
 }
 
+var iframeProto = document.createElement('iframe');
+iframeProto.setAttribute('style', [
+  'width: 10px',
+  'height: 10px',
+  'top: -100px',
+  'position: absolute',
+  'border: none',
+  'opacity: 0.0001'
+].join(';'));
+
 var FrameEnv = Node.subclass({
   applyEnvironment: null,
   initEnv: null,
   html: null,
 
-  postInit: function(){
-    Node.prototype.postInit.call(this);
+  init: function(){
+    Node.prototype.init.call(this);
+
+    this.element = iframeProto.cloneNode(true);
+    this.element.src = this.getSrc();
+    this.element.onload = this.ready_.bind(this);
     basis.doc.body.add(this.element);
-    //console.log('env created');
   },
 
-  template: resource('./iframe.tmpl'),
-  binding: {
-    src: function(node){
-      if (node.html && node.html != 'default')
-        return node.html;
+  getSrc: function(){
+    if (this.html && this.html != 'default')
+      return this.html;
 
-      // default env
-      var baseURI = (basis.config.runner || {}).baseURI || '';
-      return basis.path.resolve(baseURI, asset('./iframe.html'));
-    }
+    // default env
+    var baseURI = (basis.config.runner || {}).baseURI || '';
+    return basis.path.resolve(baseURI, asset('./iframe.html'));
   },
-  action: {
-    ready: function(){
-      var frameWindow = this.element.contentWindow;
-      var initCode = '';
-      var code = require('./iframe_inject.code');
 
-      if (typeof code == 'function')
-        code = fnInfo(code).body;
+  ready_: function(){
+    var frameWindow = this.element.contentWindow;
+    var initCode = '';
+    var code = require('./iframe_inject.code');
 
-      runInContext(frameWindow, code);
+    if (typeof code == 'function')
+      code = fnInfo(code).body;
 
-      if (typeof this.initEnv == 'function')
-        initCode = fnInfo(this.initEnv).body;
+    runInContext(frameWindow, code);
 
-      this.applyEnvironment = frameWindow.__initTestEnvironment(initCode, function(){
-        // env deprecates
-        this.destroy();
-      }.bind(this));
+    if (typeof this.initEnv == 'function')
+      initCode = fnInfo(this.initEnv).body;
 
-      if (this.runArgs)
-      {
-        this.run.apply(this, this.runArgs);
-        this.runArgs = null;
-      }
+    this.applyEnvironment = frameWindow.__initTestEnvironment(initCode, function(){
+      // env deprecates
+      this.destroy();
+    }.bind(this));
+
+    if (this.runArgs)
+    {
+      this.run.apply(this, this.runArgs);
+      this.runArgs = null;
     }
   },
 
@@ -65,9 +74,13 @@ var FrameEnv = Node.subclass({
 
   destroy: function(){
     Node.prototype.destroy.call(this);
+
+    if (this.element.parentNode)
+      this.element.parentNode.removeChild(this.element);
+    this.element = null;
+
     this.applyEnvironment = null;
     this.runArgs = null;
-    //console.log('env destroyed');
   }
 });
 
