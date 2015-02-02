@@ -20,6 +20,13 @@ var view = new Node({
     toc: toc,
     tests: testTree,
 
+    testSuiteLoaded: {
+      events: 'delegateChanged',
+      getter: function(node){
+        return !!node.delegate;
+      }
+    },
+
     runnerState: new Expression(
       runner.state,
       runner.count.total,
@@ -35,7 +42,7 @@ var view = new Node({
     ),
 
     // values
-    name: 'data:name',
+    name: Value.from(toc, 'update', 'data.name'),
     time: runner.time.as(function(val){
       return (val / 1000).toFixed(1);
     }),

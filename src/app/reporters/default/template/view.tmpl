@@ -10,10 +10,9 @@
       </button>
     </div>
     <span class="header-caption">
-      <span b:hide="{name}">Untitled test suite</span>
       <span b:show="{name}">{name}</span>
     </span>    
-    <div b:show="{name}" class="header__stat">
+    <div b:show="{testSuiteLoaded}" class="header__stat">
       <span class="stat">
         <span class="stat__label">{l10n:informer.total}</span>
         <span class="stat__value">{total}</span>

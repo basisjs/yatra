@@ -130,6 +130,7 @@ testLeft.addHandler({
 
     if (!this.value && oldValue)
     {
+      startTime = 0;
       runnerState.set('stopped');
       notifier.set({
         action: 'finish',

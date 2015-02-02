@@ -45,7 +45,7 @@ function createTestFactory(data){
 
   // fallback name
   if (!data.name)
-    data.name = 'Untitled test';
+    data.name = typeof test == 'function' ? 'Untitled test' : 'Untitled test suite';
 
   // resolve test instance class
   var Class;
@@ -308,7 +308,7 @@ var TestCase = AbstractTest.subclass({
     var env = {
       async: function(fn){
         async++;
-        basis.nextTick(function(){
+        setTimeout(function(){
           if (async > 0)
           {
             try {
@@ -323,7 +323,7 @@ var TestCase = AbstractTest.subclass({
               }
             }
           }
-        }.bind(this));
+        }.bind(this), 4);
       },
       is: function(expected, actual, deep){
         var error;
