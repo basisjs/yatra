@@ -201,8 +201,15 @@ function wrapSource(source, breakpointAt){
     }
   }
 
-  var ast = parse(source);
+  var ast;
 
+  try {
+    ast = parse(source);
+  } catch(e) {
+    if (typeof console != 'undefined')
+      console.error('Source parse error:\n' + source);
+    return source;
+  }
 
   if (breakpointAt == 'none')
   {
