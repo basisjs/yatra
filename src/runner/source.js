@@ -2,11 +2,11 @@ var getFnInfo = require('./source/info.js');
 var sourceUtils = require('./source/utils.js');
 
 var WORKER_COUNT = global.navigator.hardwareConcurrency || 4;
-var WORKER_MAX_QUEUE = 20;
+var WORKER_MAX_QUEUE = 25;
 var WORKER_SUPPORT = !!global.Worker;
-var workerTime = new Date();
-var workers = [];
+var workerTime;
 var workerTaskQueue = [];
+var workers = [];
 var curWorker = 0;
 var workerFlush = false;
 
@@ -19,64 +19,41 @@ var wrappedSourceMap = {};
 function createWorkers(){
   var baseURI = basis.config.runnerBaseURI || '';
   var workerScriptUrl = basis.path.resolve(baseURI, asset('./source/worker.js'));
+  var workerTime = new Date();
+
   for (var i = 0; i < WORKER_COUNT; i++)
   {
     var worker = new Worker(workerScriptUrl);
 
     worker.onmessage = function(event){
       event.data.forEach(function(data){
-        /** @cut */ if (++receiveCount === sentCount)
-        /** @cut */   basis.dev.info('Workers done in ' + (Date.now() - workerTime) + 'ms');
-
         wrappedSourceMap[data.body] = data.wrapped;
         sourceMap[data.source].info_ = {
           args: data.args,
           body: data.body
         };
       });
+
+      /** @cut */ if (++receiveCount === sentCount)
+      /** @cut */   basis.dev.info('Workers done in ' + (Date.now() - workerTime) + 'ms');
     };
 
     workers.push(worker);
   }
 }
 
-function flushWorkerTasks(){
-  var workerQueues = basis.array.create(WORKER_COUNT, function(){
-    return [];
-  });
-
-  // lazy workers init
-  if (!workers.length)
-  {
-    if (global.Worker)
-      createWorkers();
-    else
-      // Web Workers not supported
-      return;
-  }
-
-  for (var i = 0, task; task = workerTaskQueue[i]; i++)
-  {
-    var workerId = i % WORKER_COUNT;
-    var workerQueue = workerQueues[workerId];
-
-    if (workerQueue.push(task) == WORKER_MAX_QUEUE)
-    {
-      /** @cut */ sentCount++;
-      workers[workerId].postMessage(workerQueue);
-      workerQueues[workerId] = [];
-    }
-  }
-
-  workerQueues.forEach(function(workerQueue, workerId){
-    if (workerQueue.length)
-    {
-      /** @cut */ sentCount++;
-      workers[workerId].postMessage(workerQueue);
-    }
-  });
+function sendTasksToWorker(){
+  /** @cut */ sentCount++;
+  workers[curWorker].postMessage(workerTaskQueue);
 
   workerTaskQueue = [];
+  curWorker = (curWorker + 1) % WORKER_COUNT;
+}
+
+function flushWorkerTasks(){
+  if (workerTaskQueue.length)
+    sendTasksToWorker();
+
   workerFlush = false;
 }
 
@@ -90,6 +67,10 @@ function regFunction(fn){
 
   if (WORKER_SUPPORT)
   {
+    // lazy workers init
+    if (!workers.length)
+      createWorkers();
+
     if (!workerFlush)
       workerFlush = basis.asap(flushWorkerTasks);
 
@@ -97,6 +78,9 @@ function regFunction(fn){
       source: source,
       breakPointAt: 'none'
     });
+
+    if (workerTaskQueue.length == WORKER_MAX_QUEUE)
+      sendTasksToWorker();
   }
 
   return fn;
