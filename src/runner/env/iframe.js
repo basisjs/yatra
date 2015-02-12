@@ -24,7 +24,15 @@ var Scope = Emitter.subclass({
   runArgs: null,
 
   attachJsScope: function(createScope){
-    this.runInScope = createScope(this.initCode);
+    try {
+      this.runInScope = createScope(this.initCode);
+    } catch(e) {
+      this.runInScope = function(){
+        return function(){
+          throw new Error('Test environment init error: ' + e.message);
+        };
+      };
+    }
 
     if (this.runArgs)
     {
