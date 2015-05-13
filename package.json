@@ -2,7 +2,7 @@
   "name": "yatra",
   "title": "Yatra",
   "description": "User friendly unit-test runner",
-  "version": "1.0.0-beta",
+  "version": "1.0.0",
   "main": "src/reporter.html",
   "homepage": "https://github.com/basisjs/yatra",
   "repository": {
