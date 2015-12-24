@@ -1,4 +1,4 @@
-## 1.0.1 (December 25, 2015)
+## 1.0.2 (December 25, 2015)
 
 - Make `assert.async()` work (thanks to @wuzyk)
 
