@@ -475,6 +475,7 @@ var TestCase = AbstractTest.subclass({
         startTime = getTime();
 
         var assert = env.is.bind(env);
+        assert.async = env.async.bind(env);
         assert.exception =
         assert['throws'] = function(fn){
           try {
