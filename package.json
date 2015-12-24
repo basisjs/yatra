@@ -1,8 +1,8 @@
 {
   "name": "yatra",
   "title": "Yatra",
-  "description": "User friendly unit-test runner",
-  "version": "1.0.0",
+  "description": "Yatra – user friendly unit-test runner",
+  "version": "1.0.1",
   "main": "src/reporter.html",
   "homepage": "https://github.com/basisjs/yatra",
   "repository": {
@@ -28,5 +28,9 @@
   "dependencies": {},
   "devDependencies": {
     "basisjs-tools": "basisjs/basisjs-tools"
+  },
+  "scripts": {
+    "build": "basis build src/lib.html -p && basis build src/reporter.html -p && basis build src/runner.html -p",
+    "release": "node scripts/release.js"
   }
 }
