@@ -1,3 +1,5 @@
+[![NPM version](https://img.shields.io/npm/v/yatra.svg)](https://www.npmjs.com/package/yatra)
+
 # Yatra
 
 Yatra (Yet Another Test Runner) – "еще один" исполнитель модульных тестов (unit-test runner).
