@@ -87,11 +87,13 @@ run('git', ['clone', '--depth', '1', 'https://github.com/basisjs/yatra-build.git
       rm(TMP_FOLDER + '/lib.html');
 
       console.log('# Build app');
-      run('basis', buildCmd.concat('--same-filenames'),
-        function(){
+      run('basis', buildCmd.concat('--same-filenames'), function(){
         console.log('# Set version in package.json & bower.json');
         replaceInFile(TMP_FOLDER + '/package.json', versionRx, '$1' + version + '"');
         replaceInFile(TMP_FOLDER + '/bower.json', versionRx, '$1' + version + '"');
+
+        console.log('# Copy readme');
+        fs.writeFileSync(TMP_FOLDER + '/README.md', fs.readFileSync('./README.md', 'utf-8'));
 
         process.chdir(TMP_FOLDER);
         console.log('# Commit changes');
