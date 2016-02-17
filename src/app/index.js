@@ -1,9 +1,10 @@
+var Value = require('basis.data').Value;
 var Node = require('basis.ui').Node;
 var DataObject = require('basis.data').Object;
 var Expression = require('basis.data.value').Expression;
 
 var runner = require('runner');
-var rootTest = new basis.Token();
+var rootTest = new Value();
 var rootTestSuite = new DataObject({
   deletegate: rootTest,
   getChildNodesDataset: function(){

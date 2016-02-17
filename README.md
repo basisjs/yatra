@@ -33,19 +33,15 @@ Yatra (Yet Another Test Runner) – "еще один" исполнитель м�
 
     > git clone https://github.com/basisjs/yatra.git yatra
     > cd yatra
-    > bower install
+    > npm install
 
 Основной файл интерфейса – `src/reporter.html`.
 
-Для сборки необходимы инструменты [`basisjs-tools`](https://github.com/basisjs/basisjs-tools). Их можно установить локально используя `npm`:
+Сборка:
 
-    > npm install
-    > node node_modules/basisjs-tools/bin/basis build
+    > npm run build
 
-Результат сборки окажется в папке `build`. По умолчанию собирается только приложение. Для сборки `lib` или `runner`, нужно указывать явно необходимый файл.
-
-    > node node_modules/basisjs-tools/bin/basis build src/lib.html
-    > node node_modules/basisjs-tools/bin/basis build src/runner.html
+Результат сборки окажется в папке `build`.
 
 ### Использование в проекте
 

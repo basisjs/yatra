@@ -177,7 +177,7 @@ var TestCase = AbstractTest.subclass({
   childClass: null,
 
   emit_update: function(delta){
-    AbstractTest.prototype.init.call(this, delta);
+    AbstractTest.prototype.emit_update.call(this, delta);
     if ('test' in delta)
     {
       this.testSource = null;

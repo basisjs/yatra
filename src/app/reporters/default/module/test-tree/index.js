@@ -19,7 +19,7 @@ var view = new appTest.TestSuiteNode({
   selection: true,
   satellite: {
     sourceCode: {
-      satelliteClass: appTest.CodeView,
+      instance: appTest.CodeView,
       events: 'update stateChanged',
       existsIf: function(owner){
         return owner.data.type == 'case';

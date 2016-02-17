@@ -27,6 +27,8 @@ function htmlEscape(str){
 }
 
 var CodeView = Node.subclass({
+  className: 'CodeView',
+
   template: resource('./template/test-source.tmpl'),
   binding: {
     beforeCode: 'beforeElement',
@@ -203,6 +205,8 @@ var CodeView = Node.subclass({
 //
 
 var TestNode = Node.subclass({
+  className: 'TestNode',
+
   template: resource('./template/test.tmpl'),
   binding: {
     name: 'data:',
@@ -274,6 +278,8 @@ var TestNode = Node.subclass({
 });
 
 var TestSuiteNode = TestNode.subclass({
+  className: 'TestSuiteNode',
+
   dataSource: Value.factory('rootChanged', function(node){
     return node.root ? node.root.getChildNodesDataset() : null;
   }),
@@ -291,6 +297,8 @@ var TestSuiteNode = TestNode.subclass({
 });
 
 var TestCaseNode = TestNode.subclass({
+  className: 'TestCaseNode',
+
   template: resource('./template/test-case.tmpl'),
   binding: {
     source: 'satellite:'
@@ -305,7 +313,7 @@ var TestCaseNode = TestNode.subclass({
                owner.state.data.data.testSource;
       },
       delegate: 'state.data',
-      satelliteClass: CodeView
+      instance: CodeView
     }
   }
 });

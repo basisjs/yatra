@@ -3,12 +3,11 @@
   "title": "Yatra",
   "description": "Yatra – user friendly unit-test runner",
   "version": "1.0.3",
+  "author": "Roman Dvornov <rdvornov@gmail.com>",
+  "license": "MIT",
   "main": "src/reporter.html",
   "homepage": "https://github.com/basisjs/yatra",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/basisjs/yatra.git"
-  },
+  "repository": "basisjs/yatra",
   "keywords": [
     "test",
     "runner",
@@ -19,18 +18,29 @@
   "bugs": {
     "url": "https://github.com/basisjs/yatra/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/basisjs/yatra/blob/master/LICENSE"
-    }
-  ],
-  "dependencies": {},
+  "dependencies": {
+    "basisjs": "~1.6.0",
+    "esprima": "2.7.2",
+    "diff": "2.2.1"
+  },
   "devDependencies": {
-    "basisjs-tools": "basisjs/basisjs-tools"
+    "basisjs-tools": "1.7.0"
   },
   "scripts": {
-    "build": "basis build src/lib.html -p && basis build src/reporter.html -p && basis build src/runner.html -p",
+    "build": "node node_modules/basisjs-tools/bin/basis build -p",
     "release": "node scripts/release.js"
-  }
+  },
+  "files": [
+    "docs",
+    "src",
+    "LICENSE",
+    "README.md",
+    "lib.css",
+    "lib.js",
+    "package.json",
+    "reporter.css",
+    "reporter.html",
+    "reporter.js",
+    "runner.js"
+  ]
 }

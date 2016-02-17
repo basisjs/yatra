@@ -72,9 +72,7 @@ var Item = Node.subclass({
 // main view
 //
 var view = new Node({
-  dataSource: Value.factory('rootChanged', function(node){
-    return node.root.getChildNodesDataset();
-  }),
+  dataSource: Value.query('root.getChildNodesDataset()'),
 
   template: resource('./template/toc.tmpl'),
   binding: {

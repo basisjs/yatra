@@ -1,7 +1,7 @@
 // import esprima as regular basis.js module and as worker environment
 var esprima;
 if (typeof importScripts == 'function')
-  importScripts('../../../bower_components/esprima/esprima.js');
+  importScripts('../../../node_modules/esprima/esprima.js');
 else
   esprima = require('esprima');
 

@@ -22,6 +22,6 @@ module.exports = {
     if (clean)
       return createEnv(html);
 
-    return envMap.resolve(html);
+    return envMap.get(html, true);
   }
 };

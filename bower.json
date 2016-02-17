@@ -1,13 +1,9 @@
 {
   "name": "yatra",
-  "version": "1.0.0-beta",
+  "version": "1.0.3",
   "description": "User friendly unit-test runner",
   "main": "src/reporter.html",
-  "dependencies": {
-    "basisjs": "1.4.0",
-    "esprima": "1.2.2",
-    "jsdiff": "1.0.8"
-  },
+  "dependencies": {},
   "ignore": [
     ".*",
     "**/.*",

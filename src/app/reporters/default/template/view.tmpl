@@ -3,7 +3,7 @@
 <b:define name="runnerState" type="enum" values="running fault ok"/>
 
 <div class="layout">
-  <div class="header" class="header_{runnerState}">
+  <div class="header header_{runnerState}">
     <div class="header__buttons">
       <button class="header-button" event-click="run">
         {l10n:button.caption.{runnerState}}
