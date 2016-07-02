@@ -198,6 +198,20 @@
 {
   color: #CCC;
 }
+.Basis-SyntaxHighlight .exception-details
+{
+  background: #FFE0E0;
+  padding: 2px 6px;
+}
+.Basis-SyntaxHighlight .loc-link
+{
+  text-decoration: underline;
+  cursor: pointer;
+}
+.Basis-SyntaxHighlight .loc-link:hover
+{
+  color: #A00;
+}
 
 .part-before,
 .part-after

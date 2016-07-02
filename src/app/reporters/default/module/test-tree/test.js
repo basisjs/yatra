@@ -58,6 +58,11 @@ var CodeView = Node.subclass({
     }
   },
   action: {
+    openLoc: function(e){
+      var loc = e.sender.getAttribute('data-loc');
+      if (loc)
+        require('app').notifyLoader('loc', loc);
+    },
     toggleBefore: function(){
       this.beforeCollapsed.set(!this.beforeCollapsed.value);
     },
@@ -129,6 +134,20 @@ var CodeView = Node.subclass({
       lines[startLine++].className += ' exception-line';
       for (var i = startLine; i < lines.length; i++)
         lines[i].className += ' disabled-line';
+
+      var stack = this.data.exception.stack;
+      if (stack)
+      {
+        var stackTrace = document.createElement('div');
+        var host = location.protocol + '//' + location.host;
+        stackTrace.className = 'exception-details';
+        stackTrace.innerHTML = stack
+          .replace(/&/g, '&amp;')
+          .replace(/"/g, '&quote;')
+          .replace(/</g, '&lt;')
+          .replace(new RegExp(host + '(/[^)]+)[^\s)]', 'gi'), '<span class="loc-link" data-loc="$1">$1</span>');
+        this.mainElement.insertBefore(stackTrace, lines[startLine]);
+      }
     }
     else
     {
