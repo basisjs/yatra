@@ -145,7 +145,7 @@ var CodeView = Node.subclass({
           .replace(/&/g, '&amp;')
           .replace(/"/g, '&quote;')
           .replace(/</g, '&lt;')
-          .replace(new RegExp(host + '(/[^)]+)[^\s)]', 'gi'), '<span class="loc-link" data-loc="$1">$1</span>');
+          .replace(new RegExp(host + '(/[^\\s)]+)', 'gi'), '<span class="loc-link" data-loc="$1">$1</span>');
         this.mainElement.insertBefore(stackTrace, lines[startLine]);
       }
     }
