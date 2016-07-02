@@ -24,9 +24,11 @@
     "diff": "2.2.1"
   },
   "devDependencies": {
-    "basisjs-tools": "1.7.0"
+    "basisjs-tools": "1.7.0",
+    "jscs": "2.11.0"
   },
   "scripts": {
+    "codestyle": "node node_modules/jscs/bin/jscs src",
     "build": "node node_modules/basisjs-tools/bin/basis build -p",
     "release": "node scripts/release.js"
   },

@@ -3,7 +3,7 @@ var Emitter = require('basis.event').Emitter;
 
 function runInContext(contextWindow, code){
   (contextWindow.execScript || function(code){
-    contextWindow['eval'].call(contextWindow, code);
+    contextWindow.eval.call(contextWindow, code);
   })(code);
 }
 

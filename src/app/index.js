@@ -163,10 +163,10 @@ else
               loadTests(data, params.autorun, feedback);
             });
 
-            /** @cut */ basis.dev.info('Timing:\n' +
-            /** @cut */ '  App ready: ' + (new Date - startTime) + 'ms\n' +
-            /** @cut */ '  Test load: ' + benchmark.time(testLoadTime) + 'ms' //+ '\n' + (Date.now() - performance.timing.domLoading)
-            /** @cut */ );
+            /** @cut */basis.dev.info('Timing:\n' +
+            /** @cut */'  App ready: ' + (new Date - startTime) + 'ms\n' +
+            /** @cut */'  Test load: ' + benchmark.time(testLoadTime) + 'ms' //+ '\n' + (Date.now() - performance.timing.domLoading)
+            /** @cut */);
           }
         }
       }
