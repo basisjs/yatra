@@ -282,7 +282,7 @@ var TestSuiteNode = TestNode.subclass({
 
   dataSource: Value.factory('rootChanged', function(node){
     return node.root ? node.root.getChildNodesDataset() : null;
-  }),
+  }).deferred(),  // TODO: investigate why deferred() fixes issue with section selection
 
   template: resource('./template/test-suite.tmpl'),
 
