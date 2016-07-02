@@ -1,3 +1,8 @@
+## 1.1.0 (July 1, 2016)
+
+- Add stack trace for exception
+- Fix test group selection
+
 ## 1.0.3 (December 25, 2015)
 
 - Fix readme in release
