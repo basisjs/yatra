@@ -37,7 +37,7 @@
 
     "disallowMultipleLineStrings": true,
     "validateQuoteMarks": "'",
-    "requireSemicolon": true,
+    "requireSemicolons": true,
 
     "disallowMixedSpacesAndTabs": true,
     "disallowTrailingWhitespace": true,
@@ -50,12 +50,6 @@
     "requireCapitalizedConstructors": true,
 
     "requireDotNotation": true,
-
-    "validateJSDoc": {
-        "checkParamNames": true,
-        "requireParamTypes": true,
-        "checkRedundantParams": true
-    },
 
     "additionalRules": [
         "scripts/jscs/*.js"
