@@ -12,6 +12,8 @@ else
 
 var TRAVERSE_ABORT = 1;
 var TRAVERSE_STOP_DEEP = 2;
+var WRAPPER_START = 'function test(){\n';
+var WRAPPER_END = '\n}';
 
 var NODE_BRANCHES = {
   ArrayExpression: ['elements'],
@@ -57,8 +59,17 @@ var NODE_BRANCHES = {
 };
 
 function parse(code){
+  function wrapToFunction(code){
+    return WRAPPER_START + code + WRAPPER_END;
+  }
   function postProcessing(node){
     var branches = NODE_BRANCHES[node.type];
+
+    node.range[0] -= WRAPPER_START.length;
+    node.range[1] -= WRAPPER_START.length;
+    node.loc.start.line--;
+    node.loc.end.line--;
+
     for (var i = 0, key; key = branches[i]; i++)
     {
       var value = node[key];
@@ -83,11 +94,18 @@ function parse(code){
     }
   }
 
-  var result = esprima.parse(code, {
+  var result = esprima.parse(wrapToFunction(code), {
     loc: true,
     range: true,
     comment: true,
     tokens: true
+  });
+
+  result.body = result.body[0].body.body;
+  result.tokens = result.tokens.slice(5, -1).map(function(token){
+    token.range[0] -= WRAPPER_START.length;
+    token.range[1] -= WRAPPER_START.length;
+    return token;
   });
 
   postProcessing(result);
@@ -208,7 +226,7 @@ function wrapSource(source, breakpointAt){
     ast = parse(source);
   } catch(e) {
     if (typeof console != 'undefined')
-      console.error('Source parse error:\n' + source);
+      console.error('Source parse error: ' + e + '\n' + source);
     return source;
   }
 
