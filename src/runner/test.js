@@ -402,12 +402,13 @@ var TestCase = AbstractTest.subclass({
 
     var __wrapFunctionExpression = function(fn, orig){
       var wrappedFn = function(){
-        try {
+        // try {
+          // window.onerror = __exception;
           return fn.apply(this, arguments);
-        } catch(e) {
-          __exception(e);
-          throw e;
-        }
+        // } catch(e) {
+        //   __exception(e);
+        //   throw e;
+        // }
       };
       wrappedFn.originalFn_ = orig;
       return wrappedFn;
@@ -424,14 +425,16 @@ var TestCase = AbstractTest.subclass({
       testDone(ERROR_TEST_CRASH);
     };
 
-    var asyncDone = async
-      ? basis.fn.runOnce(function(){
-          if (async > 0)
-            async--;
+    var __asyncDone = function(){
+      if (async > 0)
+        async--;
 
-          if (!async)
-            testDone();
-        })
+      if (!async)
+        testDone();
+    };
+
+    var asyncDone = async
+      ? basis.fn.runOnce(__asyncDone)
       : NOP;
 
     var testDone = function(error){
@@ -504,8 +507,19 @@ var TestCase = AbstractTest.subclass({
         );
 
         // run test
+        var testResult;
         try {
-          testFn.apply(env, args);
+          testResult = testFn.apply(env, args);
+
+          if (testResult && typeof testResult.then === 'function')
+          {
+            async++;
+            testResult.then(function(){
+              __asyncDone();
+            }, function(){
+              __asyncDone();
+            });
+          }
         } catch(e) {
           return __exception(e);
         }

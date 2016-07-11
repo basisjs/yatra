@@ -137,12 +137,25 @@
               }
             },
             {
-              name: 'Exception inside function',
+              name: 'Exception inside function expression',
               test: function(){
                 [1, 2, 3].forEach(function(){
                   // exception on that line
                   assert(0, ++test);
                 });
+
+                assert(true, true);
+              }
+            },
+            {
+              name: 'Exception inside function declaration',
+              test: function(){
+                function decl(){
+                  // exception on that line
+                  assert(0, ++test);
+                }
+
+                decl();
 
                 assert(true, true);
               }
@@ -322,6 +335,84 @@
                   ]
                 }
               ]
+            }
+          ]
+        },
+        {
+          name: 'Promise',
+          test: [
+            {
+              name: 'should end test on promise resolve successful',
+              test: function(){
+                return new Promise(function(resolve, reject){
+                  resolve('ok');
+                });
+              }
+            },
+            {
+              name: 'should end test for resolved promise',
+              test: function(){
+                return Promise.resolve('ok');
+              }
+            },
+            {
+              name: 'test promise',
+              test: function(){
+                return new Promise(function(resolve, reject){
+                  resolve('ok');
+                }).then(function(data){
+                  assert(data === 'ok');
+                  assert(data === 'wrong');
+                });
+              }
+            },
+            {
+              name: 'should end test on promise reject',
+              test: function(){
+                return new Promise(function(resolve, reject){
+                  reject(new Error('ok'));
+                });
+              }
+            },
+            {
+              name: 'should end test for rejected promise',
+              test: function(){
+                return Promise.reject(new Error('ok'));
+              }
+            },
+            {
+              name: 'test rejected promise',
+              test: function(){
+                return Promise.reject(new Error('ok')).then(function(){
+                  throw new Error('shouldn\'t to be resolved');
+                }, function(){
+                  return 'ok';
+                }).then(function(data){
+                  assert(data === 'ok');
+                }, function(){
+                  assert(false);
+                });
+              }
+            },
+            {
+              name: 'test rejected promise (should fail)',
+              test: function(){
+                return Promise.resolve('wrong').then(function(){
+                  throw new Error('shouldn\'t to be resolved');
+                }, function(){
+                  return 'ok';
+                }).then(function(data){
+                  assert(data === 'ok');
+                }, function(){
+                  assert(false);
+                });
+              }
+            },
+            {
+              name: 'should timeout when promise doesn\'t resolve',
+              test: function(){
+                return new Promise(function(){});
+              }
             }
           ]
         }

@@ -244,21 +244,17 @@ function wrapSource(source, breakpointAt){
         tokens[1].value += ', ' + orig + ')';
       }
 
-      if (node.type == 'FunctionDeclaration')
-      {
-        // var tokens = getNodeRangeTokens(node);
-        // var orig = translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
-        // tokens[1].value += node.id.name + '.originalFn_ = (' + orig + ');';
-
-        var tokens = getNodeRangeTokens(node.body);
-        tokens[0].value +=
-          '\ntry {\n';
-        tokens[1].value =
-          '\n} catch(e) {' +
-            '__exception(e);' +
-            'throw e;' +
-          '}\n' + tokens[1].value;
-      }
+      // if (node.type == 'FunctionDeclaration')
+      // {
+      //   var tokens = getNodeRangeTokens(node.body);
+      //   tokens[0].value +=
+      //     '\ntry {\n';
+      //   tokens[1].value =
+      //     '\n} catch(e) {' +
+      //       '__exception(e);' +
+      //       'throw e;' +
+      //     '}\n' + tokens[1].value;
+      // }
 
       if (node.type == 'CallExpression')
       {
