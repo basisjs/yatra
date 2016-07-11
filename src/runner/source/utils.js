@@ -1,3 +1,4 @@
+/*eslint-env worker*/
 // import esprima as regular basis.js module and as worker environment
 var esprima;
 if (typeof importScripts == 'function')
@@ -125,7 +126,7 @@ function traverseAst(node, visitor){
 function getRangeTokens(ast, start, end){
   var first;
 
-  for (var i = 0, pre, prev, token; i < ast.tokens.length; i++)
+  for (var i = 0, prev, token; i < ast.tokens.length; i++)
   {
     token = ast.tokens[i];
 

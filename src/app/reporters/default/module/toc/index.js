@@ -53,7 +53,7 @@ var Item = Node.subclass({
     }]
   },
   action: {
-    pickup: function(event){
+    pickup: function(){
       if (this.parentNode && this.root instanceof TestSuite)
         this.parentNode.setDelegate(this.root);
     }

@@ -1,3 +1,5 @@
+/*eslint-env worker*/
+/*global getFunctionInfo wrapSource*/
 importScripts('./utils.js', './info.js');
 
 onmessage = function(event){

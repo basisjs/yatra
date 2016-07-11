@@ -4,7 +4,6 @@ var sourceUtils = require('./source/utils.js');
 var WORKER_COUNT = global.navigator.hardwareConcurrency || 4;
 var WORKER_MAX_QUEUE = 25;
 var WORKER_SUPPORT = !!global.Worker;
-var workerTime;
 var workerTaskQueue = [];
 var workers = [];
 var curWorker = 0;
@@ -19,7 +18,7 @@ var wrappedSourceMap = {};
 function createWorkers(){
   var baseURI = basis.config.runnerBaseURI || '';
   var workerScriptUrl = basis.path.resolve(baseURI, asset('./source/worker.js'));
-  var workerTime = new Date();
+  /** @cut */ var workerTime = new Date();
 
   for (var i = 0; i < WORKER_COUNT; i++)
   {

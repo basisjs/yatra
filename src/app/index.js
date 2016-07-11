@@ -1,16 +1,8 @@
 var Value = require('basis.data').Value;
 var Node = require('basis.ui').Node;
-var DataObject = require('basis.data').Object;
-var Expression = require('basis.data.value').Expression;
 
 var runner = require('runner');
 var rootTest = new Value();
-var rootTestSuite = new DataObject({
-  deletegate: rootTest,
-  getChildNodesDataset: function(){
-    // stub method
-  }
-});
 var notifyLoader;
 
 var reporters = {
@@ -164,7 +156,7 @@ else
             });
 
             /** @cut */basis.dev.info('Timing:\n' +
-            /** @cut */'  App ready: ' + (new Date - startTime) + 'ms\n' +
+            /** @cut */'  App ready: ' + (new Date - global.startTime) + 'ms\n' +
             /** @cut */'  Test load: ' + benchmark.time(testLoadTime) + 'ms' //+ '\n' + (Date.now() - performance.timing.domLoading)
             /** @cut */);
           }

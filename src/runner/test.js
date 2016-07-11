@@ -4,7 +4,6 @@ var DataObject = require('basis.data').Object;
 var Dataset = require('basis.data').Dataset;
 var Expression = require('basis.data.value').Expression;
 var Split = require('basis.data.dataset').Split;
-var Extract = require('basis.data.dataset').Extract;
 var DomWrapperNode = require('basis.dom.wrapper').Node;
 var getTime = require('basis.utils.benchmark').time;
 
@@ -13,7 +12,6 @@ var envFactory = require('./env.js');
 var sourceUtils = require('./source.js');
 
 var ERROR_TEST_FAULT = 'ERROR_TEST_FAULT';
-var ERROR_EMPTY = 'ERROR_EMPTY';
 var ERROR_TEST_CRASH = 'ERROR_TEST_CRASH';
 var ERROR_TIMEOUT = 'ERROR_TIMEOUT';
 
@@ -103,7 +101,7 @@ var AbstractTest = DomWrapperNode.subclass({
 
     return cursor.data.html;
   },
-  getEnv: function(autocreate){
+  getEnv: function(){
     if (this.env)
       return this.env;
   },
@@ -271,7 +269,6 @@ var TestCase = AbstractTest.subclass({
     // var _error = basis.dev.error;
     var warnMessages = [];
     var errorMessages = [];
-    var error;
     var time = NaN;
     var startTime;
     var timeoutTimer;

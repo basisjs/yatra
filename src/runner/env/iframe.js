@@ -73,7 +73,6 @@ var FrameEnv = Emitter.subclass({
 
   ready_: function(){
     var frameWindow = this.element.contentWindow;
-    var initCode = '';
     var code = require('./iframe_inject.code');
 
     runInContext(frameWindow, code);

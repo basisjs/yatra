@@ -18,31 +18,47 @@
   "bugs": {
     "url": "https://github.com/basisjs/yatra/issues"
   },
-  "dependencies": {
-    "basisjs": "~1.6.0",
-    "esprima": "2.7.2",
-    "diff": "2.2.1"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "basisjs-tools": "1.7.0",
-    "jscs": "2.11.0"
+    "basisjs": "~1.7.0",
+    "esprima": "~2.7.2",
+    "diff": "~2.2.3",
+    "basisjs-tools-build": "basisjs/basisjs-tools-build",
+    "eslint": "^2.2.0",
+    "jscs": "~2.11.0"
   },
   "scripts": {
-    "codestyle": "node node_modules/jscs/bin/jscs src",
-    "build": "node node_modules/basisjs-tools/bin/basis build -p",
-    "release": "node scripts/release.js"
+    "codestyle": "node node_modules/jscs/bin/jscs src && node node_modules/eslint/bin/eslint src",
+    "travis": "npm run codestyle",
+    "build": "node node_modules/basisjs-tools-build/bin/build -p",
+    "prepublish": "npm run build"
   },
   "files": [
     "docs",
-    "src",
     "LICENSE",
     "README.md",
     "lib.css",
     "lib.js",
-    "package.json",
     "reporter.css",
     "reporter.html",
     "reporter.js",
     "runner.js"
-  ]
+  ],
+  "eslintConfig": {
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    },
+    "globals": {
+      "basis": true,
+      "resource": true,
+      "asset": true
+    },
+    "rules": {
+      "no-duplicate-case": 2,
+      "no-undef": 2,
+      "no-unused-vars": [2, {"vars": "all", "args": "after-used"}]
+    }
+  }
 }
