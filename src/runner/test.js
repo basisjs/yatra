@@ -246,8 +246,11 @@ var TestCase = AbstractTest.subclass({
         // '"}', true) + '\n';
 
       this.testWrappedSources[breakpointAt] =
-        'function(' + sourceUtils.getFunctionInfo(this.data.test).args.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
+        'function __yatra_test__(' + sourceUtils.getFunctionInfo(this.data.test).args.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
+          'window.onerror = function(m,_,_,_,e){if(!e)try{throw new Error(m)}catch(ex){e=ex};__exception(e)};\n' +
+          '// ' + this.data.name.replace(/\r\n?|\n/g, '\\n') + '\n' +
           sourceUtils.getWrappedSource(source, breakpointAt) +
+          (this.data.loc ? '\n//# sourceURL=' + location.protocol + '//' + location.host + this.data.loc : '') +
         '\n}' + sourceMap;
     }
 
@@ -401,17 +404,8 @@ var TestCase = AbstractTest.subclass({
     };
 
     var __wrapFunctionExpression = function(fn, orig){
-      var wrappedFn = function(){
-        // try {
-          // window.onerror = __exception;
-          return fn.apply(this, arguments);
-        // } catch(e) {
-        //   __exception(e);
-        //   throw e;
-        // }
-      };
-      wrappedFn.originalFn_ = orig;
-      return wrappedFn;
+      fn.originalFn_ = orig;
+      return fn;
     };
 
     var __exception = function(e){
@@ -514,11 +508,7 @@ var TestCase = AbstractTest.subclass({
           if (testResult && typeof testResult.then === 'function')
           {
             async++;
-            testResult.then(function(){
-              __asyncDone();
-            }, function(){
-              __asyncDone();
-            });
+            testResult.then(__asyncDone, __asyncDone);
           }
         } catch(e) {
           return __exception(e);

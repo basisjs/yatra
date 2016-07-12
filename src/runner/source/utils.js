@@ -105,6 +105,8 @@ function parse(code){
   result.tokens = result.tokens.slice(5, -1).map(function(token){
     token.range[0] -= WRAPPER_START.length;
     token.range[1] -= WRAPPER_START.length;
+    token.loc.start.line--;
+    token.loc.end.line--;
     return token;
   });
 
@@ -244,28 +246,15 @@ function wrapSource(source, breakpointAt){
         tokens[1].value += ', ' + orig + ')';
       }
 
-      // if (node.type == 'FunctionDeclaration')
-      // {
-      //   var tokens = getNodeRangeTokens(node.body);
-      //   tokens[0].value +=
-      //     '\ntry {\n';
-      //   tokens[1].value =
-      //     '\n} catch(e) {' +
-      //       '__exception(e);' +
-      //       'throw e;' +
-      //     '}\n' + tokens[1].value;
-      // }
-
       if (node.type == 'CallExpression')
       {
         if (node.parentNode.type == 'ExpressionStatement')
         {
           var token = getNodeRangeTokens(node)[0];
           var singleArg = node.arguments.length == 1 ? node.arguments[0] : null;
-          var isForCode = 'if(__isFor(' + node.range + ',' + (node.loc.end.line - 1) + '))debugger;\n';
-          var newValue = token.value.replace(/^__enterLine\(\d+\); /, isForCode);
+          var isForCode = 'if(__isFor(' + node.range + ',$1))debugger;\n';
 
-          token.value = newValue != token.value ? newValue : isForCode + token.value;
+          token.value = token.value.replace(/^__enterLine\((\d+)\);\n/, isForCode);
 
           wrapToBlock(node.parentNode);
 
@@ -288,7 +277,7 @@ function wrapSource(source, breakpointAt){
       if (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program')
       {
         var firstToken = getNodeRangeTokens(node)[0];
-        firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + '); ' + firstToken.value;
+        firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + ');\n' + firstToken.value;
       }
     });
   }

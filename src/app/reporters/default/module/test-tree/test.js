@@ -121,8 +121,9 @@ var CodeView = Node.subclass({
     });
 
     var lines = basis.array.from(this.mainElement.childNodes);
+    var exception = this.data.exception;
 
-    if (this.data.exception)
+    if (exception)
     {
       var startLine = this.data.lastLine;
 
@@ -135,18 +136,33 @@ var CodeView = Node.subclass({
       for (var i = startLine; i < lines.length; i++)
         lines[i].className += ' disabled-line';
 
-      var stack = this.data.exception.stack;
+      var stack = exception.stack;
       if (stack)
       {
-        var stackTrace = document.createElement('div');
+        var stackEl = document.createElement('div');
         var host = location.protocol + '//' + location.host;
-        stackTrace.className = 'exception-details';
-        stackTrace.innerHTML = stack
+        var message = String(exception);
+
+        // cut off everything before __yatra_test__
+        stack = stack
+          .split(/(\n[^\n]*__yatra_test__[^\n]*)/);
+        stack = stack
+          .slice(0, stack.length - 2)
+          .join('');
+
+        if (message && stack.split('\n')[0] !== message)
+          stack = message + '\n' + stack;
+
+        stack = stack
           .replace(/&/g, '&amp;')
           .replace(/"/g, '&quote;')
           .replace(/</g, '&lt;')
+          .replace(/\n\s*(at\s+)?(?!$)/g, '\n    ')
           .replace(new RegExp(host + '(/[^\\s)]+)', 'gi'), '<span class="loc-link" data-loc="$1">$1</span>');
-        this.mainElement.insertBefore(stackTrace, lines[startLine]);
+
+        stackEl.className = 'exception-details';
+        stackEl.innerHTML = stack;
+        this.mainElement.insertBefore(stackEl, lines[startLine]);
       }
     }
     else

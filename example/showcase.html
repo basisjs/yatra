@@ -112,6 +112,10 @@
                 assert(new String('foo'), new String('bar'));
                 assert(new Number(1), new Number(2));
                 assert(new Boolean(true), new Boolean(false));
+                assert(
+                  function(){ return 123; },
+                  function(){ return 456; }
+                );
               }
             }
           ]
@@ -158,6 +162,26 @@
                 decl();
 
                 assert(true, true);
+              }
+            },
+            {
+              name: 'Exception in setTimeout',
+              test: function(done){
+                setTimeout(function(){
+                  // exception on that line
+                  assert(0, ++test);
+                }, 10);
+              }
+            },
+            {
+              name: 'Exception inside function declaration invoked by setTimeout',
+              test: function(done){
+                function decl(){
+                  // exception on that line
+                  assert(0, ++test);
+                }
+
+                setTimeout(decl, 10);
               }
             },
             {
