@@ -253,8 +253,9 @@ function wrapSource(source, breakpointAt){
           var token = getNodeRangeTokens(node)[0];
           var singleArg = node.arguments.length == 1 ? node.arguments[0] : null;
           var isForCode = 'if(__isFor(' + node.range + ',$1))debugger;\n';
+          var newValue = token.value.replace(/^__enterLine\((\d+)\);\n/, isForCode);
 
-          token.value = token.value.replace(/^__enterLine\((\d+)\);\n/, isForCode);
+          token.value = token.value === newValue ? isForCode.replace('$1', token.loc.start.line - 1) + newValue : newValue;
 
           wrapToBlock(node.parentNode);
 
