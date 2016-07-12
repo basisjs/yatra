@@ -268,14 +268,14 @@ var TestCase = AbstractTest.subclass({
     this.setState(STATE.UNDEFINED);
   },
   run: function(breakAssert){
-    // var _warn = basis.dev.warn;
-    // var _error = basis.dev.error;
+    var scope = this.getScope(true);
     var warnMessages = [];
     var errorMessages = [];
     var time = NaN;
     var startTime;
     var timeoutTimer;
     var async = this.data.async ? 1 : 0;
+    var asyncQueue = [];
     var isNode = null;
     var isForNum = 0;
     var sourceCode = this.getSourceCode();
@@ -305,25 +305,40 @@ var TestCase = AbstractTest.subclass({
       warns: null
     };
 
+    var testDone = function(error){
+      time = getTime(startTime);
+      timeoutTimer = scope.clearTimeout(timeoutTimer);
+      asyncQueue.length = 0;
+      async = 0;
+
+      if (!error && report.testCount !== report.successCount)
+        error = ERROR_TEST_FAULT;
+
+      basis.object.extend(report, {
+        test: this,
+        time: time,
+        error: error,
+        pending: !error && !report.testCount,
+        warns: warnMessages.length ? warnMessages : null
+      });
+
+      this.setState(
+        error || errorMessages.length ? STATE.ERROR : STATE.READY,
+        new DataObject({
+          data: report
+        })
+      );
+    }.bind(this);
+
+    // set processing state
+    this.setState(STATE.PROCESSING);
+
+    if (this.data.pending)
+      return testDone();
+
     var env = {
       async: function(fn){
-        async++;
-        setTimeout(function(){
-          if (async > 0)
-          {
-            try {
-              fn.call(this);
-            } catch(e) {
-              __exception(e);
-            } finally {
-              if (async > 0)
-              {
-                if (!--async)
-                  testDone();
-              }
-            }
-          }
-        }.bind(this), 4);
+        asyncQueue.push(fn);
       },
       is: function(expected, actual, deep){
         var error;
@@ -420,49 +435,39 @@ var TestCase = AbstractTest.subclass({
     };
 
     var __asyncDone = function(){
-      if (async > 0)
-        async--;
-
       if (!async)
+        return;
+
+      async--;
+      if (!async && !asyncQueue.length)
         testDone();
+    };
+
+    var __processAsync = function(){
+      if (asyncQueue.length)
+      {
+        scope.setTimeout(function(){
+          try {
+            asyncQueue.shift().call(this);
+          } catch(e) {
+            __exception(e);
+          } finally {
+            __processAsync();
+          }
+        }.bind(this), 0);
+      }
+      else if (async === 0)
+      {
+        testDone();
+      }
     };
 
     var asyncDone = async
       ? basis.fn.runOnce(__asyncDone)
       : NOP;
 
-    var testDone = function(error){
-      time = getTime(startTime);
-      timeoutTimer = clearTimeout(timeoutTimer);
-      async = 0;
-
-      if (!error && report.testCount != report.successCount)
-        error = ERROR_TEST_FAULT;
-
-      basis.object.extend(report, {
-        test: this,
-        time: time,
-        error: error,
-        pending: !error && !report.testCount,
-        warns: warnMessages.length ? warnMessages : null
-      });
-
-      this.setState(
-        error || errorMessages.length ? STATE.ERROR : STATE.READY,
-        new DataObject({
-          data: report
-        })
-      );
-    }.bind(this);
-
-    // set processing state
-    this.setState(STATE.PROCESSING);
-
-    if (this.data.pending)
-      return testDone();
-
     // prepare env and run test
-    this.getScope(true).run(
+    scope.run(
       this.getWrappedSourceCode(),
       this,
       function(testFn){
@@ -483,7 +488,6 @@ var TestCase = AbstractTest.subclass({
           }
         };
         assert.deep = function(expected, actual){
-          //debugger;
           assert(expected, actual, true);
         };
 
@@ -514,15 +518,17 @@ var TestCase = AbstractTest.subclass({
           return __exception(e);
         }
 
-        // if test is
-        if (!async)
-          // if test is not async - task done
+        if (!async && !asyncQueue.length)
+        {
           testDone();
+        }
         else
-          // if test is async - set timeout
-          timeoutTimer = setTimeout(function(){
+        {
+          __processAsync();
+          timeoutTimer = scope.setTimeout(function(){
             testDone(ERROR_TIMEOUT);
           }, this.data.timeout || 250);
+        }
       }
     );
   }

@@ -7,6 +7,12 @@ function runInContext(contextWindow, code){
   })(code);
 }
 
+function wrapToRunInContext(fn, context){
+  return function(){
+    return fn.apply(context, arguments);
+  };
+}
+
 var iframeProto = document.createElement('iframe');
 iframeProto.setAttribute('style', [
   'width: 10px',
@@ -22,6 +28,13 @@ var Scope = Emitter.subclass({
   initCode: '',
   runInScope: null,
   runArgs: null,
+
+  setTimeout: function(){
+    throw new Error('setTimeout() invoked before environment init');
+  },
+  clearTimeout: function(){
+    throw new Error('clearTimeout() invoked before environment init');
+  },
 
   attachJsScope: function(createScope){
     try {
@@ -58,9 +71,12 @@ var Scope = Emitter.subclass({
 var FrameEnv = Emitter.subclass({
   html: null,
 
+  scopeClass: Scope,
+
   init: function(){
     Emitter.prototype.init.call(this);
 
+    this.scopeClass = this.scopeClass.subclass();
     this.scopes = [];
     this.element = iframeProto.cloneNode(true);
     this.element.onload = this.ready_.bind(this);
@@ -73,13 +89,17 @@ var FrameEnv = Emitter.subclass({
 
   ready_: function(){
     var frameWindow = this.element.contentWindow;
-    var code = require('./iframe_inject.code');
 
-    runInContext(frameWindow, code);
+    runInContext(frameWindow, require('./iframe_inject.code'));
+
     this.createScope_ = frameWindow.__initTestEnvironment(function(){
       // env deprecates
       this.destroy();
     }.bind(this));
+    this.scopeClass.extend({
+      setTimeout: wrapToRunInContext(frameWindow.setTimeout, frameWindow),
+      clearTimeout: wrapToRunInContext(frameWindow.clearTimeout, frameWindow)
+    });
 
     this.scopes.forEach(function(scope){
       scope.attachJsScope(this.createScope_);
@@ -87,7 +107,7 @@ var FrameEnv = Emitter.subclass({
   },
 
   createScope: function(initCode){
-    var scope = new Scope({
+    var scope = new this.scopeClass({
       env: this,
       initCode: initCode ? fnInfo(String(initCode)).body : ''
     });
