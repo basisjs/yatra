@@ -163,7 +163,7 @@ var TestCase = AbstractTest.subclass({
 
   name: '',
   testSource: null,
-  testWrappedSources: null,
+  testWrappedSource: null,
   beforeEach: null,
   afterEach: null,
 
@@ -174,7 +174,7 @@ var TestCase = AbstractTest.subclass({
     if ('test' in delta)
     {
       this.testSource = null;
-      this.testWrappedSources = null;
+      this.testWrappedSource = null;
       this.beforeAfterInfo = null;
     }
   },
@@ -229,27 +229,16 @@ var TestCase = AbstractTest.subclass({
     if (typeof breakpointAt != 'number')
       breakpointAt = 'none';
 
-    if (this.testWrappedSources === null)
-      this.testWrappedSources = {};
-
-    if (!this.testWrappedSources[breakpointAt])
-    {
-      var sourceMap = '';
-        // '\n//# sourceMappingURL=data:application/json;base64,' +
-        // require('basis.utils.base64').encode('{"version":3,"sources":["' + basis.path.origin + '/foo.js' + '"],"sourcesContent":[' + JSON.stringify(source) + '],' +
-        // '"mappings":"AAAA' + basis.string.repeat(';AACA', source.split('\n').length) +
-        // '"}', true) + '\n';
-
-      this.testWrappedSources[breakpointAt] =
+    if (this.testWrappedSource === null)
+      this.testWrappedSource =
         'function __yatra_test__(' + sourceUtils.getFunctionInfo(this.data.test).args.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
           'window.onerror = function(m,_,_,_,e){if(!e)try{throw new Error(m)}catch(ex){e=ex};__exception(e);return true};\n' +
           '// ' + this.data.name.replace(/\r\n?|\n/g, '\\n') + '\n' +
-          sourceUtils.getWrappedSource(source, breakpointAt) +
+          sourceUtils.getWrappedSource(source) +
           (this.data.loc ? '\n//# sourceURL=' + location.protocol + '//' + location.host + this.data.loc : '') +
-        '\n}' + sourceMap;
-    }
+        '\n}';
 
-    return this.testWrappedSources[breakpointAt];
+    return this.testWrappedSource;
   },
   getBeforeAfterInfo: function(){
     if (!this.beforeAfterInfo)

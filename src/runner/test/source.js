@@ -100,7 +100,7 @@ function getFunctionInfo(fn){
 
 function getWrappedSource(source){
   if (!wrappedSourceMap.hasOwnProperty(source))
-    wrappedSourceMap[source] = sourceUtils.wrapSource(source, 'none');
+    wrappedSourceMap[source] = sourceUtils.wrapSource(source);
 
   return wrappedSourceMap[source];
 }

@@ -212,7 +212,7 @@ function translateNode(node){
 // source tools
 //
 
-function wrapSource(source, breakpointAt){
+function wrapSource(source){
   function wrapToBlock(node){
     if (node.parentNode.type != 'BlockStatement' && node.parentNode.type != 'Program')
     {
@@ -232,56 +232,53 @@ function wrapSource(source, breakpointAt){
     return source;
   }
 
-  if (breakpointAt == 'none')
-  {
-    traverseAst(ast, function(node){
-      if (node.type == 'Program')
-        return;
+  traverseAst(ast, function(node){
+    if (node.type == 'Program')
+      return;
 
-      if (node.type == 'FunctionExpression')
-      {
-        var tokens = getNodeRangeTokens(node);
-        var orig = translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
-        tokens[0].value = '__wrapFunctionExpression(' + tokens[0].value;
-        tokens[1].value += ', ' + orig + ')';
-      }
+    if (node.type == 'FunctionExpression')
+    {
+      var tokens = getNodeRangeTokens(node);
+      var orig = translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
+      tokens[0].value = '__wrapFunctionExpression(' + tokens[0].value;
+      tokens[1].value += ', ' + orig + ')';
+    }
 
-      if (node.type == 'CallExpression')
+    if (node.type == 'CallExpression')
+    {
+      if (node.parentNode.type == 'ExpressionStatement')
       {
-        if (node.parentNode.type == 'ExpressionStatement')
+        var token = getNodeRangeTokens(node)[0];
+        var singleArg = node.arguments.length == 1 ? node.arguments[0] : null;
+        var isForCode = 'if(__isFor(' + node.range + ',$1))debugger;\n';
+        var newValue = token.value.replace(/^__enterLine\((\d+)\);\n/, isForCode);
+
+        token.value = token.value === newValue ? isForCode.replace('$1', token.loc.start.line - 1) + newValue : newValue;
+
+        wrapToBlock(node.parentNode);
+
+        if (singleArg &&
+            singleArg.type == 'BinaryExpression' &&
+            singleArg.operator.match(/^(===?)$/)) // |!==?|>=?|<=
         {
-          var token = getNodeRangeTokens(node)[0];
-          var singleArg = node.arguments.length == 1 ? node.arguments[0] : null;
-          var isForCode = 'if(__isFor(' + node.range + ',$1))debugger;\n';
-          var newValue = token.value.replace(/^__enterLine\((\d+)\);\n/, isForCode);
+          var arg0 = node.arguments[0];
+          var leftToken = getNodeRangeTokens(arg0.left);
+          var rightToken = getNodeRangeTokens(arg0.right);
 
-          token.value = token.value === newValue ? isForCode.replace('$1', token.loc.start.line - 1) + newValue : newValue;
-
-          wrapToBlock(node.parentNode);
-
-          if (singleArg &&
-              singleArg.type == 'BinaryExpression' &&
-              singleArg.operator.match(/^(===?)$/)) // |!==?|>=?|<=
-          {
-            var arg0 = node.arguments[0];
-            var leftToken = getNodeRangeTokens(arg0.left);
-            var rightToken = getNodeRangeTokens(arg0.right);
-
-            leftToken[0].value = '__actual("' + arg0.operator + '",' + leftToken[0].value;
-            leftToken[1].value += ')';
-            rightToken[0].value = '__expected(' + rightToken[0].value;
-            rightToken[1].value += ')';
-          }
+          leftToken[0].value = '__actual("' + arg0.operator + '",' + leftToken[0].value;
+          leftToken[1].value += ')';
+          rightToken[0].value = '__expected(' + rightToken[0].value;
+          rightToken[1].value += ')';
         }
       }
+    }
 
-      if (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program')
-      {
-        var firstToken = getNodeRangeTokens(node)[0];
-        firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + ');\n' + firstToken.value;
-      }
-    });
-  }
+    if (node.parentNode.type == 'BlockStatement' || node.parentNode.type == 'Program')
+    {
+      var firstToken = getNodeRangeTokens(node)[0];
+      firstToken.value = '__enterLine(' + (firstToken.loc.start.line - 1) + ');\n' + firstToken.value;
+    }
+  });
 
   return translateAst(ast, 0, ast.source.length);
 }
