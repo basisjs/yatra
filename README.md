@@ -306,7 +306,72 @@ module.exports = {
       setTimeout(function(){
         resolve();
       }, 10);
-    })
+    });
+  }
+};
+```
+
+### Визитер
+
+В некоторых тестах необходимо определять, что были пройдены определенные точки кода, а некоторые не были. Для этого можно использовать специальную функцию `visit()` для запоминания пройденных точек и метод `assert.visited()` для проверки.
+
+```js
+module.exports = {
+  name: 'Visited points',
+  test: function(){
+    visit('foo');
+    visit({ bar: true });
+
+    assert.visited(['foo', { bar: true }]);
+  }
+};
+```
+
+Метод `visit.list()` позволяет получить текущий копию списка точек, а `visit.reset()` очищает этот список.
+
+```js
+module.exports = {
+  name: 'visit.list() and visit.reset()',
+  test: function(){
+    visit({ foo: 'test' });
+    assert.deep([{ foo: 'test' }], visit.list()); // эквивалентно assert.visited({ foo: 'test' });
+
+    visit.reset();
+    assert.deep([], visit.list());
+  }
+};
+```
+
+Для того, чтобы отметить некоторую точку, что она не должна посещаться используется метод `visit.wrong()`.
+
+```js
+module.exports = {
+  name: 'visit.wrong()',
+  test: function(){
+    visit.wrong(); // эффект тот же, что и assert(false), но в данном случае
+                   // будет выведено более говорящее сообщение
+  }
+};
+```
+
+Метод `visit.wrap()` позволяет обернуть метод, чтобы записывать его вызовы. В список точек будет сохраняться первый аргумент:
+
+```js
+module.exports = {
+  name: 'visit.wrap()',
+  test: function(){
+    var obj = {
+      foo: function(obj){
+        return obj;
+      }
+    };
+
+    visit.wrap(obj, 'foo'); // перед выполнением метода в список точек сохранится первый аргумент
+
+    obj.foo(1, 2);
+    obj.foo({ bar: 1 });
+
+    assert.visited([1, { bar: 1 }]);
   }
 };
 ```

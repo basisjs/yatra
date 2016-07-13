@@ -29,6 +29,7 @@ var Scope = Emitter.subclass({
   runInScope: null,
   runArgs: null,
 
+  Array: Array,
   setTimeout: function(){
     throw new Error('setTimeout() invoked before environment init');
   },
@@ -97,6 +98,7 @@ var FrameEnv = Emitter.subclass({
       this.destroy();
     }.bind(this));
     this.scopeClass.extend({
+      Array: frameWindow.Array,
       setTimeout: wrapToRunInContext(frameWindow.setTimeout, frameWindow),
       clearTimeout: wrapToRunInContext(frameWindow.clearTimeout, frameWindow)
     });

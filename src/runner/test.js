@@ -231,7 +231,7 @@ var TestCase = AbstractTest.subclass({
 
     if (this.testWrappedSource === null)
       this.testWrappedSource =
-        'function __yatra_test__(' + sourceUtils.getFunctionInfo(this.data.test).args.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
+        'function __yatra_test__(' + sourceUtils.getFunctionInfo(this.data.test).args.concat('assert', 'visit', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
           'window.onerror = function(m,_,_,_,e){if(!e)try{throw new Error(m)}catch(ex){e=ex};__exception(e);return true};\n' +
           '// ' + this.data.name.replace(/\r\n?|\n/g, '\\n') + '\n' +
           sourceUtils.getWrappedSource(source) +

@@ -12,19 +12,12 @@ var document = global.document;
 var checkDebugger = require('./check-debugger.js');
 var highlight = require('./highlight.js');
 var TestCase = require('runner.test').TestCase;
-var strDiff = require('diff');
-
+var processAnnotation = require('./annotations.js');
 
 //
 // Test source code view
 //
 
-function htmlEscape(str){
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
 
 var CodeView = Node.subclass({
   className: 'CodeView',
@@ -168,50 +161,18 @@ var CodeView = Node.subclass({
     else
     {
       var errorLines = this.data.errorLines;
+      var noLine = document.createElement('div');
+
+      // no line annotations
+      noLine.className = 'line';
+      lines.push(noLine);
+
       for (var lineNum in errorLines)
       {
         lines[lineNum].className += ' error-line';
         lines[lineNum].innerHTML +=
           '<div class="error-line-details">' +
-            errorLines[lineNum].map(function(lineError){
-              var diffType =
-                typeof lineError.expected == 'string' &&
-                typeof lineError.actual == 'string'
-                  ? 'diffChars'
-                  : 'diffWords';
-
-              var diff = strDiff[diffType](lineError.expectedStr, lineError.actualStr);
-              var expected = '';
-              var actual = '';
-
-              for (var i = 0, chunk; chunk = diff[i]; i++)
-              {
-                if (chunk.removed)
-                {
-                  expected += '<span class="diff-removed">' + htmlEscape(chunk.value) + '</span>';
-                  continue;
-                }
-
-                if (chunk.added)
-                {
-                  actual += '<span class="diff-added">' + htmlEscape(chunk.value) + '</span>';
-                  continue;
-                }
-
-                expected += htmlEscape(chunk.value);
-                actual += htmlEscape(chunk.value);
-              }
-
-              return (
-                '<div class="error-line-details-item" event-click="debug" data-debug="' + lineError.debug + '">' +
-                  '<span class="num">' + (lineError.num + 1) + '</span>' +
-                  '<span class="caption">Expected:</span>' +
-                  '<span class="expected">' + expected + '</span>' +
-                  '<span class="caption">Actual:</span>' +
-                  '<span class="actual">' + actual + '</span>' +
-                '</div>'
-              );
-            }).join('') +
+            errorLines[lineNum].map(processAnnotation).join('') +
           '</div>';
       }
     }

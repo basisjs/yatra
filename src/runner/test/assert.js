@@ -13,7 +13,8 @@ module.exports = function createAssert(scope, testCode, settings){
   var timeoutTimer;
   var async = settings.async ? 1 : 0;
   var asyncQueue = [];
-  var isNode = null;
+  var visitPoints = new scope.Array();
+  var assertNode = null;
   var isForNum = 0;
   var implicitCompare;
   var actual_;
@@ -54,6 +55,40 @@ module.exports = function createAssert(scope, testCode, settings){
     runDoneCallback(report);
   };
 
+  var addLineAnnotation = function(annotation){
+    var line = assertNode ? assertNode.line : 'noline';
+    var errors = report.errorLines[line];
+
+    if (!errors)
+      errors = report.errorLines[line] = [];
+
+    errors.push(annotation);
+  };
+
+  var visit = function(value){
+    visitPoints.push(value);
+  };
+  visit.reset = function(){
+    visitPoints.length = 0;
+  };
+  visit.wrong = function(){
+    report.testCount++;
+    addLineAnnotation({
+      type: 'message',
+      message: 'Shouldn\'t visit this place'
+    });
+  };
+  visit.wrap = function(host, method){
+    var fn = host[method];
+    host[method] = function(arg){
+      visit(arg);
+      return fn.apply(this, arguments);
+    };
+  };
+  visit.list = function(){
+    return visitPoints.slice();
+  };
+
   var assert = function(expected, actual, deep){
     var error;
 
@@ -78,25 +113,17 @@ module.exports = function createAssert(scope, testCode, settings){
 
     if (error)
     {
-      if (isNode)
-      {
-        var line = isNode.line;
-        var errors = report.errorLines[line];
-
-        if (!errors)
-          errors = report.errorLines[line] = [];
-
-        errors.push({
-          num: report.testCount,
-          debug: isForNum,
-          node: isNode,
-          error: error,
-          expected: utils.makeStaticCopy(expected),
-          expectedStr: utils.value2string(expected, false, deep),
-          actual: utils.makeStaticCopy(actual),
-          actualStr: utils.value2string(actual, false, deep)
-        });
-      }
+      addLineAnnotation({
+        type: 'compare',
+        num: report.testCount,
+        debug: isForNum,
+        node: assertNode,
+        error: error,
+        expected: utils.makeStaticCopy(expected),
+        expectedStr: utils.value2string(expected, false, deep),
+        actual: utils.makeStaticCopy(actual),
+        actualStr: utils.value2string(actual, false, deep)
+      });
     }
 
     implicitCompare = false;
@@ -108,6 +135,9 @@ module.exports = function createAssert(scope, testCode, settings){
   };
 
   assert.is = assert; // DEPRECATED: remove in future
+  assert.visited = function(expectedPoints){
+    assert.deep(expectedPoints, visitPoints);
+  };
   assert.deep = function(expected, actual){
     assert(expected, actual, true);
   };
@@ -139,7 +169,7 @@ module.exports = function createAssert(scope, testCode, settings){
 
   var __isFor = function(start, end, line){
     report.lastLine = line;
-    isNode = {
+    assertNode = {
       range: [start, end],
       line: line
     };
@@ -213,6 +243,7 @@ module.exports = function createAssert(scope, testCode, settings){
       var args = async ? [asyncDone] : [];
       args.push(
         assert,
+        visit,
         __isFor,
         __enterLine,
         __exception,

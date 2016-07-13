@@ -439,6 +439,95 @@
               }
             }
           ]
+        },
+        {
+          name: 'visitor',
+          test: [
+            {
+              name: 'should collect and check collected points',
+              test: function(){
+                function bar(){
+                  visit('bar');
+                }
+                function baz(){
+                  visit('baz');
+                }
+
+                visit('foo');
+                baz();
+
+                assert.visited(['foo', 'baz']);
+              }
+            },
+            {
+              name: 'reset visit points',
+              test: function(){
+                visit('foo');
+                assert.visited(['foo']);
+
+                visit.reset();
+                assert.visited([]);
+              }
+            },
+            {
+              name: 'assert on wrong visit',
+              test: function(){
+                function foo(){
+                  visit.wrong();
+                }
+
+                foo();
+
+                return new Promise(function(resolve, reject){
+                  reject(new Error('ok'));
+                }).then(function(){
+                  assert(true);
+                }, function(){
+                  visit.wrong();
+                });
+              }
+            },
+            {
+              name: 'assert on wrong visit as function',
+              test: function(){
+                var obj = {
+                  method: visit.wrong
+                };
+
+                obj.method();
+              }
+            },
+            {
+              name: 'visit as event listener',
+              test: function(){
+                var obj = {
+                  foo: function(obj){
+                    return obj;
+                  }
+                };
+
+                visit.wrap(obj, 'foo');
+
+                assert(obj.foo(1) === 1);
+                assert({ bar: 1 }, obj.foo({ bar: 1 }));
+
+                assert.visited([1, { bar: 1 }]);
+              }
+            },
+            {
+              name: 'visit.list() and visit.reset()',
+              test: function(){
+                visit({ foo: 'test' });
+                assert.deep([{ foo: 'test' }], visit.list());
+
+                visit.reset();
+                assert.deep([], visit.list());
+
+                assert.deep([1,2], [1,2]);
+                assert([1,2], [1,2]);
+              }
+            }
+          ]
         }
       ]
     });
