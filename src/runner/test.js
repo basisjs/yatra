@@ -247,7 +247,7 @@ var TestCase = AbstractTest.subclass({
 
       this.testWrappedSources[breakpointAt] =
         'function __yatra_test__(' + sourceUtils.getFunctionInfo(this.data.test).args.concat('assert', '__isFor', '__enterLine', '__exception', '__wrapFunctionExpression', '__actual', '__expected').join(', ') + '){\n' +
-          'window.onerror = function(m,_,_,_,e){if(!e)try{throw new Error(m)}catch(ex){e=ex};__exception(e)};\n' +
+          'window.onerror = function(m,_,_,_,e){if(!e)try{throw new Error(m)}catch(ex){e=ex};__exception(e);return true};\n' +
           '// ' + this.data.name.replace(/\r\n?|\n/g, '\\n') + '\n' +
           sourceUtils.getWrappedSource(source, breakpointAt) +
           (this.data.loc ? '\n//# sourceURL=' + location.protocol + '//' + location.host + this.data.loc : '') +
