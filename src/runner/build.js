@@ -1,10 +1,10 @@
-// This module uses for runner build.
+// this module uses for runner build
 var runner = require('runner');
 
-// Export runner to global scrope
+// export runner to global scope
 global.yatra = runner;
 
-// Try resolve base path to runner static files.
+// try resolve base path to runner static files
 runner.setup({
   baseURI: basis.path.dirname(basis.array(document.scripts).pop().src || '')
 });

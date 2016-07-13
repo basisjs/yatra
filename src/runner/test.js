@@ -7,9 +7,9 @@ var Split = require('basis.data.dataset').Split;
 var DomWrapperNode = require('basis.dom.wrapper').Node;
 var getTime = require('basis.utils.benchmark').time;
 
-var utils = require('./utils.js');
-var envFactory = require('./env.js');
-var sourceUtils = require('./source.js');
+var utils = require('./test/utils.js');
+var envFactory = require('./test/env.js');
+var sourceUtils = require('./test/source.js');
 
 var ERROR_TEST_FAULT = 'ERROR_TEST_FAULT';
 var ERROR_TEST_CRASH = 'ERROR_TEST_CRASH';
