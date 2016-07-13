@@ -1,3 +1,10 @@
+## 1.2.0 (July 13, 2016)
+
+- Support for `Promise` as result of test function (#6)
+- Rework timers and fix issue with race condition when using `setImmediate` polyfill (#3)
+- Implement `visit` API
+- Rework build and publish
+
 ## 1.1.0 (July 1, 2016)
 
 - Add stack trace for exception
