@@ -19,6 +19,6 @@ node_modules/
 build/
 phantom-*.*
 res/
-*.js
-*.css
-*.html
+/*.js
+/*.css
+/*.html
