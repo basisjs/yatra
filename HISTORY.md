@@ -1,3 +1,7 @@
+## 1.2.1 (July 15, 2016)
+
+- Fix issue with `assert.async()` called in next code frame, e.g. via `setTimeout()` (#7)
+
 ## 1.2.0 (July 13, 2016)
 
 - Support for `Promise` as result of test function (#6)

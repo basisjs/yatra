@@ -2,7 +2,7 @@
   "name": "yatra",
   "title": "Yatra",
   "description": "Yatra – user friendly unit-test runner",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Roman Dvornov <rdvornov@gmail.com>",
   "license": "MIT",
   "main": "src/reporter.html",
