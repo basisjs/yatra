@@ -11,6 +11,7 @@ module.exports = function createAssert(scope, testCode, settings){
   var time = NaN;
   var startTime;
   var timeoutTimer;
+  var processAsyncTimer;
   var async = settings.async ? 1 : 0;
   var asyncQueue = [];
   var visitPoints = new scope.Array();
@@ -39,6 +40,7 @@ module.exports = function createAssert(scope, testCode, settings){
   var testDone = function(error){
     time = getTime(startTime);
     timeoutTimer = scope.clearTimeout(timeoutTimer);
+    processAsyncTimer = scope.clearTimeout(processAsyncTimer);
     asyncQueue.length = 0;
     async = 0;
 
@@ -143,6 +145,7 @@ module.exports = function createAssert(scope, testCode, settings){
   };
   assert.async = function(fn){
     asyncQueue.push(fn);
+    __processAsync();
   };
   assert.exception =
   assert.throws = function(fn){
@@ -199,14 +202,19 @@ module.exports = function createAssert(scope, testCode, settings){
   var __processAsync = function(){
     if (asyncQueue.length)
     {
-      scope.setTimeout(function(){
+      if (processAsyncTimer)
+        return;
+
+      processAsyncTimer = scope.setTimeout(function(){
+        processAsyncTimer = undefined;
+
         try {
           asyncQueue.shift().call();
         } catch(e) {
           __exception(e);
-        } finally {
-          __processAsync();
         }
+
+        __processAsync();
       }, 0);
     }
     else if (async === 0)
@@ -272,7 +280,6 @@ module.exports = function createAssert(scope, testCode, settings){
       }
       else
       {
-        __processAsync();
         timeoutTimer = scope.setTimeout(function(){
           testDone(ERROR_TIMEOUT);
         }, settings.timeout || 250);
