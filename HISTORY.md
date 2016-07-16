@@ -1,3 +1,7 @@
+## 1.2.3 (July 16, 2016)
+
+- Fixed `assert.visited()` wrong failure for first test in just inited scope
+
 ## 1.2.2 (July 16, 2016)
 
 - Fixed issue with using as `node.js` module
