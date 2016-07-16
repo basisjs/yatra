@@ -1,3 +1,7 @@
+## 1.2.2 (July 16, 2016)
+
+- Fixed issue with using as `node.js` module
+
 ## 1.2.1 (July 15, 2016)
 
 - Fix issue with `assert.async()` called in next code frame, e.g. via `setTimeout()` (#7)
