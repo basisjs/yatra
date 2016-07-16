@@ -29,7 +29,9 @@ var Scope = Emitter.subclass({
   runInScope: null,
   runArgs: null,
 
-  Array: Array,
+  Array: function(){
+    throw new Error('Array() invoked before environment init');
+  },
   setTimeout: function(){
     throw new Error('setTimeout() invoked before environment init');
   },
@@ -80,6 +82,7 @@ var FrameEnv = Emitter.subclass({
     this.scopeClass = this.scopeClass.subclass();
     this.scopes = [];
     this.element = iframeProto.cloneNode(true);
+    this.element.name = basis.genUID(); // hope it prevents cache issues
     this.element.onload = this.ready_.bind(this);
     this.element.src = this.html && this.html != 'default'
       ? this.html

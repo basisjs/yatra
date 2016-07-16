@@ -14,7 +14,7 @@ module.exports = function createAssert(scope, testCode, settings){
   var processAsyncTimer;
   var async = settings.async ? 1 : 0;
   var asyncQueue = [];
-  var visitPoints = new scope.Array();
+  var visitPoints;
   var assertNode = null;
   var isForNum = 0;
   var implicitCompare;
@@ -260,10 +260,11 @@ module.exports = function createAssert(scope, testCode, settings){
         __expected
       );
 
+      visitPoints = new scope.Array();
+
       // run test
-      var testResult;
       try {
-        testResult = testFn.apply(assert, args);
+        var testResult = testFn.apply(assert, args);
 
         if (testResult && typeof testResult.then === 'function')
         {
