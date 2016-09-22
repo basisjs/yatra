@@ -116,21 +116,26 @@ var AbstractTest = DomWrapperNode.subclass({
         {
           this.scope = scope;
           this.env = scope.env;
-          return scope;
+          break;
         }
       }
     }
 
-    if (autocreate)
+    if (!this.scope && autocreate)
     {
       this.env = envFactory.get(this.getHtml(), this.data.init && !this.data.sandbox);
       this.scope = this.env.createScope(this.data.init);
+    }
 
+    if (this.env)
+    {
       this.env.addHandler({
+        fileChange: function(){
+          this.reset();
+        },
         destroy: function(){
           this.env = null;
           this.scope = null;
-          this.reset();
         }
       }, this);
     }
@@ -139,22 +144,14 @@ var AbstractTest = DomWrapperNode.subclass({
   },
   reset: function(){
     if (this.env)
-    {
       this.env.destroy();
-      this.env = null;
-      this.scope = null;
-    }
   },
 
   destroy: function(){
     DomWrapperNode.prototype.destroy.call(this);
 
     if (this.env)
-    {
       this.env.destroy();
-      this.env = null;
-      this.scope = null;
-    }
   }
 });
 

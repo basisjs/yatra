@@ -210,11 +210,10 @@ module.exports = function createAssert(scope, testCode, settings){
 
         try {
           asyncQueue.shift().call();
+          __processAsync();
         } catch(e) {
           __exception(e);
         }
-
-        __processAsync();
       }, 0);
     }
     else if (async === 0)
@@ -231,6 +230,7 @@ module.exports = function createAssert(scope, testCode, settings){
     if (!async && !asyncQueue.length)
       testDone();
   };
+
 
   var asyncDone = async
     ? basis.fn.runOnce(__asyncDone)
