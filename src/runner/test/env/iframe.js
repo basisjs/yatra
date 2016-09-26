@@ -1,3 +1,4 @@
+var event = require('basis.event');
 var Emitter = require('basis.event').Emitter;
 var fnInfo = require('../source/info.js');
 
@@ -24,6 +25,8 @@ iframeProto.setAttribute('style', [
 ].join(';'));
 
 var Scope = Emitter.subclass({
+  className: 'Scope',
+
   env: null,
   initCode: '',
   runInScope: null,
@@ -68,13 +71,18 @@ var Scope = Emitter.subclass({
     this.env = null;
     this.runArgs = null;
     this.runInScope = null;
+    this.initCode = null;
   }
 });
 
 var FrameEnv = Emitter.subclass({
+  className: 'FrameEnv',
+
   html: null,
 
   scopeClass: Scope,
+
+  emit_fileChange: event.create('fileChange'),
 
   init: function(){
     Emitter.prototype.init.call(this);
@@ -96,10 +104,8 @@ var FrameEnv = Emitter.subclass({
 
     runInContext(frameWindow, require('./iframe_inject.code'));
 
-    this.createScope_ = frameWindow.__initTestEnvironment(function(){
-      // env deprecates
-      this.destroy();
-    }.bind(this));
+    this.createScope_ = frameWindow.__initTestEnvironment(this.emit_fileChange.bind(this));
+
     this.scopeClass.extend({
       Array: frameWindow.Array,
       setTimeout: wrapToRunInContext(frameWindow.setTimeout, frameWindow),
@@ -132,11 +138,16 @@ var FrameEnv = Emitter.subclass({
       this.element.parentNode.removeChild(this.element);
     this.element = null;
 
+    basis.object.splice(this.scopeClass.prototype, ['Array', 'setTimeout', 'clearTimeout']);
+
     this.createScope_ = null;
     this.scopes.forEach(function(scope){
       scope.destroy();
     });
     this.scopes = null;
+
+    if (this.html)
+      this.html = null;
   }
 });
 
