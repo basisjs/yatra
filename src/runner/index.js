@@ -81,31 +81,6 @@ var doneTests = new Subset({
     }
   }
 });
-var doneTestsAndSuites = new Subset({
-  source: new Extract({
-    source: testsToRun,
-    rule: function(test){
-      return test.parentNode || test;
-    }
-  }),
-  ruleEvents: 'stateChanged',
-  rule: function(test){
-    return test.state == STATE.ERROR || test.state == STATE.READY;
-  },
-  handler: {
-    itemsChanged: function(sender, delta){
-      if (delta.inserted)
-        delta.inserted.forEach(function(test){
-          if (test.hasOwnEnvironment())
-          {
-            var env = test.getEnv();
-            if (env && !fileSync.value)
-              env.destroy();
-          }
-        });
-    }
-  }
-});
 var faultTests = new Subset({
   source: doneTests,
   ruleEvents: 'stateChanged',
@@ -136,6 +111,34 @@ var processingQueueTop = new Slice({
         });
     }
   }
+});
+
+var doneTestCasesAndSuites = new Subset({
+  source: new Extract({
+    rule: function(test){
+      return test.parentNode || test;
+    }
+  }),
+  ruleEvents: 'stateChanged',
+  rule: function(test){
+    return test.state == STATE.ERROR || test.state == STATE.READY;
+  },
+  handler: {
+    itemsChanged: function(sender, delta){
+      if (delta.inserted)
+        delta.inserted.forEach(function(test){
+          if (test.hasOwnEnvironment())
+          {
+            var env = test.getEnv();
+            if (env)
+              env.destroy();
+          }
+        });
+    }
+  }
+});
+fileSync.link(null, function(value){
+  doneTestCasesAndSuites.source.setSource(value ? null : testsToRun);
 });
 
 var assertCount = sum(testsToRun, 'stateChanged', function(test){
