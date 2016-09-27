@@ -24,7 +24,7 @@ function findTest(test, filename){
     }
 }
 
-function loadTests(data, autorun, fileSync, notifyLoaderFunction){
+function loadTests(data, autorun, notifyLoaderFunction, fileSync){
   if (Array.isArray(data))
     data = { test: data };
 
@@ -154,7 +154,7 @@ else
             /** @cut */ var testLoadTime = benchmark.time();
 
             contentWindow.loadTests(function(data, feedback){
-              loadTests(data, params.autorun, params.fileSync, feedback);
+              loadTests(data, params.autorun, feedback, params.fileSync);
             });
 
             /** @cut */basis.dev.info('Timing:\n' +
