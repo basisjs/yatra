@@ -146,8 +146,7 @@ var FrameEnv = Emitter.subclass({
     });
     this.scopes = null;
 
-    if (this.html)
-      this.html = null;
+    this.html = null;
   }
 });
 
