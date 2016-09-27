@@ -4,6 +4,7 @@ var DataObject = require('basis.data').Object;
 var Dataset = require('basis.data').Dataset;
 var Expression = require('basis.data.value').Expression;
 var Subset = require('basis.data.dataset').Filter;
+var Extract = require('basis.data.dataset').Extract;
 var Slice = require('basis.data.dataset').Slice;
 var count = require('basis.data.index').count;
 var sum = require('basis.data.index').sum;
@@ -12,6 +13,7 @@ var TestCase = require('./test.js').TestCase;
 var TestSuite = require('./test.js').TestSuite;
 var createTest = require('./test.js').create;
 
+var fileSync = new Value({ value: false });
 var runnerState = new basis.Token('stopped');
 var notifier = new basis.Token();
 var elapsedTime = new Value({ value: 0 });
@@ -111,6 +113,35 @@ var processingQueueTop = new Slice({
   }
 });
 
+// destroy env when test case/suite is done
+new Subset({
+  source: new Extract({
+    source: fileSync.as(function(value){
+      return value ? null : testsToRun;
+    }),
+    rule: function(test){
+      return test.parentNode || test;
+    }
+  }),
+  ruleEvents: 'stateChanged',
+  rule: function(test){
+    return test.state == STATE.ERROR || test.state == STATE.READY;
+  },
+  handler: {
+    itemsChanged: function(sender, delta){
+      if (delta.inserted)
+        delta.inserted.forEach(function(test){
+          if (test.hasOwnEnvironment())
+          {
+            var env = test.getEnv();
+            if (env)
+              env.destroy();
+          }
+        });
+    }
+  }
+});
+
 var assertCount = sum(testsToRun, 'stateChanged', function(test){
   if (test.state.data instanceof DataObject)
     return test.state.data.data.testCount;
@@ -194,10 +225,7 @@ function run(){
 
   // reset test state
   testsToRun.forEach(function(item){
-    // destroy environment
-    var env = item.getEnv();
-    if (env)
-      env.destroy();
+    item.reset();
   });
 
   // add test to processing queue
@@ -228,6 +256,7 @@ basis.config.runnerBaseURI = '';
 // exports
 //
 module.exports = {
+  fileSync: fileSync,
   state: runnerState,
   time: elapsedTime,
   doneTests: doneTests,
