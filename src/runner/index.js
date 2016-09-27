@@ -113,8 +113,12 @@ var processingQueueTop = new Slice({
   }
 });
 
-var doneTestCasesAndSuites = new Subset({
+// destroy env when test case/suite is done
+new Subset({
   source: new Extract({
+    source: fileSync.as(function(value){
+      return value ? null : testsToRun;
+    }),
     rule: function(test){
       return test.parentNode || test;
     }
@@ -136,9 +140,6 @@ var doneTestCasesAndSuites = new Subset({
         });
     }
   }
-});
-fileSync.link(null, function(value){
-  doneTestCasesAndSuites.source.setSource(value ? null : testsToRun);
 });
 
 var assertCount = sum(testsToRun, 'stateChanged', function(test){
