@@ -5,6 +5,8 @@ var ERROR_TEST_FAULT = 'ERROR_TEST_FAULT';
 var ERROR_TEST_CRASH = 'ERROR_TEST_CRASH';
 var ERROR_TIMEOUT = 'ERROR_TIMEOUT';
 
+var DEFAULT_TIMEOUT = 250;
+
 module.exports = function createAssert(scope, testCode, settings){
   // var warnMessages = [];
   // var errorMessages = [];
@@ -200,6 +202,8 @@ module.exports = function createAssert(scope, testCode, settings){
   };
 
   var __processAsync = function(){
+    scope.clearTimeout(timeoutTimer);
+
     if (asyncQueue.length)
     {
       if (processAsyncTimer)
@@ -219,6 +223,12 @@ module.exports = function createAssert(scope, testCode, settings){
     else if (async === 0)
     {
       testDone();
+    }
+    else
+    {
+      timeoutTimer = scope.setTimeout(function(){
+        testDone(ERROR_TIMEOUT);
+      }, settings.timeout || DEFAULT_TIMEOUT);
     }
   };
 
@@ -275,15 +285,16 @@ module.exports = function createAssert(scope, testCode, settings){
         return __exception(e);
       }
 
-      if (!async && !asyncQueue.length)
+      if (!asyncQueue.length)
       {
-        testDone();
-      }
-      else
-      {
-        timeoutTimer = scope.setTimeout(function(){
-          testDone(ERROR_TIMEOUT);
-        }, settings.timeout || 250);
+        if (async)
+        {
+          timeoutTimer = scope.setTimeout(function(){
+            testDone(ERROR_TIMEOUT);
+          }, settings.timeout || DEFAULT_TIMEOUT);
+        }
+        else
+          testDone();
       }
     });
   };
