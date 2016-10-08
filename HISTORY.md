@@ -1,3 +1,8 @@
+## 1.3.0 (October 8, 2016)
+
+- Implemented test environment destroy when test is done and file syncing is switched off (#10, @wuzyk)
+- Fixed issue with nested `assert.async()` fails on low CPU (#13, @wuzyk)
+
 ## 1.2.3 (July 16, 2016)
 
 - Fixed `assert.visited()` wrong failure for first test in just inited scope
