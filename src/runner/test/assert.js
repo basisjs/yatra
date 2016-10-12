@@ -279,7 +279,7 @@ module.exports = function createAssert(scope, testCode, settings){
         if (testResult && typeof testResult.then === 'function')
         {
           async++;
-          testResult.then(__asyncDone, __asyncDone);
+          testResult.then(__asyncDone, __exception);
         }
       } catch(e) {
         return __exception(e);
