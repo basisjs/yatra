@@ -5,10 +5,14 @@ function __initTestEnvironment(deprecateTestEnvironment){
       if (typeof basis == 'undefined')
         return; // no basis.js available
 
-      if (type == 'update' && (
-            (basis.filename_ == filename) ||
-            (basis.resource && basis.resource.exists(filename))
-         ))
+      if (type != 'update')
+        return;
+
+      if ((basis.filename_ == filename) ||
+          (basis.resource &&
+           basis.resource.isResolved(filename) &&
+           basis.resource(filename).hasChanges())
+         )
         deprecateTestEnvironment();
     });
 
