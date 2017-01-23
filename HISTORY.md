@@ -1,3 +1,8 @@
+## 1.4.0 (January 23, 2017)
+
+- Consider promise rejection as an exception (#15)
+- Fixed issue with aggressive test suite re-run on any file update from basis.js dev-server
+
 ## 1.3.0 (October 8, 2016)
 
 - Implemented test environment destroy when test is done and file syncing is switched off (#10, @wuzyk)
