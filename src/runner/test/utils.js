@@ -41,11 +41,9 @@ function value2string(value, linear, deep){
       var valueStr = String(value);
 
       if (linear)
-      {
         return value.expression
           ? valueStr.replace(/=>(.*)$/, '=> ..')
           : valueStr.replace(/\{([\r\n]|.)*\}/, '{..}');
-      }
 
       return valueStr;
 
