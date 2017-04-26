@@ -38,8 +38,15 @@ function value2string(value, linear, deep){
       if (value.originalFn_)
         value = value.originalFn_;
 
-      value = String(value);
-      return !linear ? value : value.replace(/\{([\r\n]|.)*\}/, '{..}');
+      var valueStr = String(value);
+
+      if (linear) {
+        if (value.expression)
+          return valueStr.replace(/=>(.*)$/, '=> ..');
+        return valueStr.replace(/\{([\r\n]|.)*\}/, '{..}');
+      }
+
+      return valueStr;
 
     case 'object':
       if (value === null)

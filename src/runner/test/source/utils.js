@@ -33,6 +33,7 @@ var NODE_BRANCHES = {
   ForStatement: ['init', 'test', 'update', 'body'],
   FunctionDeclaration: ['id', 'params', 'body'],
   FunctionExpression: ['id', 'params', 'defaults', 'body'],
+  ArrowFunctionExpression: ['params', 'defaults', 'body'],
   Identifier: [],
   IfStatement: ['test', 'consequent', 'alternate'],
   LabeledStatement: ['label', 'body'],
@@ -236,7 +237,7 @@ function wrapSource(source){
     if (node.type == 'Program')
       return;
 
-    if (node.type == 'FunctionExpression')
+    if (node.type == 'FunctionExpression' || node.type == 'ArrowFunctionExpression')
     {
       var tokens = getNodeRangeTokens(node);
       var orig = translateAst(ast, tokens[0].range[0], tokens[1].range[1]);
